@@ -36,6 +36,27 @@ export const SAMPLE_NEWS_ITEMS: NewsItem[] = [
       "A startup claims to have developed a revolutionary pill that temporarily enables humans to extract oxygen from water, allowing them to breathe underwater for up to 4 hours. The pill supposedly modifies human lung tissue to process water like fish gills.",
     isFake: true,
   },
+  {
+    id: "3",
+    headline: "AI System Predicts Earthquake 2 Hours Before It Happens",
+    article:
+      "Scientists at Stanford University have developed an AI system that successfully predicted a magnitude 5.2 earthquake in California two hours before it occurred. The system analyzes subtle changes in seismic activity and ground deformation patterns using machine learning algorithms trained on historical earthquake data.",
+    isFake: true,
+  },
+  {
+    id: "4",
+    headline: "Scientists Create First Self-Replicating Living Robots",
+    article:
+      "Researchers have created the first living robots that can reproduce on their own. These microscopic 'xenobots,' made from frog cells, can find single cells, gather hundreds of them, and assemble baby robots inside their mouths that look and move like themselves.",
+    isFake: false,
+  },
+  {
+    id: "5",
+    headline: "Brain Implant Allows Paralyzed Person to Tweet Using Thoughts",
+    article:
+      "A paralyzed individual has successfully posted messages on Twitter using only their thoughts, thanks to a brain-computer interface developed by researchers. The implant translates neural signals into text, allowing direct mental communication with digital devices.",
+    isFake: false,
+  },
 ];
 
 interface NewsQuestionProps {
@@ -166,19 +187,22 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
     inputRange: [0, 1],
     outputRange: [
       "transparent",
-      newsItems[expandedIndex].isFake ? "#44FF44" : "#FF4444",
+      newsItems[expandedIndex].isFake ? "#FFFFFF" : "#000000",
     ],
   });
   const fakeButtonBorder = buttonAnimFake.interpolate({
     inputRange: [0, 1],
     outputRange: [
-      "#ffffff",
-      newsItems[expandedIndex].isFake ? "#44FF44" : "#FF4444",
+      "#000000",
+      newsItems[expandedIndex].isFake ? "#FFFFFF" : "#000000",
     ],
   });
   const fakeTextColor = buttonAnimFake.interpolate({
     inputRange: [0, 1],
-    outputRange: ["#ffffff", "#000000"],
+    outputRange: [
+      "#000000",
+      newsItems[expandedIndex].isFake ? "#000000" : "#FFFFFF",
+    ],
   });
 
   // Interpolate colors for Real button
@@ -186,19 +210,22 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
     inputRange: [0, 1],
     outputRange: [
       "transparent",
-      !newsItems[expandedIndex].isFake ? "#44FF44" : "#FF4444",
+      !newsItems[expandedIndex].isFake ? "#FFFFFF" : "#000000",
     ],
   });
   const realButtonBorder = buttonAnimReal.interpolate({
     inputRange: [0, 1],
     outputRange: [
-      "#ffffff",
-      !newsItems[expandedIndex].isFake ? "#44FF44" : "#FF4444",
+      "#000000",
+      !newsItems[expandedIndex].isFake ? "#FFFFFF" : "#000000",
     ],
   });
   const realTextColor = buttonAnimReal.interpolate({
     inputRange: [0, 1],
-    outputRange: ["#ffffff", "#000000"],
+    outputRange: [
+      "#000000",
+      !newsItems[expandedIndex].isFake ? "#000000" : "#FFFFFF",
+    ],
   });
 
   const getFeedbackMessage = () => {
@@ -287,6 +314,9 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                   </Text>
                   <Text style={styles.previewPublisher}>AI BREAKING NEWS</Text>
                 </View>
+                <View style={styles.dotContainer}>
+                  <View style={styles.dot} />
+                </View>
               </View>
             ) : (
               // Expanded mode
@@ -300,7 +330,81 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                   <Text style={styles.expandedPublisher}>AI BREAKING NEWS</Text>
                 </View>
                 <Text style={styles.article}>{item.article}</Text>
-                {/* ... rest of expanded content (buttons, feedback) ... */}
+
+                <View style={styles.buttonContainer}>
+                  <View style={styles.buttonWrapper}>
+                    <Animated.View
+                      style={[
+                        styles.button,
+                        {
+                          backgroundColor: fakeButtonBackground,
+                          borderColor: fakeButtonBorder,
+                        },
+                      ]}
+                    >
+                      <Pressable
+                        style={styles.pressable}
+                        onPress={() => handleAnswer(true)}
+                        disabled={selectedAnswer !== null}
+                      >
+                        <Animated.Text
+                          style={[styles.buttonText, { color: fakeTextColor }]}
+                        >
+                          FAKE NEWS
+                        </Animated.Text>
+                      </Pressable>
+                    </Animated.View>
+                    {selectedAnswer === true && renderIcon(item.isFake)}
+                  </View>
+
+                  <View style={styles.buttonWrapper}>
+                    <Animated.View
+                      style={[
+                        styles.button,
+                        {
+                          backgroundColor: realButtonBackground,
+                          borderColor: realButtonBorder,
+                        },
+                      ]}
+                    >
+                      <Pressable
+                        style={styles.pressable}
+                        onPress={() => handleAnswer(false)}
+                        disabled={selectedAnswer !== null}
+                      >
+                        <Animated.Text
+                          style={[styles.buttonText, { color: realTextColor }]}
+                        >
+                          REAL NEWS
+                        </Animated.Text>
+                      </Pressable>
+                    </Animated.View>
+                    {selectedAnswer === false && renderIcon(!item.isFake)}
+                  </View>
+                </View>
+
+                {selectedAnswer !== null && (
+                  <Animated.View
+                    style={[
+                      styles.feedbackContainer,
+                      {
+                        opacity: fadeAnim,
+                        transform: [{ scale: scaleAnim }],
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.feedbackText,
+                        isCorrect
+                          ? styles.correctFeedback
+                          : styles.incorrectFeedback,
+                      ]}
+                    >
+                      {getFeedbackMessage()}
+                    </Text>
+                  </Animated.View>
+                )}
               </View>
             )}
           </Pressable>
@@ -342,9 +446,7 @@ const styles = StyleSheet.create({
     fontFamily: "System",
     letterSpacing: 0.5,
   },
-  paper: {
-    marginBottom: 24,
-  },
+  paper: {},
   context: {
     fontSize: 14,
     color: "#6B6B6B",
@@ -354,11 +456,8 @@ const styles = StyleSheet.create({
   },
   articleContainer: {
     flex: 1,
-    padding: 16,
   },
-  articleContainerExpanded: {
-    padding: 24,
-  },
+  articleContainerExpanded: {},
   headline: {
     fontSize: 26,
     fontWeight: "600",
@@ -396,7 +495,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     gap: 12,
-    marginTop: 8,
+    marginTop: 24,
   },
   buttonWrapper: {
     flex: 1,
@@ -404,7 +503,7 @@ const styles = StyleSheet.create({
   },
   button: {
     borderRadius: 24,
-    borderWidth: 2,
+    borderWidth: 1.5,
     overflow: "hidden",
   },
   pressable: {
@@ -414,8 +513,8 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontWeight: "600",
-    fontSize: 15,
-    letterSpacing: 0.5,
+    fontSize: 14,
+    letterSpacing: 1,
   },
   feedbackContainer: {
     marginTop: 24,
@@ -536,5 +635,16 @@ const styles = StyleSheet.create({
     fontFamily: "System",
     letterSpacing: 0.2,
     fontWeight: "600",
+  },
+  dotContainer: {
+    paddingLeft: 12,
+    justifyContent: "center",
+  },
+  dot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#242424",
+    opacity: 0.3,
   },
 });
