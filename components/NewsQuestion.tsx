@@ -7,6 +7,7 @@ import {
   Animated,
   SafeAreaView,
   Image,
+  ScrollView,
 } from "react-native";
 import { format } from "date-fns";
 import { Feather } from "@expo/vector-icons";
@@ -112,6 +113,12 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
     ]).start();
   };
 
+  const handleArticleSelect = (index: number) => {
+    if (selectedAnswer === null) {
+      setCurrentIndex(index);
+    }
+  };
+
   // Interpolate colors for Fake button
   const fakeButtonBackground = buttonAnimFake.interpolate({
     inputRange: [0, 1],
@@ -178,7 +185,7 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
+      <ScrollView style={styles.container}>
         <Text style={styles.date}>{format(new Date(), "MMMM d, yyyy")}</Text>
 
         <View style={styles.paper}>
@@ -270,7 +277,37 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
             )}
           </View>
         </View>
-      </View>
+
+        <View style={styles.previewList}>
+          {newsItems.map((item, index) => {
+            if (index === currentIndex) return null;
+
+            return (
+              <Pressable
+                key={item.id}
+                style={[styles.previewItem]}
+                onPress={() => handleArticleSelect(index)}
+                disabled={selectedAnswer !== null}
+              >
+                <View style={styles.previewContent}>
+                  <Image
+                    source={require("../assets/icon.png")}
+                    style={styles.previewIcon}
+                  />
+                  <View style={styles.previewTextContainer}>
+                    <Text numberOfLines={2} style={styles.previewHeadline}>
+                      {item.headline}
+                    </Text>
+                    <Text style={styles.previewPublisher}>
+                      AI BREAKING NEWS
+                    </Text>
+                  </View>
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -408,5 +445,46 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 4,
+  },
+  previewList: {
+    marginTop: 20,
+    gap: 12,
+  },
+  previewItem: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  previewContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  previewIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  previewTextContainer: {
+    flex: 1,
+  },
+  previewHeadline: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#242424",
+    lineHeight: 22,
+  },
+  previewPublisher: {
+    fontSize: 12,
+    color: "#6B6B6B",
+    marginTop: 4,
   },
 });
