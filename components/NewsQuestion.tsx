@@ -8,6 +8,9 @@ import {
   SafeAreaView,
   Image,
   ScrollView,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from "react-native";
 import { format } from "date-fns";
 import { Feather } from "@expo/vector-icons";
@@ -17,6 +20,9 @@ interface NewsItem {
   headline: string;
   article: string;
   isFake: boolean;
+  answered?: {
+    wasCorrect: boolean;
+  };
 }
 
 export const SAMPLE_NEWS_ITEMS: NewsItem[] = [
@@ -64,55 +70,39 @@ interface NewsQuestionProps {
   onAnswer: (isCorrect: boolean) => void;
 }
 
+const TIMING_CONFIG = {
+  duration: 200,
+  useNativeDriver: true,
+};
+
+// Enable LayoutAnimation for Android
+if (Platform.OS === "android") {
+  if (UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
+}
+
 export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
   const [expandedIndex, setExpandedIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<boolean | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
-  // Simplified animation values
+  // Remove height animations, keep other animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const buttonAnim = useRef(new Animated.Value(0)).current;
   const iconAnim = useRef(new Animated.Value(0)).current;
 
-  // Animation configuration
-  const TIMING_CONFIG = {
-    duration: 200,
-    useNativeDriver: true,
-  };
-
-  // Create animation values for each article
-  const articleAnimations = useRef(
-    newsItems.map((_, index) => ({
-      height: new Animated.Value(index === 0 ? 400 : 80),
-      scale: new Animated.Value(1),
-    }))
-  ).current;
-
-  // No need for initial animation since we set initial values correctly
-  useEffect(() => {
-    // Optional: Add any initial setup here
-  }, []);
-
   const handleArticleSelect = (index: number) => {
     if (selectedAnswer !== null) return;
 
-    const currentArticle = articleAnimations[expandedIndex];
-    const newArticle = articleAnimations[index];
-
-    Animated.parallel([
-      // Close current article
-      Animated.timing(currentArticle.height, {
-        toValue: 80,
-        duration: 200,
-        useNativeDriver: false,
-      }),
-      // Open new article
-      Animated.timing(newArticle.height, {
-        toValue: 400,
-        duration: 200,
-        useNativeDriver: false,
-      }),
-    ]).start();
+    // Configure the animation
+    LayoutAnimation.configureNext(
+      LayoutAnimation.create(
+        200, // duration
+        LayoutAnimation.Types.easeInEaseOut,
+        LayoutAnimation.Properties.opacity
+      )
+    );
 
     setExpandedIndex(index);
   };
@@ -122,6 +112,11 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
     setSelectedAnswer(selectedFake);
     setIsCorrect(correct);
     onAnswer(correct);
+
+    // Store the answer in the newsItem
+    newsItems[expandedIndex].answered = {
+      wasCorrect: correct,
+    };
 
     // Single animation sequence for feedback
     Animated.parallel([
@@ -191,42 +186,18 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
 
   const renderArticle = (item: NewsItem, index: number) => {
     const isExpanded = index === expandedIndex;
-    const animations = articleAnimations[index];
-
-    const animatedStyle = {
-      transform: [{ scale: animations.scale }],
-    };
-
-    const animatedHeight = {
-      height: animations.height,
-    };
 
     return (
-      <Animated.View
-        key={item.id}
-        style={[
-          styles.articleWrapper,
-          animatedHeight,
-          {
-            marginBottom: 12,
-            transform: [{ translateY: 0 }],
-          },
-        ]}
-      >
-        <Animated.View
-          style={[
-            styles.articleContent,
-            animatedStyle,
-            { transform: [{ translateY: 0 }] },
-          ]}
-        >
+      <View key={item.id}>
+        {index > 0 && <View style={styles.divider} />}
+        <View style={styles.articleWrapper}>
           <Pressable
             style={[
               styles.articleContainer,
               isExpanded && styles.articleContainerExpanded,
             ]}
             onPress={() => handleArticleSelect(index)}
-            disabled={selectedAnswer !== null}
+            disabled={selectedAnswer !== null && isExpanded}
           >
             {!isExpanded ? (
               // Preview mode
@@ -242,7 +213,15 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                   <Text style={styles.previewPublisher}>AI BREAKING NEWS</Text>
                 </View>
                 <View style={styles.dotContainer}>
-                  <View style={styles.dot} />
+                  <View
+                    style={[
+                      styles.dot,
+                      item.answered &&
+                        (item.answered.wasCorrect
+                          ? styles.correctDot
+                          : styles.incorrectDot),
+                    ]}
+                  />
                 </View>
               </View>
             ) : (
@@ -337,8 +316,8 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
               </View>
             )}
           </Pressable>
-        </Animated.View>
-      </Animated.View>
+        </View>
+      </View>
     );
   };
 
@@ -381,8 +360,11 @@ const styles = StyleSheet.create({
   },
   articleContainer: {
     flex: 1,
+    overflow: "hidden", // Ensure content doesn't overflow during animation
   },
-  articleContainerExpanded: {},
+  articleContainerExpanded: {
+    paddingVertical: 8,
+  },
   headline: {
     fontSize: 26,
     fontWeight: "600",
@@ -478,7 +460,6 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   previewList: {
-    marginTop: 20,
     gap: 12,
   },
   previewItem: {
@@ -529,15 +510,10 @@ const styles = StyleSheet.create({
       width: 0,
       height: 1,
     },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.04,
     shadowRadius: 2,
-    elevation: 2,
+    elevation: 1,
     overflow: "hidden",
-    backfaceVisibility: "hidden", // Improve performance
-  },
-  articleContent: {
-    flex: 1,
-    backfaceVisibility: "hidden", // Improve performance
   },
   expandedContent: {
     padding: 24,
@@ -571,5 +547,19 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     backgroundColor: "#242424",
     opacity: 0.3,
+  },
+  correctDot: {
+    backgroundColor: "#03A678",
+    opacity: 1,
+  },
+  incorrectDot: {
+    backgroundColor: "#E15554",
+    opacity: 1,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#000000",
+    marginVertical: 8,
+    opacity: 0.03,
   },
 });
