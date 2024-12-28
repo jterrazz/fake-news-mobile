@@ -63,6 +63,27 @@ export const SAMPLE_NEWS_ITEMS: NewsItem[] = [
       "A paralyzed individual has successfully posted messages on Twitter using only their thoughts, thanks to a brain-computer interface developed by researchers. The implant translates neural signals into text, allowing direct mental communication with digital devices.",
     isFake: false,
   },
+  {
+    id: "6",
+    headline: "New AI-Powered Drug Can Cure Cancer in 24 Hours",
+    article:
+      "A groundbreaking drug developed by MIT researchers can cure cancer in just 24 hours, thanks to an AI-powered drug design system. The drug targets the specific genetic mutation responsible for the disease, effectively eliminating it without causing harm to healthy cells.",
+    isFake: true,
+  },
+  {
+    id: "7",
+    headline: "New AI-Powered Drug Can Cure Cancer in 24 Hours",
+    article:
+      "A groundbreaking drug developed by MIT researchers can cure cancer in just 24 hours, thanks to an AI-powered drug design system. The drug targets the specific genetic mutation responsible for the disease, effectively eliminating it without causing harm to healthy cells.",
+    isFake: true,
+  },
+  {
+    id: "8",
+    headline: "New AI-Powered Drug Can Cure Cancer in 24 Hours",
+    article:
+      "A groundbreaking drug developed by MIT researchers can cure cancer in just 24 hours, thanks to an AI-powered drug design system. The drug targets the specific genetic mutation responsible for the disease, effectively eliminating it without causing harm to healthy cells.",
+    isFake: true,
+  },
 ];
 
 interface NewsQuestionProps {
@@ -324,6 +345,15 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container}>
+        <Text style={styles.publicationTitle}>THE DAILY AI</Text>
+        <View style={styles.tabContainer}>
+          <Pressable style={[styles.tab, styles.tabActive]}>
+            <Text style={[styles.tabText, styles.tabTextActive]}>Latest</Text>
+          </Pressable>
+          <Pressable style={styles.tab}>
+            <Text style={styles.tabText}>New</Text>
+          </Pressable>
+        </View>
         <Text style={styles.date}>{format(new Date(), "MMMM d, yyyy")}</Text>
         <View style={styles.articlesList}>
           {newsItems.map((item, index) => renderArticle(item, index))}
@@ -341,29 +371,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FFFFFF",
-    padding: 20,
+    padding: 24,
   },
   date: {
     color: "#6B6B6B",
     fontSize: 14,
-    marginBottom: 24,
+    marginTop: 24,
+    marginBottom: 8,
     fontFamily: "System",
     letterSpacing: 0.5,
   },
-  paper: {},
-  context: {
-    fontSize: 14,
-    color: "#6B6B6B",
-    marginBottom: 16,
-    fontFamily: "System",
-    letterSpacing: 0.3,
-  },
   articleContainer: {
     flex: 1,
-    overflow: "hidden", // Ensure content doesn't overflow during animation
+    paddingVertical: 16,
   },
   articleContainerExpanded: {
-    paddingVertical: 8,
+    paddingVertical: 24,
   },
   headline: {
     fontSize: 26,
@@ -373,11 +396,6 @@ const styles = StyleSheet.create({
     lineHeight: 34,
     letterSpacing: 0.2,
     fontFamily: "System",
-  },
-  publisherContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
   },
   publisherIcon: {
     width: 20,
@@ -411,7 +429,6 @@ const styles = StyleSheet.create({
   button: {
     borderRadius: 24,
     borderWidth: 1.5,
-    overflow: "hidden",
   },
   pressable: {
     width: "100%",
@@ -499,21 +516,9 @@ const styles = StyleSheet.create({
     color: "#6B6B6B",
     marginTop: 4,
   },
-  articlesList: {
-    gap: 12,
-  },
+  articlesList: {},
   articleWrapper: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 8,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.04,
-    shadowRadius: 2,
     elevation: 1,
-    overflow: "hidden",
   },
   expandedContent: {
     padding: 24,
@@ -559,7 +564,38 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: "#000000",
-    marginVertical: 8,
     opacity: 0.03,
+  },
+  publicationTitle: {
+    fontSize: 32,
+    fontFamily: "System",
+    fontWeight: "700",
+    textAlign: "center",
+    color: "#000000",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  tabContainer: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 24,
+  },
+  tab: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: "#F5F5F5",
+  },
+  tabActive: {
+    backgroundColor: "#000000",
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#6B6B6B",
+  },
+  tabTextActive: {
+    color: "#FFFFFF",
   },
 });
