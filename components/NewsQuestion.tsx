@@ -344,7 +344,7 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container}>
+      <View style={styles.header}>
         <Text style={styles.publicationTitle}>THE DAILY AI</Text>
         <View style={styles.tabContainer}>
           <Pressable style={[styles.tab, styles.tabActive]}>
@@ -354,6 +354,8 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
             <Text style={styles.tabText}>New</Text>
           </Pressable>
         </View>
+      </View>
+      <ScrollView style={styles.container}>
         <Text style={styles.date}>{format(new Date(), "MMMM d, yyyy")}</Text>
         <View style={styles.articlesList}>
           {newsItems.map((item, index) => renderArticle(item, index))}
@@ -368,10 +370,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFFFFF",
   },
+  header: {
+    backgroundColor: "#FFFFFF",
+    padding: 24,
+    paddingBottom: 0,
+  },
   container: {
     flex: 1,
     backgroundColor: "#FFFFFF",
     padding: 24,
+    paddingTop: 0,
   },
   date: {
     color: "#6B6B6B",
