@@ -69,18 +69,21 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
   const [selectedAnswer, setSelectedAnswer] = useState<boolean | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
-  // Animation values
+  // Simplified animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.95)).current;
-  const buttonAnimFake = useRef(new Animated.Value(0)).current;
-  const buttonAnimReal = useRef(new Animated.Value(0)).current;
-  const iconScaleAnim = useRef(new Animated.Value(0)).current;
+  const buttonAnim = useRef(new Animated.Value(0)).current;
+  const iconAnim = useRef(new Animated.Value(0)).current;
+
+  // Animation configuration
+  const TIMING_CONFIG = {
+    duration: 200,
+    useNativeDriver: true,
+  };
 
   // Create animation values for each article
   const articleAnimations = useRef(
     newsItems.map((_, index) => ({
-      height: new Animated.Value(index === 0 ? 400 : 80), // First article expanded
-      opacity: new Animated.Value(1), // All articles visible initially
+      height: new Animated.Value(index === 0 ? 400 : 80),
       scale: new Animated.Value(1),
     }))
   ).current;
@@ -90,62 +93,6 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
     // Optional: Add any initial setup here
   }, []);
 
-  const handleAnswer = (selectedFake: boolean) => {
-    const correct = selectedFake === newsItems[expandedIndex].isFake;
-    setSelectedAnswer(selectedFake);
-    setIsCorrect(correct);
-    onAnswer(correct);
-
-    // Faster animations for feedback
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 200, // Faster fade
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 200,
-        friction: 15,
-        useNativeDriver: true,
-      }),
-      Animated.timing(buttonAnimFake, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: false,
-      }),
-      Animated.timing(buttonAnimReal, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: false,
-      }),
-      Animated.sequence([
-        Animated.delay(100), // Shorter delay
-        Animated.spring(iconScaleAnim, {
-          toValue: 1,
-          tension: 200,
-          friction: 15,
-          useNativeDriver: true,
-        }),
-      ]),
-    ]).start();
-
-    // Shorter timeout for next question
-    setTimeout(() => {
-      if (expandedIndex < newsItems.length - 1) {
-        setExpandedIndex(expandedIndex + 1);
-        setSelectedAnswer(null);
-        setIsCorrect(null);
-        // Reset animations
-        fadeAnim.setValue(0);
-        scaleAnim.setValue(0.95);
-        buttonAnimFake.setValue(0);
-        buttonAnimReal.setValue(0);
-        iconScaleAnim.setValue(0);
-      }
-    }, 1500); // Shorter delay before next question
-  };
-
   const handleArticleSelect = (index: number) => {
     if (selectedAnswer !== null) return;
 
@@ -154,27 +101,15 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
 
     Animated.parallel([
       // Close current article
-      Animated.spring(currentArticle.scale, {
-        toValue: 0.98,
-        tension: 200, // Increased tension
-        friction: 15,
-        useNativeDriver: true,
-      }),
       Animated.timing(currentArticle.height, {
         toValue: 80,
-        duration: 200, // Faster duration
+        duration: 200,
         useNativeDriver: false,
       }),
       // Open new article
-      Animated.spring(newArticle.scale, {
-        toValue: 1,
-        tension: 200, // Increased tension
-        friction: 15,
-        useNativeDriver: true,
-      }),
       Animated.timing(newArticle.height, {
         toValue: 400,
-        duration: 200, // Faster duration
+        duration: 200,
         useNativeDriver: false,
       }),
     ]).start();
@@ -182,75 +117,67 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
     setExpandedIndex(index);
   };
 
-  // Interpolate colors for Fake button
-  const fakeButtonBackground = buttonAnimFake.interpolate({
-    inputRange: [0, 1],
-    outputRange: [
-      "transparent",
-      newsItems[expandedIndex].isFake ? "#FFFFFF" : "#000000",
-    ],
-  });
-  const fakeButtonBorder = buttonAnimFake.interpolate({
-    inputRange: [0, 1],
-    outputRange: [
-      "#000000",
-      newsItems[expandedIndex].isFake ? "#FFFFFF" : "#000000",
-    ],
-  });
-  const fakeTextColor = buttonAnimFake.interpolate({
-    inputRange: [0, 1],
-    outputRange: [
-      "#000000",
-      newsItems[expandedIndex].isFake ? "#000000" : "#FFFFFF",
-    ],
-  });
+  const handleAnswer = (selectedFake: boolean) => {
+    const correct = selectedFake === newsItems[expandedIndex].isFake;
+    setSelectedAnswer(selectedFake);
+    setIsCorrect(correct);
+    onAnswer(correct);
 
-  // Interpolate colors for Real button
-  const realButtonBackground = buttonAnimReal.interpolate({
-    inputRange: [0, 1],
-    outputRange: [
-      "transparent",
-      !newsItems[expandedIndex].isFake ? "#FFFFFF" : "#000000",
-    ],
-  });
-  const realButtonBorder = buttonAnimReal.interpolate({
-    inputRange: [0, 1],
-    outputRange: [
-      "#000000",
-      !newsItems[expandedIndex].isFake ? "#FFFFFF" : "#000000",
-    ],
-  });
-  const realTextColor = buttonAnimReal.interpolate({
-    inputRange: [0, 1],
-    outputRange: [
-      "#000000",
-      !newsItems[expandedIndex].isFake ? "#000000" : "#FFFFFF",
-    ],
-  });
+    // Single animation sequence for feedback
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        ...TIMING_CONFIG,
+      }),
+      Animated.timing(buttonAnim, {
+        toValue: 1,
+        ...TIMING_CONFIG,
+      }),
+      Animated.sequence([
+        Animated.delay(100),
+        Animated.timing(iconAnim, {
+          toValue: 1,
+          ...TIMING_CONFIG,
+        }),
+      ]),
+    ]).start();
 
-  const getFeedbackMessage = () => {
-    if (isCorrect === null) return "";
-    if (isCorrect)
-      return (
-        "Bravo ! C'était effectivement " +
-        (newsItems[expandedIndex].isFake
-          ? "une fake news"
-          : "une vraie information")
-      );
-    return (
-      "Dommage ! C'était " +
-      (newsItems[expandedIndex].isFake
-        ? "une fake news"
-        : "une vraie information")
-    );
+    // Move to next question
+    setTimeout(() => {
+      if (expandedIndex < newsItems.length - 1) {
+        handleArticleSelect(expandedIndex + 1);
+        setSelectedAnswer(null);
+        setIsCorrect(null);
+        // Reset animations
+        fadeAnim.setValue(0);
+        buttonAnim.setValue(0);
+        iconAnim.setValue(0);
+      }
+    }, 1500);
   };
+
+  // Simplified button animations
+  const getButtonStyle = (isFake: boolean, isCorrect: boolean | null) => ({
+    backgroundColor: buttonAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: ["transparent", isCorrect ? "#FFFFFF" : "#000000"],
+    }),
+    borderColor: "#000000",
+  });
+
+  const getTextStyle = (isCorrect: boolean | null) => ({
+    color: buttonAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: ["#000000", isCorrect ? "#000000" : "#FFFFFF"],
+    }),
+  });
 
   const renderIcon = (isCorrect: boolean) => (
     <Animated.View
       style={[
         styles.iconContainer,
         {
-          transform: [{ scale: iconScaleAnim }],
+          transform: [{ scale: iconAnim }],
         },
       ]}
     >
@@ -336,10 +263,7 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                     <Animated.View
                       style={[
                         styles.button,
-                        {
-                          backgroundColor: fakeButtonBackground,
-                          borderColor: fakeButtonBorder,
-                        },
+                        getButtonStyle(item.isFake, isCorrect),
                       ]}
                     >
                       <Pressable
@@ -348,7 +272,7 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                         disabled={selectedAnswer !== null}
                       >
                         <Animated.Text
-                          style={[styles.buttonText, { color: fakeTextColor }]}
+                          style={[styles.buttonText, getTextStyle(isCorrect)]}
                         >
                           FAKE NEWS
                         </Animated.Text>
@@ -361,10 +285,7 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                     <Animated.View
                       style={[
                         styles.button,
-                        {
-                          backgroundColor: realButtonBackground,
-                          borderColor: realButtonBorder,
-                        },
+                        getButtonStyle(!item.isFake, isCorrect),
                       ]}
                     >
                       <Pressable
@@ -373,7 +294,7 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                         disabled={selectedAnswer !== null}
                       >
                         <Animated.Text
-                          style={[styles.buttonText, { color: realTextColor }]}
+                          style={[styles.buttonText, getTextStyle(isCorrect)]}
                         >
                           REAL NEWS
                         </Animated.Text>
@@ -389,7 +310,7 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                       styles.feedbackContainer,
                       {
                         opacity: fadeAnim,
-                        transform: [{ scale: scaleAnim }],
+                        transform: [{ scale: buttonAnim }],
                       },
                     ]}
                   >
@@ -401,7 +322,15 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                           : styles.incorrectFeedback,
                       ]}
                     >
-                      {getFeedbackMessage()}
+                      {isCorrect
+                        ? "Bravo ! C'était effectivement " +
+                          (item.isFake
+                            ? "une fake news"
+                            : "une vraie information")
+                        : "Dommage ! C'était " +
+                          (item.isFake
+                            ? "une fake news"
+                            : "une vraie information")}
                     </Text>
                   </Animated.View>
                 )}
@@ -415,11 +344,7 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView
-        style={styles.container}
-        scrollEventThrottle={16} // Optimize scroll performance
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView style={styles.container}>
         <Text style={styles.date}>{format(new Date(), "MMMM d, yyyy")}</Text>
         <View style={styles.articlesList}>
           {newsItems.map((item, index) => renderArticle(item, index))}
