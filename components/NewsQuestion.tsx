@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { format } from "date-fns";
 import { Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 
 interface NewsItem {
   id: string;
@@ -355,12 +356,20 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
           </Pressable>
         </View>
       </View>
-      <ScrollView style={styles.container}>
-        <Text style={styles.date}>{format(new Date(), "MMMM d, yyyy")}</Text>
-        <View style={styles.articlesList}>
-          {newsItems.map((item, index) => renderArticle(item, index))}
-        </View>
-      </ScrollView>
+      <View style={styles.scrollContainer}>
+        <ScrollView style={styles.container}>
+          <Text style={styles.date}>{format(new Date(), "MMMM d, yyyy")}</Text>
+          <View style={styles.articlesList}>
+            {newsItems.map((item, index) => renderArticle(item, index))}
+          </View>
+          <View style={styles.bottomSpacer} />
+        </ScrollView>
+        <LinearGradient
+          colors={["rgba(255,255,255,0)", "rgba(255,255,255,1)"]}
+          style={styles.fadeGradient}
+          pointerEvents="none"
+        />
+      </View>
     </SafeAreaView>
   );
 }
@@ -605,5 +614,20 @@ const styles = StyleSheet.create({
   },
   tabTextActive: {
     color: "#FFFFFF",
+  },
+  scrollContainer: {
+    flex: 1,
+    position: "relative",
+  },
+  bottomSpacer: {
+    height: 100, // Adjust this value based on your navbar height
+  },
+  fadeGradient: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 100, // Adjust the height of the fade effect
+    zIndex: 1,
   },
 });
