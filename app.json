@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Capitaine",
-    "slug": "Capitaine",
+    "name": "Fake News",
+    "slug": "FakeNews",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,16 +13,22 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.FakeNews",
+      "publishBundlePath": "ios/bundle"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.anonymous.FakeNews"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "updates": {
+      "enabled": false
     }
   }
 }

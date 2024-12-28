@@ -12,18 +12,38 @@ import { format } from "date-fns";
 import { Feather } from "@expo/vector-icons";
 
 interface NewsItem {
-  real_context: string;
+  id: string;
   headline: string;
   article: string;
   isFake: boolean;
 }
 
+export const SAMPLE_NEWS_ITEMS: NewsItem[] = [
+  {
+    id: "1",
+    headline:
+      "Scientists Discover Trees Can Communicate Through Underground Network",
+    article:
+      "Researchers have found that trees communicate and share resources through an underground fungal network, dubbed the 'Wood Wide Web'. This network allows trees to share nutrients and send warning signals about environmental changes and threats.",
+    isFake: false,
+  },
+  {
+    id: "2",
+    headline:
+      "New Technology Allows Humans to Breathe Underwater Without Equipment",
+    article:
+      "A startup claims to have developed a revolutionary pill that temporarily enables humans to extract oxygen from water, allowing them to breathe underwater for up to 4 hours. The pill supposedly modifies human lung tissue to process water like fish gills.",
+    isFake: true,
+  },
+];
+
 interface NewsQuestionProps {
-  newsItem: NewsItem;
+  newsItems: NewsItem[];
   onAnswer: (isCorrect: boolean) => void;
 }
 
-export function NewsQuestion({ newsItem, onAnswer }: NewsQuestionProps) {
+export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<boolean | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
@@ -34,11 +54,28 @@ export function NewsQuestion({ newsItem, onAnswer }: NewsQuestionProps) {
   const buttonAnimReal = useRef(new Animated.Value(0)).current;
   const iconScaleAnim = useRef(new Animated.Value(0)).current;
 
+  const currentNewsItem = newsItems[currentIndex];
+
   const handleAnswer = (selectedFake: boolean) => {
-    const correct = selectedFake === newsItem.isFake;
+    const correct = selectedFake === currentNewsItem.isFake;
     setSelectedAnswer(selectedFake);
     setIsCorrect(correct);
     onAnswer(correct);
+
+    // After animation completion, move to next question
+    setTimeout(() => {
+      if (currentIndex < newsItems.length - 1) {
+        setCurrentIndex(currentIndex + 1);
+        setSelectedAnswer(null);
+        setIsCorrect(null);
+        // Reset animations
+        fadeAnim.setValue(0);
+        scaleAnim.setValue(0.95);
+        buttonAnimFake.setValue(0);
+        buttonAnimReal.setValue(0);
+        iconScaleAnim.setValue(0);
+      }
+    }, 2000);
 
     // Trigger animations
     Animated.parallel([
@@ -78,11 +115,14 @@ export function NewsQuestion({ newsItem, onAnswer }: NewsQuestionProps) {
   // Interpolate colors for Fake button
   const fakeButtonBackground = buttonAnimFake.interpolate({
     inputRange: [0, 1],
-    outputRange: ["transparent", newsItem.isFake ? "#44FF44" : "#FF4444"],
+    outputRange: [
+      "transparent",
+      currentNewsItem.isFake ? "#44FF44" : "#FF4444",
+    ],
   });
   const fakeButtonBorder = buttonAnimFake.interpolate({
     inputRange: [0, 1],
-    outputRange: ["#ffffff", newsItem.isFake ? "#44FF44" : "#FF4444"],
+    outputRange: ["#ffffff", currentNewsItem.isFake ? "#44FF44" : "#FF4444"],
   });
   const fakeTextColor = buttonAnimFake.interpolate({
     inputRange: [0, 1],
@@ -92,11 +132,14 @@ export function NewsQuestion({ newsItem, onAnswer }: NewsQuestionProps) {
   // Interpolate colors for Real button
   const realButtonBackground = buttonAnimReal.interpolate({
     inputRange: [0, 1],
-    outputRange: ["transparent", !newsItem.isFake ? "#44FF44" : "#FF4444"],
+    outputRange: [
+      "transparent",
+      !currentNewsItem.isFake ? "#44FF44" : "#FF4444",
+    ],
   });
   const realButtonBorder = buttonAnimReal.interpolate({
     inputRange: [0, 1],
-    outputRange: ["#ffffff", !newsItem.isFake ? "#44FF44" : "#FF4444"],
+    outputRange: ["#ffffff", !currentNewsItem.isFake ? "#44FF44" : "#FF4444"],
   });
   const realTextColor = buttonAnimReal.interpolate({
     inputRange: [0, 1],
@@ -108,11 +151,11 @@ export function NewsQuestion({ newsItem, onAnswer }: NewsQuestionProps) {
     if (isCorrect)
       return (
         "Bravo ! C'était effectivement " +
-        (newsItem.isFake ? "une fake news" : "une vraie information")
+        (currentNewsItem.isFake ? "une fake news" : "une vraie information")
       );
     return (
       "Dommage ! C'était " +
-      (newsItem.isFake ? "une fake news" : "une vraie information")
+      (currentNewsItem.isFake ? "une fake news" : "une vraie information")
     );
   };
 
@@ -139,9 +182,8 @@ export function NewsQuestion({ newsItem, onAnswer }: NewsQuestionProps) {
         <Text style={styles.date}>{format(new Date(), "MMMM d, yyyy")}</Text>
 
         <View style={styles.paper}>
-          <Text style={styles.context}>{newsItem.real_context}</Text>
           <View style={styles.articleContainer}>
-            <Text style={styles.headline}>{newsItem.headline}</Text>
+            <Text style={styles.headline}>{currentNewsItem.headline}</Text>
             <View style={styles.publisherContainer}>
               <Image
                 source={require("../assets/icon.png")}
@@ -149,82 +191,85 @@ export function NewsQuestion({ newsItem, onAnswer }: NewsQuestionProps) {
               />
               <Text style={styles.publisher}>AI BREAKING NEWS</Text>
             </View>
-            <Text style={styles.article}>{newsItem.article}</Text>
+            <Text style={styles.article}>{currentNewsItem.article}</Text>
+
+            <View style={styles.buttonContainer}>
+              <View style={styles.buttonWrapper}>
+                <Animated.View
+                  style={[
+                    styles.button,
+                    {
+                      backgroundColor: fakeButtonBackground,
+                      borderColor: fakeButtonBorder,
+                    },
+                  ]}
+                >
+                  <Pressable
+                    style={styles.pressable}
+                    onPress={() => handleAnswer(true)}
+                    disabled={selectedAnswer !== null}
+                  >
+                    <Animated.Text
+                      style={[styles.buttonText, { color: fakeTextColor }]}
+                    >
+                      FAKE NEWS
+                    </Animated.Text>
+                  </Pressable>
+                </Animated.View>
+                {selectedAnswer === true && renderIcon(currentNewsItem.isFake)}
+              </View>
+
+              <View style={styles.buttonWrapper}>
+                <Animated.View
+                  style={[
+                    styles.button,
+                    {
+                      backgroundColor: realButtonBackground,
+                      borderColor: realButtonBorder,
+                    },
+                  ]}
+                >
+                  <Pressable
+                    style={styles.pressable}
+                    onPress={() => handleAnswer(false)}
+                    disabled={selectedAnswer !== null}
+                  >
+                    <Animated.Text
+                      style={[styles.buttonText, { color: realTextColor }]}
+                    >
+                      REAL NEWS
+                    </Animated.Text>
+                  </Pressable>
+                </Animated.View>
+                {selectedAnswer === false &&
+                  renderIcon(!currentNewsItem.isFake)}
+              </View>
+            </View>
+
+            {selectedAnswer !== null && (
+              <Animated.View
+                style={[
+                  styles.feedbackContainer,
+                  {
+                    opacity: fadeAnim,
+                    transform: [{ scale: scaleAnim }],
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.feedbackText,
+                    isCorrect
+                      ? styles.correctFeedback
+                      : styles.incorrectFeedback,
+                  ]}
+                >
+                  {getFeedbackMessage()}
+                </Text>
+              </Animated.View>
+            )}
           </View>
         </View>
-
-        <View style={styles.buttonContainer}>
-          <View style={styles.buttonWrapper}>
-            <Animated.View
-              style={[
-                styles.button,
-                {
-                  backgroundColor: fakeButtonBackground,
-                  borderColor: fakeButtonBorder,
-                },
-              ]}
-            >
-              <Pressable
-                style={styles.pressable}
-                onPress={() => handleAnswer(true)}
-                disabled={selectedAnswer !== null}
-              >
-                <Animated.Text
-                  style={[styles.buttonText, { color: fakeTextColor }]}
-                >
-                  FAKE NEWS
-                </Animated.Text>
-              </Pressable>
-            </Animated.View>
-            {selectedAnswer === true && renderIcon(newsItem.isFake)}
-          </View>
-
-          <View style={styles.buttonWrapper}>
-            <Animated.View
-              style={[
-                styles.button,
-                {
-                  backgroundColor: realButtonBackground,
-                  borderColor: realButtonBorder,
-                },
-              ]}
-            >
-              <Pressable
-                style={styles.pressable}
-                onPress={() => handleAnswer(false)}
-                disabled={selectedAnswer !== null}
-              >
-                <Animated.Text
-                  style={[styles.buttonText, { color: realTextColor }]}
-                >
-                  REAL NEWS
-                </Animated.Text>
-              </Pressable>
-            </Animated.View>
-            {selectedAnswer === false && renderIcon(!newsItem.isFake)}
-          </View>
-        </View>
-
-        {selectedAnswer !== null && (
-          <Animated.View
-            style={[
-              styles.feedbackContainer,
-              {
-                opacity: fadeAnim,
-                transform: [{ scale: scaleAnim }],
-              },
-            ]}
-          >
-            <Text
-              style={[
-                styles.feedbackText,
-                isCorrect ? styles.correctFeedback : styles.incorrectFeedback,
-              ]}
-            >
-              {getFeedbackMessage()}
-            </Text>
-          </Animated.View>
-        )}
       </View>
     </SafeAreaView>
   );
