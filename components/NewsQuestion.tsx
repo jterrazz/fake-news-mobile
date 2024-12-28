@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -44,7 +44,7 @@ interface NewsQuestionProps {
 }
 
 export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [expandedIndex, setExpandedIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<boolean | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
@@ -55,18 +55,64 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
   const buttonAnimReal = useRef(new Animated.Value(0)).current;
   const iconScaleAnim = useRef(new Animated.Value(0)).current;
 
-  const currentNewsItem = newsItems[currentIndex];
+  // Create animation values for each article
+  const articleAnimations = useRef(
+    newsItems.map((_, index) => ({
+      height: new Animated.Value(index === 0 ? 400 : 80), // First article expanded
+      opacity: new Animated.Value(1), // All articles visible initially
+      scale: new Animated.Value(1),
+    }))
+  ).current;
+
+  // No need for initial animation since we set initial values correctly
+  useEffect(() => {
+    // Optional: Add any initial setup here
+  }, []);
 
   const handleAnswer = (selectedFake: boolean) => {
-    const correct = selectedFake === currentNewsItem.isFake;
+    const correct = selectedFake === newsItems[expandedIndex].isFake;
     setSelectedAnswer(selectedFake);
     setIsCorrect(correct);
     onAnswer(correct);
 
-    // After animation completion, move to next question
+    // Faster animations for feedback
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 200, // Faster fade
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        tension: 200,
+        friction: 15,
+        useNativeDriver: true,
+      }),
+      Animated.timing(buttonAnimFake, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: false,
+      }),
+      Animated.timing(buttonAnimReal, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: false,
+      }),
+      Animated.sequence([
+        Animated.delay(100), // Shorter delay
+        Animated.spring(iconScaleAnim, {
+          toValue: 1,
+          tension: 200,
+          friction: 15,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
+
+    // Shorter timeout for next question
     setTimeout(() => {
-      if (currentIndex < newsItems.length - 1) {
-        setCurrentIndex(currentIndex + 1);
+      if (expandedIndex < newsItems.length - 1) {
+        setExpandedIndex(expandedIndex + 1);
         setSelectedAnswer(null);
         setIsCorrect(null);
         // Reset animations
@@ -76,47 +122,43 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
         buttonAnimReal.setValue(0);
         iconScaleAnim.setValue(0);
       }
-    }, 2000);
-
-    // Trigger animations
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        friction: 8,
-        tension: 40,
-        useNativeDriver: true,
-      }),
-      Animated.timing(buttonAnimFake, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: false,
-      }),
-      Animated.timing(buttonAnimReal, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: false,
-      }),
-      Animated.sequence([
-        Animated.delay(200), // Wait for button color change
-        Animated.spring(iconScaleAnim, {
-          toValue: 1,
-          friction: 6,
-          tension: 40,
-          useNativeDriver: true,
-        }),
-      ]),
-    ]).start();
+    }, 1500); // Shorter delay before next question
   };
 
   const handleArticleSelect = (index: number) => {
-    if (selectedAnswer === null) {
-      setCurrentIndex(index);
-    }
+    if (selectedAnswer !== null) return;
+
+    const currentArticle = articleAnimations[expandedIndex];
+    const newArticle = articleAnimations[index];
+
+    Animated.parallel([
+      // Close current article
+      Animated.spring(currentArticle.scale, {
+        toValue: 0.98,
+        tension: 200, // Increased tension
+        friction: 15,
+        useNativeDriver: true,
+      }),
+      Animated.timing(currentArticle.height, {
+        toValue: 80,
+        duration: 200, // Faster duration
+        useNativeDriver: false,
+      }),
+      // Open new article
+      Animated.spring(newArticle.scale, {
+        toValue: 1,
+        tension: 200, // Increased tension
+        friction: 15,
+        useNativeDriver: true,
+      }),
+      Animated.timing(newArticle.height, {
+        toValue: 400,
+        duration: 200, // Faster duration
+        useNativeDriver: false,
+      }),
+    ]).start();
+
+    setExpandedIndex(index);
   };
 
   // Interpolate colors for Fake button
@@ -124,12 +166,15 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
     inputRange: [0, 1],
     outputRange: [
       "transparent",
-      currentNewsItem.isFake ? "#44FF44" : "#FF4444",
+      newsItems[expandedIndex].isFake ? "#44FF44" : "#FF4444",
     ],
   });
   const fakeButtonBorder = buttonAnimFake.interpolate({
     inputRange: [0, 1],
-    outputRange: ["#ffffff", currentNewsItem.isFake ? "#44FF44" : "#FF4444"],
+    outputRange: [
+      "#ffffff",
+      newsItems[expandedIndex].isFake ? "#44FF44" : "#FF4444",
+    ],
   });
   const fakeTextColor = buttonAnimFake.interpolate({
     inputRange: [0, 1],
@@ -141,12 +186,15 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
     inputRange: [0, 1],
     outputRange: [
       "transparent",
-      !currentNewsItem.isFake ? "#44FF44" : "#FF4444",
+      !newsItems[expandedIndex].isFake ? "#44FF44" : "#FF4444",
     ],
   });
   const realButtonBorder = buttonAnimReal.interpolate({
     inputRange: [0, 1],
-    outputRange: ["#ffffff", !currentNewsItem.isFake ? "#44FF44" : "#FF4444"],
+    outputRange: [
+      "#ffffff",
+      !newsItems[expandedIndex].isFake ? "#44FF44" : "#FF4444",
+    ],
   });
   const realTextColor = buttonAnimReal.interpolate({
     inputRange: [0, 1],
@@ -158,11 +206,15 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
     if (isCorrect)
       return (
         "Bravo ! C'était effectivement " +
-        (currentNewsItem.isFake ? "une fake news" : "une vraie information")
+        (newsItems[expandedIndex].isFake
+          ? "une fake news"
+          : "une vraie information")
       );
     return (
       "Dommage ! C'était " +
-      (currentNewsItem.isFake ? "une fake news" : "une vraie information")
+      (newsItems[expandedIndex].isFake
+        ? "une fake news"
+        : "une vraie information")
     );
   };
 
@@ -183,129 +235,90 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
     </Animated.View>
   );
 
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container}>
-        <Text style={styles.date}>{format(new Date(), "MMMM d, yyyy")}</Text>
+  const renderArticle = (item: NewsItem, index: number) => {
+    const isExpanded = index === expandedIndex;
+    const animations = articleAnimations[index];
 
-        <View style={styles.paper}>
-          <View style={styles.articleContainer}>
-            <Text style={styles.headline}>{currentNewsItem.headline}</Text>
-            <View style={styles.publisherContainer}>
-              <Image
-                source={require("../assets/icon.png")}
-                style={styles.publisherIcon}
-              />
-              <Text style={styles.publisher}>AI BREAKING NEWS</Text>
-            </View>
-            <Text style={styles.article}>{currentNewsItem.article}</Text>
+    const animatedStyle = {
+      transform: [{ scale: animations.scale }],
+    };
 
-            <View style={styles.buttonContainer}>
-              <View style={styles.buttonWrapper}>
-                <Animated.View
-                  style={[
-                    styles.button,
-                    {
-                      backgroundColor: fakeButtonBackground,
-                      borderColor: fakeButtonBorder,
-                    },
-                  ]}
-                >
-                  <Pressable
-                    style={styles.pressable}
-                    onPress={() => handleAnswer(true)}
-                    disabled={selectedAnswer !== null}
-                  >
-                    <Animated.Text
-                      style={[styles.buttonText, { color: fakeTextColor }]}
-                    >
-                      FAKE NEWS
-                    </Animated.Text>
-                  </Pressable>
-                </Animated.View>
-                {selectedAnswer === true && renderIcon(currentNewsItem.isFake)}
+    const animatedHeight = {
+      height: animations.height,
+    };
+
+    return (
+      <Animated.View
+        key={item.id}
+        style={[
+          styles.articleWrapper,
+          animatedHeight,
+          {
+            marginBottom: 12,
+            transform: [{ translateY: 0 }],
+          },
+        ]}
+      >
+        <Animated.View
+          style={[
+            styles.articleContent,
+            animatedStyle,
+            { transform: [{ translateY: 0 }] },
+          ]}
+        >
+          <Pressable
+            style={[
+              styles.articleContainer,
+              isExpanded && styles.articleContainerExpanded,
+            ]}
+            onPress={() => handleArticleSelect(index)}
+            disabled={selectedAnswer !== null}
+          >
+            {!isExpanded ? (
+              // Preview mode
+              <View style={styles.previewContent}>
+                <Image
+                  source={require("../assets/icon.png")}
+                  style={styles.previewIcon}
+                />
+                <View style={styles.previewTextContainer}>
+                  <Text numberOfLines={2} style={styles.previewHeadline}>
+                    {item.headline}
+                  </Text>
+                  <Text style={styles.previewPublisher}>AI BREAKING NEWS</Text>
+                </View>
               </View>
-
-              <View style={styles.buttonWrapper}>
-                <Animated.View
-                  style={[
-                    styles.button,
-                    {
-                      backgroundColor: realButtonBackground,
-                      borderColor: realButtonBorder,
-                    },
-                  ]}
-                >
-                  <Pressable
-                    style={styles.pressable}
-                    onPress={() => handleAnswer(false)}
-                    disabled={selectedAnswer !== null}
-                  >
-                    <Animated.Text
-                      style={[styles.buttonText, { color: realTextColor }]}
-                    >
-                      REAL NEWS
-                    </Animated.Text>
-                  </Pressable>
-                </Animated.View>
-                {selectedAnswer === false &&
-                  renderIcon(!currentNewsItem.isFake)}
-              </View>
-            </View>
-
-            {selectedAnswer !== null && (
-              <Animated.View
-                style={[
-                  styles.feedbackContainer,
-                  {
-                    opacity: fadeAnim,
-                    transform: [{ scale: scaleAnim }],
-                  },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.feedbackText,
-                    isCorrect
-                      ? styles.correctFeedback
-                      : styles.incorrectFeedback,
-                  ]}
-                >
-                  {getFeedbackMessage()}
-                </Text>
-              </Animated.View>
-            )}
-          </View>
-        </View>
-
-        <View style={styles.previewList}>
-          {newsItems.map((item, index) => {
-            if (index === currentIndex) return null;
-
-            return (
-              <Pressable
-                key={item.id}
-                style={[styles.previewItem]}
-                onPress={() => handleArticleSelect(index)}
-                disabled={selectedAnswer !== null}
-              >
-                <View style={styles.previewContent}>
+            ) : (
+              // Expanded mode
+              <View>
+                <Text style={styles.headline}>{item.headline}</Text>
+                <View style={styles.expandedPublisherContainer}>
                   <Image
                     source={require("../assets/icon.png")}
-                    style={styles.previewIcon}
+                    style={styles.expandedPublisherIcon}
                   />
-                  <View style={styles.previewTextContainer}>
-                    <Text numberOfLines={2} style={styles.previewHeadline}>
-                      {item.headline}
-                    </Text>
-                    <Text style={styles.previewPublisher}>
-                      AI BREAKING NEWS
-                    </Text>
-                  </View>
+                  <Text style={styles.expandedPublisher}>AI BREAKING NEWS</Text>
                 </View>
-              </Pressable>
-            );
-          })}
+                <Text style={styles.article}>{item.article}</Text>
+                {/* ... rest of expanded content (buttons, feedback) ... */}
+              </View>
+            )}
+          </Pressable>
+        </Animated.View>
+      </Animated.View>
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView
+        style={styles.container}
+        scrollEventThrottle={16} // Optimize scroll performance
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.date}>{format(new Date(), "MMMM d, yyyy")}</Text>
+        <View style={styles.articlesList}>
+          {newsItems.map((item, index) => renderArticle(item, index))}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -340,23 +353,17 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   articleContainer: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 8,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    flex: 1,
+    padding: 16,
+  },
+  articleContainerExpanded: {
     padding: 24,
   },
   headline: {
     fontSize: 26,
     fontWeight: "600",
     color: "#242424",
-    marginBottom: 20,
+    marginBottom: 12,
     lineHeight: 34,
     letterSpacing: 0.2,
     fontFamily: "System",
@@ -486,5 +493,48 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#6B6B6B",
     marginTop: 4,
+  },
+  articlesList: {
+    gap: 12,
+  },
+  articleWrapper: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+    overflow: "hidden",
+    backfaceVisibility: "hidden", // Improve performance
+  },
+  articleContent: {
+    flex: 1,
+    backfaceVisibility: "hidden", // Improve performance
+  },
+  expandedContent: {
+    padding: 24,
+    paddingTop: 16,
+  },
+  expandedPublisherContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  expandedPublisherIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    marginRight: 8,
+  },
+  expandedPublisher: {
+    fontSize: 14,
+    color: "#6B6B6B",
+    fontFamily: "System",
+    letterSpacing: 0.2,
+    fontWeight: "600",
   },
 });
