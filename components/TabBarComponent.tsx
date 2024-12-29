@@ -12,12 +12,12 @@ import {
   NavigationHelpers,
 } from "@react-navigation/native";
 import { BottomTabNavigationEventMap } from "@react-navigation/bottom-tabs";
-import { AntDesign } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 export const routes = {
   home: { name: "Home", icon: "home" },
-  feed: { name: "Feed", icon: "bars" },
-  profile: { name: "Profile", icon: "user" },
-  settings: { name: "Settings", icon: "setting" },
+  feed: { name: "Feed", icon: "newspaper-variant" },
+  profile: { name: "Profile", icon: "account" },
+  settings: { name: "Settings", icon: "cog" },
 };
 type Props = {
   state: TabNavigationState<ParamListBase>;
@@ -29,7 +29,7 @@ const { width } = Dimensions.get("window");
 
 // 20 on each side for absolute positioning of the tab bar
 // 20 on each side for the internal padding
-const TAB_WIDTH = (width - 40 * 2) / 4;
+const TAB_WIDTH = (width - 34 * 2) / 3;
 
 export const TabBarComponent = ({ state, navigation, descriptors }: Props) => {
   const translateX = useSharedValue(0);
@@ -38,7 +38,7 @@ export const TabBarComponent = ({ state, navigation, descriptors }: Props) => {
   const handleAnimate = (index: number) => {
     "worklet";
     translateX.value = withTiming(index * TAB_WIDTH, {
-      duration: 1000,
+      duration: 170,
     });
   };
   useEffect(() => {
@@ -99,10 +99,10 @@ export const TabBarComponent = ({ state, navigation, descriptors }: Props) => {
             onLongPress={onLongPress}
             style={styles.item}
           >
-            <AntDesign
+            <MaterialCommunityIcons
               name={icon}
               size={24}
-              color={isFocused ? "#A9A9A9" : "black"}
+              color={isFocused ? "white" : "black"}
             />
           </Pressable>
         );
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     backgroundColor: "black",
     zIndex: 0,
     position: "absolute",
-    marginHorizontal: 20,
+    marginHorizontal: 10,
     borderRadius: 20,
   },
   item: {

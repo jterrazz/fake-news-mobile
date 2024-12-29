@@ -21,15 +21,15 @@ export const TabBar = ({
 
 const styles = StyleSheet.create({
   tabBarStyle: {
-    backgroundColor: "rgba(240, 240, 240, 0.95)",
+    backgroundColor: "rgba(240, 240, 240, 0.97)",
     flexDirection: "row",
     position: "absolute",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    bottom: 40, // here you can use the bottom inset for more flexbility
-    left: 20,
-    right: 20,
+    paddingHorizontal: 10,
+    bottom: 48, // here you can use the bottom inset for more flexbility
+    left: 24,
+    right: 24,
     height: 60,
     flex: 1,
     elevation: 0,
