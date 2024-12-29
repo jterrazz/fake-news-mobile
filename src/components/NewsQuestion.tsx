@@ -225,7 +225,7 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
               // Preview mode
               <View style={styles.previewContent}>
                 <Image
-                  source={require("../assets/icon.png")}
+                  source={require("../../assets/icon.png")}
                   style={styles.previewIcon}
                 />
                 <View style={styles.previewTextContainer}>
@@ -252,7 +252,7 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                 <Text style={styles.headline}>{item.headline}</Text>
                 <View style={styles.expandedPublisherContainer}>
                   <Image
-                    source={require("../assets/icon.png")}
+                    source={require("../../assets/icon.png")}
                     style={styles.expandedPublisherIcon}
                   />
                   <Text style={styles.expandedPublisher}>AI BREAKING NEWS</Text>
