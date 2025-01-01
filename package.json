@@ -9,7 +9,9 @@
     "web": "expo start --web",
     "prebuild": "npx expo prebuild",
     "build:ios-local": "cd ios && xcodebuild -workspace Capitaine.xcworkspace -scheme Capitaine -configuration Release",
-    "pod-install": "cd ios && pod install"
+    "pod-install": "cd ios && pod install",
+    "clean": "rm -rf ios android",
+    "prebuild:clean": "npm run clean && npx expo prebuild"
   },
   "dependencies": {
     "@jterrazz/package-typescript-quality": "^1.4.0",

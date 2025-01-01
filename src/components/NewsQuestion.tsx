@@ -402,15 +402,19 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                   </View>
                 </View>
                 <View style={styles.dotContainer}>
-                  <View
-                    style={[
-                      styles.dot,
-                      item.answered &&
-                        (item.answered.wasCorrect
-                          ? styles.correctDot
-                          : styles.incorrectDot),
-                    ]}
-                  />
+                  <View style={[
+                    styles.statusIcon,
+                    !item.answered && styles.statusIconEmpty,
+                    item.answered && !item.answered.wasCorrect && styles.statusIconIncorrect
+                  ]}>
+                    {item.answered ? (
+                      <Feather
+                        name={item.answered.wasCorrect ? "check" : "x"}
+                        size={10}
+                        color="#FFFFFF"
+                      />
+                    ) : null}
+                  </View>
                 </View>
               </View>
             ) : (
@@ -981,20 +985,27 @@ const styles = StyleSheet.create({
     paddingLeft: 12,
     justifyContent: "center",
   },
-  dot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
+  statusIcon: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
     backgroundColor: "#242424",
-    opacity: 0.3,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  correctDot: {
-    backgroundColor: "#03A678",
-    opacity: 1,
+  statusIconEmpty: {
+    backgroundColor: 'transparent',
+    borderWidth: 1.5,
+    borderColor: "#242424",
   },
-  incorrectDot: {
-    backgroundColor: "#E15554",
-    opacity: 1,
+  statusIconIncorrect: {
+    backgroundColor: "#666666",
+  },
+  emptyDot: {
+    width: 2,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: "#242424",
   },
   divider: {
     height: 1,
