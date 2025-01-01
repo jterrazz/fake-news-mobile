@@ -23,6 +23,8 @@ import ReAnimated, {
   interpolate,
   Extrapolate,
 } from 'react-native-reanimated';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 
 interface NewsItem {
   id: string;
@@ -112,10 +114,15 @@ if (Platform.OS === "android") {
   }
 }
 
+type TabType = 'latest' | 'to-read';
+
 export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
   const [expandedIndex, setExpandedIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<boolean | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [activeTab, setActiveTab] = useState<TabType>('latest');
+  const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0);
 
   // Remove height animations, keep other animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -151,7 +158,7 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
       paddingTop: interpolate(
         headerHeight.value,
         [70, 180],
-        [12, 24],
+        [12, 64],
         Extrapolate.CLAMP
       ),
       paddingBottom: 0,
@@ -169,13 +176,21 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
     const marginBottom = interpolate(
       headerHeight.value,
       [70, 180],
-      [8, 16],
+      [16, 40],
+      Extrapolate.CLAMP
+    );
+
+    const marginTop = interpolate(
+      headerHeight.value,
+      [70, 180],
+      [8, 24],
       Extrapolate.CLAMP
     );
 
     return {
       fontSize,
       marginBottom,
+      marginTop,
     };
   });
 
@@ -197,11 +212,13 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
   const handleAnswer = async (selectedFake: boolean) => {
     const correct = selectedFake === newsItems[expandedIndex].isFake;
     
-    // Add haptic feedback based on answer correctness
     if (correct) {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setScore(prev => prev + 100);
+      setStreak(prev => prev + 1);
     } else {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      setStreak(0);
     }
 
     setSelectedAnswer(selectedFake);
@@ -284,7 +301,7 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
 
     return (
       <View key={item.id}>
-        {index > 0 && <View style={styles.divider} />}
+        {index > 0}
         <View style={styles.articleWrapper}>
           <Pressable
             style={[
@@ -295,17 +312,22 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
             disabled={selectedAnswer !== null && isExpanded}
           >
             {!isExpanded ? (
-              // Preview mode
+              // Preview mode with enhanced styling
               <View style={styles.previewContent}>
-                <Image
-                  source={require("../../assets/icon.png")}
-                  style={styles.previewIcon}
-                />
+                <View style={styles.previewIconContainer}>
+                  <Image
+                    source={require("../../assets/icon.png")}
+                    style={styles.previewIcon}
+                  />
+                </View>
                 <View style={styles.previewTextContainer}>
                   <Text numberOfLines={2} style={styles.previewHeadline}>
                     {item.headline}
                   </Text>
-                  <Text style={styles.previewPublisher}>AI BREAKING NEWS</Text>
+                  <View style={styles.previewMetaContainer}>
+                    <Text style={styles.previewPublisher}>AI BREAKING NEWS</Text>
+                    <Text style={styles.previewTime}>2h ago</Text>
+                  </View>
                 </View>
                 <View style={styles.dotContainer}>
                   <View
@@ -348,7 +370,7 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                         <Animated.Text
                           style={[styles.buttonText, getTextStyle(isCorrect)]}
                         >
-                          FAKE NEWS
+                          FAKE
                         </Animated.Text>
                       </Pressable>
                     </Animated.View>
@@ -370,7 +392,7 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                         <Animated.Text
                           style={[styles.buttonText, getTextStyle(isCorrect)]}
                         >
-                          REAL NEWS
+                          REAL
                         </Animated.Text>
                       </Pressable>
                     </Animated.View>
@@ -415,69 +437,244 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
     );
   }; 
   
+  const getFilteredNewsItems = () => {
+    if (activeTab === 'to-read') {
+      return newsItems.filter(item => !item.answered);
+    }
+    return newsItems;
+  };
+
   const renderTabs = () => (
-    <View style={styles.tabContainer}>
-      <Pressable style={[styles.tab, styles.tabActive]}>
-        <Text style={[styles.tabText, styles.tabTextActive]}>Latest</Text>
-        <View style={styles.activeIndicator} />
-      </Pressable>
-      <Pressable style={styles.tab}>
-        <Text style={styles.tabText}>New</Text>
-      </Pressable>
+    <View style={styles.headerContent}>
+      <View style={styles.tabContainer}>
+        <Pressable 
+          style={[styles.tab]} 
+          onPress={() => setActiveTab('latest')}
+        >
+          <Text 
+            style={[
+              styles.tabText, 
+              activeTab === 'latest' && styles.tabTextActive
+            ]}
+          >
+            Latest
+          </Text>
+          {activeTab === 'latest' && <View style={styles.activeIndicator} />}
+        </Pressable>
+        <Pressable 
+          style={[styles.tab]} 
+          onPress={() => setActiveTab('to-read')}
+        >
+          <Text 
+            style={[
+              styles.tabText, 
+              activeTab === 'to-read' && styles.tabTextActive
+            ]}
+          >
+            To Read
+          </Text>
+          {activeTab === 'to-read' && <View style={styles.activeIndicator} />}
+        </Pressable>
+      </View>
+      <View style={styles.scoreContainer}>
+        <View style={styles.scoreItem}>
+          <MaterialCommunityIcons name="star" size={20} color="#FFD700" />
+          <Text style={styles.scoreText}>{score}</Text>
+        </View>
+        <View style={styles.scoreItem}>
+          <MaterialCommunityIcons name="fire" size={20} color="#FF4500" />
+          <Text style={styles.scoreText}>×{streak}</Text>
+        </View>
+      </View>
     </View>
   );
 
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      <ReAnimated.View style={[styles.header, headerAnimatedStyle]}>
-        <ReAnimated.Text style={[styles.publicationTitle, titleAnimatedStyle]}>
-          FAKE NEWS
-        </ReAnimated.Text>
-        {renderTabs()}
-      </ReAnimated.View>
-      <View style={styles.scrollContainer}>
-        <ReAnimated.ScrollView
-          style={styles.container}
-          onScroll={scrollHandler}
-          scrollEventThrottle={16}
-          bounces={false}
-        >
-          <Text style={styles.date}>{format(new Date(), "MMMM d, yyyy")}</Text>
-          <View style={styles.articlesList}>
-            {newsItems.map((item, index) => renderArticle(item, index))}
-          </View>
-          <View style={styles.bottomSpacer} />
-        </ReAnimated.ScrollView>
-        <LinearGradient
-          colors={["rgba(255,255,255,0)", "rgba(255,255,255,1)"]}
-          style={styles.fadeGradient}
-          pointerEvents="none"
-        />
+  const renderConfetti = () => {
+    const confettiAnims = [...Array(20)].map(() => ({
+      y: new Animated.Value(0),
+      x: new Animated.Value(0),
+      rotate: new Animated.Value(0),
+      opacity: new Animated.Value(1),
+    }));
+
+    useEffect(() => {
+      if (isCorrect) {
+        confettiAnims.forEach((anim, i) => {
+          Animated.parallel([
+            Animated.timing(anim.y, {
+              toValue: 400,
+              duration: 1000,
+              useNativeDriver: true,
+            }),
+            Animated.timing(anim.x, {
+              toValue: (i % 2 === 0 ? 1 : -1) * (Math.random() * 100),
+              duration: 1000,
+              useNativeDriver: true,
+            }),
+            Animated.timing(anim.rotate, {
+              toValue: Math.random() * 360,
+              duration: 1000,
+              useNativeDriver: true,
+            }),
+            Animated.timing(anim.opacity, {
+              toValue: 0,
+              duration: 1000,
+              useNativeDriver: true,
+            }),
+          ]).start();
+        });
+      }
+    }, [isCorrect]);
+
+    if (!isCorrect) return null;
+
+    return (
+      <View style={styles.confettiContainer}>
+        {confettiAnims.map((anim, i) => (
+          <Animated.View
+            key={i}
+            style={[
+              styles.confetti,
+              {
+                backgroundColor: ['#FFD700', '#FF4500', '#00FF00', '#FF1493'][i % 4],
+                transform: [
+                  { translateY: anim.y },
+                  { translateX: anim.x },
+                  { rotate: anim.rotate.interpolate({
+                    inputRange: [0, 360],
+                    outputRange: ['0deg', '360deg'],
+                  })},
+                ],
+                opacity: anim.opacity,
+              },
+            ]}
+          />
+        ))}
       </View>
-    </SafeAreaView>
+    );
+  };
+
+  return (
+    <View style={styles.mainContainer}>
+      <BlurView
+        intensity={80}
+        tint="light"
+        style={[
+          styles.headerBlur,
+          headerAnimatedStyle
+        ]}
+      >
+        <SafeAreaView style={styles.headerContent}>
+          <ReAnimated.Text style={[styles.publicationTitle, titleAnimatedStyle]}>
+            FAKE NEWS
+          </ReAnimated.Text>
+          <View style={styles.headerContentInner}>
+            <View style={styles.tabContainer}>
+              <Pressable 
+                style={[styles.tab]} 
+                onPress={() => setActiveTab('latest')}
+              >
+                <Text 
+                  style={[
+                    styles.tabText, 
+                    activeTab === 'latest' && styles.tabTextActive
+                  ]}
+                >
+                  Latest
+                </Text>
+                {activeTab === 'latest' && <View style={styles.activeIndicator} />}
+              </Pressable>
+              <Pressable 
+                style={[styles.tab]} 
+                onPress={() => setActiveTab('to-read')}
+              >
+                <Text 
+                  style={[
+                    styles.tabText, 
+                    activeTab === 'to-read' && styles.tabTextActive
+                  ]}
+                >
+                  To Read
+                </Text>
+                {activeTab === 'to-read' && <View style={styles.activeIndicator} />}
+              </Pressable>
+            </View>
+            <View style={styles.scoreContainer}>
+              <View style={styles.scoreItem}>
+                <MaterialCommunityIcons name="star" size={20} color="#FFD700" />
+                <Text style={styles.scoreText}>{score}</Text>
+              </View>
+              <View style={styles.scoreItem}>
+                <MaterialCommunityIcons name="fire" size={20} color="#FF4500" />
+                <Text style={styles.scoreText}>×{streak}</Text>
+              </View>
+            </View>
+          </View>
+        </SafeAreaView>
+      </BlurView>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.scrollContainer}>
+          <ReAnimated.ScrollView
+            style={styles.container}
+            onScroll={scrollHandler}
+            scrollEventThrottle={16}
+            bounces={false}
+            contentContainerStyle={{ paddingTop: 24 }}
+          >
+            <Text style={styles.date}>{format(new Date(), "MMMM d, yyyy")}</Text>
+            <View style={styles.articlesList}>
+              {getFilteredNewsItems().map((item, index) => renderArticle(item, index))}
+            </View>
+            <View style={styles.bottomSpacer} />
+          </ReAnimated.ScrollView>
+          <LinearGradient
+            colors={["rgba(255,255,255,0)", "rgba(255,255,255,1)"]}
+            style={styles.fadeGradient}
+            pointerEvents="none"
+          />
+        </View>
+        {renderConfetti()}
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  mainContainer: {
     flex: 1,
     backgroundColor: "#FFFFFF",
   },
-  header: {
-    backgroundColor: "#FFFFFF",
-    paddingHorizontal: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(0, 0, 0, 0.1)",
-    position: 'sticky',
+  safeArea: {
+    flex: 1,
+    backgroundColor: "transparent",
+  },
+  headerBlur: {
+    position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     zIndex: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(0, 0, 0, 0.05)",
+  },
+  headerContent: {
+    paddingHorizontal: 24,
+    paddingTop: Platform.OS === 'ios' ? 48 : 32,
+  },
+  headerContentInner: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: 16,
+    paddingHorizontal: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
   },
   container: {
     flex: 1,
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 24,
+    paddingTop: 140,
   },
   date: {
     color: "#000000",
@@ -492,20 +689,41 @@ const styles = StyleSheet.create({
   articleContainer: {
     flex: 1,
     paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    marginVertical: 8,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.04)',
   },
   articleContainerExpanded: {
     paddingVertical: 24,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
   headline: {
     fontSize: 24,
-    fontWeight: "700",
-    color: "#000000",
-    marginBottom: 12,
+    fontWeight: "800",
+    color: "#1A1A1A",
+    marginBottom: 16,
     lineHeight: 32,
     letterSpacing: 0.2,
-    fontFamily: "System",
+    paddingHorizontal: 20,
   },
   publisherIcon: {
     width: 20,
@@ -520,26 +738,37 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   article: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: "#1A1A1A",
-    fontFamily: "System",
+    fontSize: 17,
+    lineHeight: 26,
+    color: "#333333",
     letterSpacing: 0.3,
-    marginTop: 8,
+    marginTop: 16,
+    paddingHorizontal: 20,
   },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     gap: 12,
-    marginTop: 24,
+    marginTop: 32,
+    paddingHorizontal: 20,
   },
   buttonWrapper: {
     flex: 1,
     position: "relative",
   },
   button: {
-    borderRadius: 4,
-    borderWidth: 1.5,
+    borderRadius: 14,
+    borderWidth: 2,
+    overflow: 'hidden',
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 3,
+    backgroundColor: '#FFFFFF',
   },
   pressable: {
     width: "100%",
@@ -547,16 +776,26 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   buttonText: {
-    fontWeight: "600",
-    fontSize: 13,
+    fontWeight: "800",
+    fontSize: 14,
     letterSpacing: 1.5,
     textTransform: "uppercase",
+    fontFamily: Platform.OS === 'ios' ? "SF Pro Text" : "System",
   },
   feedbackContainer: {
     marginTop: 24,
-    padding: 16,
-    borderRadius: 4,
+    marginHorizontal: 20,
+    padding: 20,
+    borderRadius: 16,
     borderWidth: 1,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
   correctFeedbackContainer: {
     backgroundColor: '#E7F7F2',
@@ -615,29 +854,54 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 16,
-    paddingHorizontal: 8,
+    paddingHorizontal: 20,
+  },
+  previewIconContainer: {
+    backgroundColor: '#F9F9F9',
+    padding: 12,
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.03)',
   },
   previewIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 32,
+    height: 32,
+    borderRadius: 8,
   },
   previewTextContainer: {
     flex: 1,
+    gap: 4,
   },
   previewHeadline: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#000000",
-    lineHeight: 20,
-    letterSpacing: 0.2,
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#1A1A1A",
+    lineHeight: 24,
+    letterSpacing: 0.3,
+    fontFamily: Platform.OS === 'ios' ? "SF Pro Display" : "System",
+  },
+  previewMetaContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   previewPublisher: {
-    fontSize: 11,
+    fontSize: 12,
     color: "#666666",
-    marginTop: 4,
-    letterSpacing: 1,
+    letterSpacing: 0.8,
     textTransform: "uppercase",
+    fontWeight: "600",
+  },
+  previewTime: {
+    fontSize: 12,
+    color: "#999999",
     fontWeight: "500",
   },
   articlesList: {},
@@ -651,21 +915,24 @@ const styles = StyleSheet.create({
   expandedPublisherContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 20,
+    paddingHorizontal: 20,
+    backgroundColor: '#F8F8F8',
+    padding: 12,
+    borderRadius: 8,
   },
   expandedPublisherIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    marginRight: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    marginRight: 12,
   },
   expandedPublisher: {
-    fontSize: 12,
-    color: "#666666",
-    fontFamily: "System",
+    fontSize: 13,
+    color: "#454545",
     letterSpacing: 1,
     textTransform: "uppercase",
-    fontWeight: "600",
+    fontWeight: "700",
   },
   dotContainer: {
     paddingLeft: 12,
@@ -692,36 +959,31 @@ const styles = StyleSheet.create({
     opacity: 0.08,
   },
   publicationTitle: {
-    fontFamily: "System",
+    fontFamily: Platform.OS === 'ios' ? "SF Pro Display" : "System",
     fontWeight: "900",
     textAlign: "center",
     color: "#000000",
     textTransform: "uppercase",
-    letterSpacing: 2,
-    textShadowColor: 'rgba(0, 0, 0, 0.1)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 1,
+    letterSpacing: 4,
+    textShadowColor: 'rgba(0, 0, 0, 0.08)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+    fontSize: 32,
   },
   tabContainer: {
-    flexDirection: "row",
-    gap: 32,
-    justifyContent: 'center',
-    transition: 'padding 0.2s ease-out',
-    paddingBottom: 12,
+    flexDirection: 'row',
+    gap: 24,
   },
   tab: {
     position: "relative",
     paddingVertical: 8,
     paddingHorizontal: 4,
   },
-  tabActive: {
-    backgroundColor: "transparent",
-  },
   tabText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "600",
     color: "#666666",
-    letterSpacing: 0.5,
+    letterSpacing: 1,
     textTransform: "uppercase",
   },
   tabTextActive: {
@@ -729,7 +991,7 @@ const styles = StyleSheet.create({
   },
   activeIndicator: {
     position: "absolute",
-    bottom: -13,
+    bottom: -16,
     left: 0,
     right: 0,
     height: 2,
@@ -741,14 +1003,63 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   bottomSpacer: {
-    height: 100, // Adjust this value based on your navbar height
+    height: 100,
   },
   fadeGradient: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    height: 100, // Adjust the height of the fade effect
+    height: 100,
     zIndex: 1,
+  },
+  scoreContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    alignItems: 'center',
+  },
+  scoreItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(0, 0, 0, 0.03)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  scoreText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#333',
+  },
+  confettiContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 99,
+    pointerEvents: 'none',
+  },
+  confetti: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  header: {
+    backgroundColor: "transparent",
+    paddingHorizontal: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(0, 0, 0, 0.05)",
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    paddingTop: 16,
+    paddingBottom: 12,
   },
 });

@@ -29,7 +29,11 @@ const BottomTab = createBottomTabNavigator();
 export function App() {
   return (
     <>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar 
+        translucent 
+        backgroundColor="transparent" 
+        barStyle="dark-content" 
+      />
       <NavigationContainer>
         <BottomTab.Navigator
           tabBar={TabBar}

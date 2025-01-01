@@ -39,8 +39,8 @@ const TAB_WIDTH = (width - 34 * 2) / 3;
 
 const SPRING_CONFIG = {
   mass: 1,
-  damping: 15,
-  stiffness: 120,
+  damping: 18,
+  stiffness: 180,
   overshootClamping: false,
   restDisplacementThreshold: 0.001,
   restSpeedThreshold: 0.001,
@@ -105,17 +105,11 @@ export const TabBarComponent = ({ state, navigation, descriptors }: Props) => {
         const icon = routes[routeName]?.icon;
 
         const animatedStyle = useAnimatedStyle(() => ({
-          opacity: withSpring(isFocused ? 1 : 0.5, {
-            damping: 20,
-            stiffness: 90,
-          }),
+          opacity: withSpring(isFocused ? 1 : 0.5, SPRING_CONFIG),
           transform: [
             {
-              scale: withSpring(isFocused ? 1.1 : 1, {
-                damping: 20,
-                stiffness: 90,
-              }),
-            },
+              scale: withSpring(isFocused ? 1.2 : 1, SPRING_CONFIG),
+            }
           ],
         }));
 
@@ -170,19 +164,19 @@ export const TabBarComponent = ({ state, navigation, descriptors }: Props) => {
 const styles = StyleSheet.create({
   container: {
     width: TAB_WIDTH,
-    height: 40,
+    height: 48,
     backgroundColor: "black",
     zIndex: 0,
     position: "absolute",
-    marginHorizontal: 10,
-    borderRadius: 4,
+    marginHorizontal: 12,
+    borderRadius: 16,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 8,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
     elevation: 5,
   },
   item: {
