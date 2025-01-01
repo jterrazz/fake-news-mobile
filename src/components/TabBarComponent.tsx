@@ -6,6 +6,9 @@ import Animated, {
   useSharedValue,
   withTiming,
   withSpring,
+  withSequence,
+  interpolate,
+  Extrapolate,
 } from "react-native-reanimated";
 import {
   TabNavigationState,
@@ -32,28 +35,41 @@ const { width } = Dimensions.get("window");
 // 20 on each side for the internal padding
 const TAB_WIDTH = (width - 34 * 2) / 3;
 
+const SPRING_CONFIG = {
+  mass: 1,
+  damping: 15,
+  stiffness: 120,
+  overshootClamping: false,
+  restDisplacementThreshold: 0.001,
+  restSpeedThreshold: 0.001,
+};
+
+const BEZIER_CURVE = [0.25, 0.1, 0.25, 1];
+
 export const TabBarComponent = ({ state, navigation, descriptors }: Props) => {
   const translateX = useSharedValue(0);
   const focusedTab = state.index;
 
   const handleAnimate = (index: number) => {
     "worklet";
-    translateX.value = withTiming(index * TAB_WIDTH, {
-      duration: 170,
+    translateX.value = withSpring(index * TAB_WIDTH, {
+      damping: 20,
+      stiffness: 90,
+      mass: 0.5,
     });
   };
+
   useEffect(() => {
     runOnUI(handleAnimate)(focusedTab);
   }, [focusedTab]);
 
-  const rnStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ translateX: translateX.value }],
-    };
-  });
+  const indicatorStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
   return (
     <>
-      <Animated.View style={[styles.container, rnStyle]} />
+      <Animated.View style={[styles.container, indicatorStyle]} />
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
         const label =
@@ -64,6 +80,23 @@ export const TabBarComponent = ({ state, navigation, descriptors }: Props) => {
             : route.name;
 
         const isFocused = state.index === index;
+        const routeName = route.name.toLowerCase() as keyof typeof routes;
+        const icon = routes[routeName]?.icon;
+
+        const animatedStyle = useAnimatedStyle(() => ({
+          opacity: withSpring(isFocused ? 1 : 0.5, {
+            damping: 20,
+            stiffness: 90,
+          }),
+          transform: [
+            {
+              scale: withSpring(isFocused ? 1.1 : 1, {
+                damping: 20,
+                stiffness: 90,
+              }),
+            },
+          ],
+        }));
 
         const onPress = () => {
           const event = navigation.emit({
@@ -87,16 +120,6 @@ export const TabBarComponent = ({ state, navigation, descriptors }: Props) => {
             target: route.key,
           });
         };
-        const routeName = route.name.toLowerCase() as keyof typeof routes;
-        const icon = routes[routeName]?.icon;
-
-        const scale = useSharedValue(1);
-
-        const animatedStyle = useAnimatedStyle(() => {
-          return {
-            transform: [{ scale: scale.value }],
-          };
-        });
 
         return (
           <Pressable
@@ -105,12 +128,6 @@ export const TabBarComponent = ({ state, navigation, descriptors }: Props) => {
             accessibilityState={isFocused ? { selected: true } : {}}
             accessibilityLabel={options.tabBarAccessibilityLabel}
             testID={options.tabBarTestID}
-            onPressIn={() => {
-              scale.value = withSpring(0.92);
-            }}
-            onPressOut={() => {
-              scale.value = withSpring(1);
-            }}
             onPress={onPress}
             onLongPress={onLongPress}
             style={styles.item}
@@ -138,6 +155,14 @@ const styles = StyleSheet.create({
     position: "absolute",
     marginHorizontal: 10,
     borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   item: {
     flex: 1,
