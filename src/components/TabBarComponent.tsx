@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     zIndex: 0,
     position: "absolute",
     marginHorizontal: 10,
-    borderRadius: 20,
+    borderRadius: 4,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
