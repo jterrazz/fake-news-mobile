@@ -15,6 +15,7 @@ import {
 import { format } from "date-fns";
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient"; 
+import * as Haptics from 'expo-haptics';
 
 interface NewsItem {
   id: string;
@@ -129,8 +130,16 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
     setExpandedIndex(index);
   };
 
-  const handleAnswer = (selectedFake: boolean) => {
+  const handleAnswer = async (selectedFake: boolean) => {
     const correct = selectedFake === newsItems[expandedIndex].isFake;
+    
+    // Add haptic feedback based on answer correctness
+    if (correct) {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } else {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    }
+
     setSelectedAnswer(selectedFake);
     setIsCorrect(correct);
     onAnswer(correct);
@@ -313,25 +322,24 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                         opacity: fadeAnim,
                         transform: [{ scale: buttonAnim }],
                       },
+                      isCorrect ? styles.correctFeedbackContainer : styles.incorrectFeedbackContainer,
                     ]}
                   >
                     <Text
                       style={[
                         styles.feedbackText,
-                        isCorrect
-                          ? styles.correctFeedback
-                          : styles.incorrectFeedback,
+                        isCorrect ? styles.correctFeedback : styles.incorrectFeedback,
                       ]}
                     >
                       {isCorrect
-                        ? "Bravo ! C'était effectivement " +
+                        ? "Excellent ! Vous avez démasqué " +
                           (item.isFake
-                            ? "une fake news"
-                            : "une vraie information")
-                        : "Dommage ! C'était " +
+                            ? "cette fausse information !"
+                            : "cette information véridique !")
+                        : "Oups ! En réalité c'était " +
                           (item.isFake
-                            ? "une fake news"
-                            : "une vraie information")}
+                            ? "une fausse information. Restez vigilant !"
+                            : "une information véridique. Continuez d'aiguiser votre esprit critique !")}
                     </Text>
                   </Animated.View>
                 )}
@@ -461,15 +469,23 @@ const styles = StyleSheet.create({
     marginTop: 24,
     padding: 16,
     borderRadius: 12,
-    backgroundColor: "#F8F8F8",
     borderWidth: 1,
-    borderColor: "#E6E6E6",
+    elevation: 2,
+  },
+  correctFeedbackContainer: {
+    backgroundColor: '#E7F7F2',
+    borderColor: '#03A678',
+  },
+  incorrectFeedbackContainer: {
+    backgroundColor: '#FFEFEF',
+    borderColor: '#E15554',
   },
   feedbackText: {
     textAlign: "center",
     fontSize: 16,
     fontWeight: "600",
     letterSpacing: 0.2,
+    lineHeight: 24,
   },
   correctFeedback: {
     color: "#03A678",
