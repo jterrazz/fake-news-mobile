@@ -1,3 +1,4 @@
-import { App } from "./src/App.root";
+import { AppRoot } from "./src/App.root";
 
-export default App;
+export default AppRoot;
+

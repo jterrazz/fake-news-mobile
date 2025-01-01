@@ -26,7 +26,7 @@ function HomeScreen() {
 // Create the Bottom Tab Navigator
 const BottomTab = createBottomTabNavigator();
 
-export function App() {
+export function AppRoot() {
   return (
     <>
       <StatusBar 
@@ -42,7 +42,6 @@ export function App() {
           }}
         >
           <BottomTab.Screen name="Home" component={HomeScreen} />
-          <BottomTab.Screen name="hhh" component={SettingsScreen} />
           <BottomTab.Screen name="Settings" component={SettingsScreen} />
         </BottomTab.Navigator>
       </NavigationContainer>

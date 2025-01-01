@@ -11,6 +11,7 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
+  Easing,
 } from "react-native";
 import { format } from "date-fns";
 import { Feather } from "@expo/vector-icons";
@@ -116,6 +117,79 @@ if (Platform.OS === "android") {
 
 type TabType = 'latest' | 'to-read';
 
+const PARTICLE_COUNT = 24;
+const ENHANCED_COLORS = [
+  'rgba(0, 0, 0, 0.9)',
+  'rgba(0, 0, 0, 0.8)',
+  'rgba(0, 0, 0, 0.7)',
+  'rgba(0, 0, 0, 0.6)',
+  'rgba(0, 0, 0, 0.5)',
+];
+
+interface Particle {
+  animation: Animated.Value;
+  angle: number;
+  distance: number;
+  color: string;
+  scale: number;
+  rotation: Animated.Value;
+}
+
+const BURST_PARTICLE_COUNT = 32;
+const BUTTON_PARTICLE_COUNT = 16;
+
+interface BurstParticle extends Particle {
+  delay: number;
+  size: number;
+}
+
+interface ButtonParticle {
+  animation: Animated.Value;
+  size: number;
+  color: string;
+  offsetX: number;
+  offsetY: number;
+  duration: number;
+}
+
+interface ButtonPosition {
+  x: number;
+  y: number;
+}
+
+const createParticles = (): BurstParticle[] => {
+  return Array.from({ length: BURST_PARTICLE_COUNT }, (_, i) => {
+    // Create more varied sizes and distances based on random factors
+    const sizeVariation = Math.random();
+    const distanceVariation = Math.random();
+    
+    return {
+      animation: new Animated.Value(0),
+      angle: (i * 2 * Math.PI) / BURST_PARTICLE_COUNT,
+      // More varied distances: smaller particles can travel further
+      distance: (40 + Math.random() * 60) * (1 + distanceVariation),
+      color: ENHANCED_COLORS[Math.floor(Math.random() * ENHANCED_COLORS.length)],
+      // More varied scales
+      scale: 0.2 + Math.random() * 0.8,
+      rotation: new Animated.Value(0),
+      delay: Math.random() * 50,
+      // More varied sizes
+      size: 3 + (sizeVariation * 8),
+    };
+  });
+};
+
+const createButtonParticles = (): ButtonParticle[] => {
+  return Array.from({ length: BUTTON_PARTICLE_COUNT }, () => ({
+    animation: new Animated.Value(0),
+    size: 3 + Math.random() * 3,
+    color: ENHANCED_COLORS[Math.floor(Math.random() * ENHANCED_COLORS.length)],
+    offsetX: -20 + Math.random() * 40,
+    offsetY: -20 + Math.random() * 40,
+    duration: 600 + Math.random() * 400,
+  }));
+};
+
 export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
   const [expandedIndex, setExpandedIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<boolean | null>(null);
@@ -123,6 +197,7 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
   const [activeTab, setActiveTab] = useState<TabType>('latest');
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
+  const [lastClickedPosition, setLastClickedPosition] = useState<ButtonPosition>({ x: 0, y: 0 });
 
   // Remove height animations, keep other animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -195,27 +270,30 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
   });
 
   const handleArticleSelect = (index: number) => {
-    if (selectedAnswer !== null) return;
-
     // Configure the animation
     LayoutAnimation.configureNext(
       LayoutAnimation.create(
-        200, // duration
+        200,
         LayoutAnimation.Types.easeInEaseOut,
         LayoutAnimation.Properties.opacity
       )
     );
 
     setExpandedIndex(index);
+    // Reset states when switching articles
+    setSelectedAnswer(null);
+    setIsCorrect(null);
+    setLastClickedPosition({ x: 0, y: 0 });
   };
 
-  const handleAnswer = async (selectedFake: boolean) => {
+  const handleAnswer = async (selectedFake: boolean, buttonPosition: ButtonPosition) => {
     const correct = selectedFake === newsItems[expandedIndex].isFake;
     
     if (correct) {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setScore(prev => prev + 100);
       setStreak(prev => prev + 1);
+      setLastClickedPosition(buttonPosition);
     } else {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       setStreak(0);
@@ -229,54 +307,49 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
     newsItems[expandedIndex].answered = {
       wasCorrect: correct,
     };
+  };
 
-    // Single animation sequence for feedback
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        ...TIMING_CONFIG,
-      }),
-      Animated.timing(buttonAnim, {
-        toValue: 1,
-        ...TIMING_CONFIG,
-      }),
-      Animated.sequence([
-        Animated.delay(100),
-        Animated.timing(iconAnim, {
-          toValue: 1,
-          ...TIMING_CONFIG,
-        }),
-      ]),
-    ]).start();
+  const handleNextArticle = () => {
+    if (expandedIndex < newsItems.length - 1) {
+      // Configure the animation for expanding
+      LayoutAnimation.configureNext(
+        LayoutAnimation.create(
+          200,
+          LayoutAnimation.Types.easeInEaseOut,
+          LayoutAnimation.Properties.opacity
+        )
+      );
 
-    // Move to next question
-    setTimeout(() => {
-      if (expandedIndex < newsItems.length - 1) {
-        handleArticleSelect(expandedIndex + 1);
-        setSelectedAnswer(null);
-        setIsCorrect(null);
-        // Reset animations
-        fadeAnim.setValue(0);
-        buttonAnim.setValue(0);
-        iconAnim.setValue(0);
-      }
-    }, 1500);
+      // Move to next article and expand it
+      const nextIndex = expandedIndex + 1;
+      setExpandedIndex(nextIndex);
+      setSelectedAnswer(null);
+      setIsCorrect(null);
+      setLastClickedPosition({ x: 0, y: 0 });
+
+      // Scroll to the next article
+      const yOffset = nextIndex * 200; // Approximate height of collapsed articles
+      scrollY.value = yOffset;
+    }
   };
 
   // Simplified button animations
-  const getButtonStyle = (isFake: boolean, isCorrect: boolean | null) => ({
-    backgroundColor: buttonAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: ["transparent", isCorrect ? "#FFFFFF" : "#000000"],
-    }),
-    borderColor: "#000000",
+  const getButtonStyle = (isFake: boolean, isCorrect: boolean | null, selectedAnswer: boolean | null) => ({
+    backgroundColor: selectedAnswer !== null 
+      ? (isCorrect ? "#F8F8F8" : "#000000")
+      : "transparent",
+    borderColor: selectedAnswer !== null 
+      ? (isCorrect ? "#000000" : "transparent")
+      : "#000000",
+    opacity: selectedAnswer !== null && !isCorrect ? 0.5 : 1,
+    transform: selectedAnswer !== null && isCorrect ? [{ scale: 1.02 }] : [],
   });
 
-  const getTextStyle = (isCorrect: boolean | null) => ({
-    color: buttonAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: ["#000000", isCorrect ? "#000000" : "#FFFFFF"],
-    }),
+  const getTextStyle = (isCorrect: boolean | null, selectedAnswer: boolean | null) => ({
+    color: selectedAnswer !== null 
+      ? (isCorrect ? "#000000" : "#FFFFFF")
+      : "#000000",
+    opacity: selectedAnswer !== null && !isCorrect ? 0.7 : 1,
   });
 
   const renderIcon = (isCorrect: boolean) => (
@@ -309,7 +382,6 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
               isExpanded && styles.articleContainerExpanded,
             ]}
             onPress={() => handleArticleSelect(index)}
-            disabled={selectedAnswer !== null && isExpanded}
           >
             {!isExpanded ? (
               // Preview mode with enhanced styling
@@ -359,16 +431,19 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                     <Animated.View
                       style={[
                         styles.button,
-                        getButtonStyle(item.isFake, isCorrect),
+                        getButtonStyle(item.isFake, isCorrect, selectedAnswer),
                       ]}
                     >
                       <Pressable
                         style={styles.pressable}
-                        onPress={() => handleAnswer(true)}
+                        onPress={(event) => {
+                          const { pageX, pageY } = event.nativeEvent;
+                          handleAnswer(true, { x: pageX, y: pageY });
+                        }}
                         disabled={selectedAnswer !== null}
                       >
                         <Animated.Text
-                          style={[styles.buttonText, getTextStyle(isCorrect)]}
+                          style={[styles.buttonText, getTextStyle(isCorrect, selectedAnswer)]}
                         >
                           FAKE
                         </Animated.Text>
@@ -381,16 +456,19 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                     <Animated.View
                       style={[
                         styles.button,
-                        getButtonStyle(!item.isFake, isCorrect),
+                        getButtonStyle(!item.isFake, isCorrect, selectedAnswer),
                       ]}
                     >
                       <Pressable
                         style={styles.pressable}
-                        onPress={() => handleAnswer(false)}
+                        onPress={(event) => {
+                          const { pageX, pageY } = event.nativeEvent;
+                          handleAnswer(false, { x: pageX, y: pageY });
+                        }}
                         disabled={selectedAnswer !== null}
                       >
                         <Animated.Text
-                          style={[styles.buttonText, getTextStyle(isCorrect)]}
+                          style={[styles.buttonText, getTextStyle(isCorrect, selectedAnswer)]}
                         >
                           REAL
                         </Animated.Text>
@@ -400,34 +478,15 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                   </View>
                 </View>
 
-                {selectedAnswer !== null && (
-                  <Animated.View
-                    style={[
-                      styles.feedbackContainer,
-                      {
-                        opacity: fadeAnim,
-                        transform: [{ scale: buttonAnim }],
-                      },
-                      isCorrect ? styles.correctFeedbackContainer : styles.incorrectFeedbackContainer,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.feedbackText,
-                        isCorrect ? styles.correctFeedback : styles.incorrectFeedback,
-                      ]}
+                {selectedAnswer !== null && expandedIndex < newsItems.length - 1 && (
+                  <View style={styles.nextButtonContainer}>
+                    <Pressable
+                      style={styles.nextButton}
+                      onPress={handleNextArticle}
                     >
-                      {isCorrect
-                        ? "Excellent ! Vous avez démasqué " +
-                          (item.isFake
-                            ? "cette fausse information !"
-                            : "cette information véridique !")
-                        : "Oups ! En réalité c'était " +
-                          (item.isFake
-                            ? "une fausse information. Restez vigilant !"
-                            : "une information véridique. Continuez d'aiguiser votre esprit critique !")}
-                    </Text>
-                  </Animated.View>
+                      <Text style={styles.nextButtonText}>NEXT ARTICLE</Text>
+                    </Pressable>
+                  </View>
                 )}
               </View>
             )}
@@ -489,67 +548,87 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
     </View>
   );
 
-  const renderConfetti = () => {
-    const confettiAnims = [...Array(20)].map(() => ({
-      y: new Animated.Value(0),
-      x: new Animated.Value(0),
-      rotate: new Animated.Value(0),
-      opacity: new Animated.Value(1),
-    }));
+  const renderCelebrationEffect = () => {
+    // Create new particles for each render to ensure fresh animation
+    const [particles] = useState(() => createParticles());
 
     useEffect(() => {
-      if (isCorrect) {
-        confettiAnims.forEach((anim, i) => {
+      if (isCorrect && lastClickedPosition.x !== 0) {
+        particles.forEach((particle) => {
+          particle.animation.setValue(0);
+          particle.rotation.setValue(0);
+          
           Animated.parallel([
-            Animated.timing(anim.y, {
-              toValue: 400,
-              duration: 1000,
+            Animated.timing(particle.animation, {
+              toValue: 1,
+              duration: 600,
+              easing: Easing.bezier(0.25, 0.1, 0.25, 1),
               useNativeDriver: true,
             }),
-            Animated.timing(anim.x, {
-              toValue: (i % 2 === 0 ? 1 : -1) * (Math.random() * 100),
-              duration: 1000,
-              useNativeDriver: true,
-            }),
-            Animated.timing(anim.rotate, {
-              toValue: Math.random() * 360,
-              duration: 1000,
-              useNativeDriver: true,
-            }),
-            Animated.timing(anim.opacity, {
-              toValue: 0,
-              duration: 1000,
+            Animated.timing(particle.rotation, {
+              toValue: 2,
+              duration: 600,
+              easing: Easing.bezier(0.33, 0, 0.67, 1),
               useNativeDriver: true,
             }),
           ]).start();
         });
       }
-    }, [isCorrect]);
+    }, [isCorrect, lastClickedPosition]);
 
-    if (!isCorrect) return null;
+    if (!isCorrect || lastClickedPosition.x === 0) return null;
 
     return (
-      <View style={styles.confettiContainer}>
-        {confettiAnims.map((anim, i) => (
-          <Animated.View
-            key={i}
-            style={[
-              styles.confetti,
-              {
-                backgroundColor: ['#FFD700', '#FF4500', '#00FF00', '#FF1493'][i % 4],
-                transform: [
-                  { translateY: anim.y },
-                  { translateX: anim.x },
-                  { rotate: anim.rotate.interpolate({
-                    inputRange: [0, 360],
-                    outputRange: ['0deg', '360deg'],
-                  })},
-                ],
-                opacity: anim.opacity,
-              },
-            ]}
-          />
-        ))}
+      <View style={[styles.celebrationContainer, {
+        left: lastClickedPosition.x - 100, // Larger container
+        top: lastClickedPosition.y - 100,
+        right: undefined,
+        bottom: undefined,
+        width: 200, // Larger container
+        height: 200,
+      }]}>
+        {particles.map((particle, index) => {
+          const translateX = particle.animation.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, Math.cos(particle.angle) * particle.distance],
+          });
+
+          const translateY = particle.animation.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, Math.sin(particle.angle) * particle.distance],
+          });
+
+          const scale = particle.animation.interpolate({
+            inputRange: [0, 0.3, 1],
+            outputRange: [0, particle.scale, 0],
+          });
+
+          const rotate = particle.rotation.interpolate({
+            inputRange: [0, 2],
+            outputRange: ['0deg', '720deg'],
+          });
+
+          return (
+            <Animated.View
+              key={`burst-${index}`}
+              style={[
+                styles.particle,
+                {
+                  width: particle.size,
+                  height: particle.size,
+                  borderRadius: particle.size / 2,
+                  backgroundColor: particle.color,
+                  transform: [
+                    { translateX },
+                    { translateY },
+                    { scale },
+                    { rotate },
+                  ],
+                },
+              ]}
+            />
+          );
+        })}
       </View>
     );
   };
@@ -557,8 +636,8 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
   return (
     <View style={styles.mainContainer}>
       <BlurView
-        intensity={80}
-        tint="light"
+        intensity={95}
+        tint="extraLight"
         style={[
           styles.headerBlur,
           headerAnimatedStyle
@@ -633,7 +712,7 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
             pointerEvents="none"
           />
         </View>
-        {renderConfetti()}
+        {renderCelebrationEffect()}
       </SafeAreaView>
     </View>
   );
@@ -768,7 +847,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.12,
     shadowRadius: 8,
     elevation: 3,
-    backgroundColor: '#FFFFFF',
+    transition: 'all 0.3s ease',
   },
   pressable: {
     width: "100%",
@@ -781,42 +860,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
     textTransform: "uppercase",
     fontFamily: Platform.OS === 'ios' ? "SF Pro Text" : "System",
-  },
-  feedbackContainer: {
-    marginTop: 24,
-    marginHorizontal: 20,
-    padding: 20,
-    borderRadius: 16,
-    borderWidth: 1,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  correctFeedbackContainer: {
-    backgroundColor: '#E7F7F2',
-    borderColor: '#03A678',
-  },
-  incorrectFeedbackContainer: {
-    backgroundColor: '#FFEFEF',
-    borderColor: '#E15554',
-  },
-  feedbackText: {
-    textAlign: "center",
-    fontSize: 16,
-    fontWeight: "600",
-    letterSpacing: 0.2,
-    lineHeight: 24,
-  },
-  correctFeedback: {
-    color: "#03A678",
-  },
-  incorrectFeedback: {
-    color: "#E15554",
   },
   iconContainer: {
     position: "absolute",
@@ -1032,22 +1075,26 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#333',
   },
-  confettiContainer: {
+  celebrationContainer: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 99,
+    alignItems: 'center',
+    justifyContent: 'center',
     pointerEvents: 'none',
+    zIndex: 99,
   },
-  confetti: {
+  particle: {
     position: 'absolute',
-    top: '50%',
-    left: '50%',
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   header: {
     backgroundColor: "transparent",
@@ -1061,5 +1108,42 @@ const styles = StyleSheet.create({
     zIndex: 10,
     paddingTop: 16,
     paddingBottom: 12,
+  },
+  buttonParticlesContainer: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+    pointerEvents: 'none',
+    zIndex: 99,
+  },
+  buttonParticle: {
+    position: 'absolute',
+    borderRadius: 4,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
+    elevation: 2,
+  },
+  nextButtonContainer: {
+    marginTop: 24,
+    paddingHorizontal: 20,
+  },
+  nextButton: {
+    backgroundColor: '#000000',
+    padding: 16,
+    borderRadius: 14,
+    alignItems: 'center',
+  },
+  nextButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 14,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+    fontFamily: Platform.OS === 'ios' ? "SF Pro Text" : "System",
   },
 });
