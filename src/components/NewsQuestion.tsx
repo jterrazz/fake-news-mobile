@@ -418,80 +418,95 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                 </View>
               </View>
             ) : (
-              // Expanded mode
+              // Expanded mode with new layout
               <View>
-                <Text style={styles.headline}>{item.headline}</Text>
-                <View style={styles.expandedPublisherContainer}>
-                  <Image
-                    source={require("../../assets/icon.png")}
-                    style={styles.expandedPublisherIcon}
-                  />
-                  <Text style={styles.expandedPublisher}>AI BREAKING NEWS</Text>
-                </View>
-                <Text style={styles.article}>{item.article}</Text>
-
-                <View style={styles.buttonContainer}>
-                  <View style={styles.buttonWrapper}>
-                    <Animated.View
-                      style={[
-                        styles.button,
-                        getButtonStyle(item.isFake, isCorrect, selectedAnswer),
-                      ]}
-                    >
-                      <Pressable
-                        style={styles.pressable}
-                        onPress={(event) => {
-                          const { pageX, pageY } = event.nativeEvent;
-                          handleAnswer(true, { x: pageX, y: pageY });
-                        }}
-                        disabled={selectedAnswer !== null}
-                      >
-                        <Animated.Text
-                          style={[styles.buttonText, getTextStyle(isCorrect, selectedAnswer)]}
-                        >
-                          FAKE
-                        </Animated.Text>
-                      </Pressable>
-                    </Animated.View>
-                    {selectedAnswer === true && renderIcon(item.isFake)}
-                  </View>
-
-                  <View style={styles.buttonWrapper}>
-                    <Animated.View
-                      style={[
-                        styles.button,
-                        getButtonStyle(!item.isFake, isCorrect, selectedAnswer),
-                      ]}
-                    >
-                      <Pressable
-                        style={styles.pressable}
-                        onPress={(event) => {
-                          const { pageX, pageY } = event.nativeEvent;
-                          handleAnswer(false, { x: pageX, y: pageY });
-                        }}
-                        disabled={selectedAnswer !== null}
-                      >
-                        <Animated.Text
-                          style={[styles.buttonText, getTextStyle(isCorrect, selectedAnswer)]}
-                        >
-                          REAL
-                        </Animated.Text>
-                      </Pressable>
-                    </Animated.View>
-                    {selectedAnswer === false && renderIcon(!item.isFake)}
+                {/* Article Header */}
+                <View style={styles.articleHeader}>
+                  <Text style={styles.headline}>{item.headline}</Text>
+                  <View style={styles.expandedPublisherContainer}>
+                    <Image
+                      source={require("../../assets/icon.png")}
+                      style={styles.expandedPublisherIcon}
+                    />
+                    <View>
+                      <Text style={styles.expandedPublisher}>AI BREAKING NEWS</Text>
+                      <Text style={styles.articleDate}>
+                        {format(new Date(), "MMMM d, yyyy")}
+                      </Text>
+                    </View>
                   </View>
                 </View>
 
-                {selectedAnswer !== null && expandedIndex < newsItems.length - 1 && (
-                  <View style={styles.nextButtonContainer}>
-                    <Pressable
-                      style={styles.nextButton}
-                      onPress={handleNextArticle}
-                    >
-                      <Text style={styles.nextButtonText}>NEXT ARTICLE</Text>
-                    </Pressable>
+                {/* Article Content */}
+                <View style={styles.articleContent}>
+                  <Text style={styles.article}>{item.article}</Text>
+                </View>
+
+                {/* Action Buttons */}
+                <View style={styles.actionContainer}>
+                  <View style={styles.buttonContainer}>
+                    <View style={styles.buttonWrapper}>
+                      <Animated.View
+                        style={[
+                          styles.button,
+                          getButtonStyle(item.isFake, isCorrect, selectedAnswer),
+                        ]}
+                      >
+                        <Pressable
+                          style={styles.pressable}
+                          onPress={(event) => {
+                            const { pageX, pageY } = event.nativeEvent;
+                            handleAnswer(true, { x: pageX, y: pageY });
+                          }}
+                          disabled={selectedAnswer !== null}
+                        >
+                          <Animated.Text
+                            style={[styles.buttonText, getTextStyle(isCorrect, selectedAnswer)]}
+                          >
+                            FAKE
+                          </Animated.Text>
+                        </Pressable>
+                      </Animated.View>
+                      {selectedAnswer === true && renderIcon(item.isFake)}
+                    </View>
+
+                    <View style={styles.buttonWrapper}>
+                      <Animated.View
+                        style={[
+                          styles.button,
+                          getButtonStyle(!item.isFake, isCorrect, selectedAnswer),
+                        ]}
+                      >
+                        <Pressable
+                          style={styles.pressable}
+                          onPress={(event) => {
+                            const { pageX, pageY } = event.nativeEvent;
+                            handleAnswer(false, { x: pageX, y: pageY });
+                          }}
+                          disabled={selectedAnswer !== null}
+                        >
+                          <Animated.Text
+                            style={[styles.buttonText, getTextStyle(isCorrect, selectedAnswer)]}
+                          >
+                            REAL
+                          </Animated.Text>
+                        </Pressable>
+                      </Animated.View>
+                      {selectedAnswer === false && renderIcon(!item.isFake)}
+                    </View>
                   </View>
-                )}
+
+                  {selectedAnswer !== null && expandedIndex < newsItems.length - 1 && (
+                    <View style={styles.nextButtonContainer}>
+                      <Pressable
+                        style={styles.nextButton}
+                        onPress={handleNextArticle}
+                      >
+                        <Text style={styles.nextButtonText}>NEXT ARTICLE</Text>
+                      </Pressable>
+                    </View>
+                  )}
+                </View>
               </View>
             )}
           </Pressable>
@@ -787,26 +802,28 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(0, 0, 0, 0.04)',
   },
   articleContainerExpanded: {
-    paddingVertical: 24,
+    paddingVertical: 32,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 24,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 8,
     },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
     elevation: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.04)',
   },
   headline: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: "800",
-    color: "#1A1A1A",
-    marginBottom: 16,
-    lineHeight: 32,
-    letterSpacing: 0.2,
-    paddingHorizontal: 20,
+    color: "#000000",
+    marginBottom: 20,
+    lineHeight: 40,
+    letterSpacing: -0.5,
+    fontFamily: Platform.OS === 'ios' ? "New York" : "serif",
   },
   publisherIcon: {
     width: 20,
@@ -821,26 +838,24 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   article: {
-    fontSize: 17,
-    lineHeight: 26,
+    fontSize: 18,
+    lineHeight: 32,
     color: "#333333",
-    letterSpacing: 0.3,
-    marginTop: 16,
-    paddingHorizontal: 20,
+    letterSpacing: 0.2,
+    marginBottom: 32,
+    fontFamily: Platform.OS === 'ios' ? "New York" : "serif",
   },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     gap: 12,
-    marginTop: 32,
-    paddingHorizontal: 20,
   },
   buttonWrapper: {
     flex: 1,
     position: "relative",
   },
   button: {
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 2,
     overflow: 'hidden',
     shadowColor: "#000",
@@ -851,7 +866,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.12,
     shadowRadius: 8,
     elevation: 3,
-    transition: 'all 0.3s ease',
+    backgroundColor: '#FFFFFF',
   },
   pressable: {
     width: "100%",
@@ -962,15 +977,14 @@ const styles = StyleSheet.create({
   expandedPublisherContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
-    paddingHorizontal: 20,
-    backgroundColor: '#F8F8F8',
-    padding: 12,
-    borderRadius: 8,
+    marginBottom: 24,
+    paddingBottom: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.08)',
   },
   expandedPublisherIcon: {
-    width: 28,
-    height: 28,
+    width: 32,
+    height: 32,
     borderRadius: 8,
     marginRight: 12,
   },
@@ -1141,13 +1155,20 @@ const styles = StyleSheet.create({
   },
   nextButtonContainer: {
     marginTop: 24,
-    paddingHorizontal: 20,
   },
   nextButton: {
     backgroundColor: '#000000',
     padding: 16,
-    borderRadius: 14,
+    borderRadius: 16,
     alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 3,
   },
   nextButtonText: {
     color: '#FFFFFF',
@@ -1156,5 +1177,23 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
     textTransform: 'uppercase',
     fontFamily: Platform.OS === 'ios' ? "SF Pro Text" : "System",
+  },
+  articleHeader: {
+    paddingHorizontal: 24,
+    marginBottom: 24,
+  },
+  articleDate: {
+    fontSize: 12,
+    color: "#999999",
+    fontWeight: "500",
+  },
+  articleContent: {
+    paddingHorizontal: 24,
+  },
+  actionContainer: {
+    paddingHorizontal: 24,
+    paddingTop: 32,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0, 0, 0, 0.08)',
   },
 });
