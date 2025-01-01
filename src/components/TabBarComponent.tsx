@@ -17,6 +17,8 @@ import {
 } from "@react-navigation/native";
 import { BottomTabNavigationEventMap } from "@react-navigation/bottom-tabs";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import * as Haptics from 'expo-haptics';
+
 export const routes = {
   home: { name: "Home", icon: "home" },
   feed: { name: "Feed", icon: "newspaper-variant" },
@@ -66,6 +68,25 @@ export const TabBarComponent = ({ state, navigation, descriptors }: Props) => {
   const indicatorStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
   }));
+
+  const handlePress = async (route: any, isFocused: boolean) => {
+    // Trigger a light haptic feedback
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    const event = navigation.emit({
+      type: "tabPress",
+      target: route.key,
+      canPreventDefault: true,
+    });
+
+    if (!isFocused && !event.defaultPrevented) {
+      navigation.navigate({
+        name: route.name,
+        merge: true,
+        params: {},
+      });
+    }
+  };
 
   return (
     <>
@@ -128,7 +149,7 @@ export const TabBarComponent = ({ state, navigation, descriptors }: Props) => {
             accessibilityState={isFocused ? { selected: true } : {}}
             accessibilityLabel={options.tabBarAccessibilityLabel}
             testID={options.tabBarTestID}
-            onPress={onPress}
+            onPress={() => handlePress(route, isFocused)}
             onLongPress={onLongPress}
             style={styles.item}
           >
