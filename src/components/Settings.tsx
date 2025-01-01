@@ -7,6 +7,7 @@ import {
   Alert,
   Dimensions,
   SafeAreaView,
+  ScrollView,
 } from "react-native";
 
 type Language = "en" | "fr";
@@ -65,7 +66,11 @@ export function SettingsScreen() {
         </Text>
       </View>
 
-      <View style={styles.content}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
             {selectedLanguage === "en"
@@ -164,7 +169,7 @@ export function SettingsScreen() {
               : "J'ai créé cette application pour aider les gens à rester informés des dernières actualités tout en encourageant la pensée critique à travers des questions interactives. Mon objectif est de promouvoir l'éducation aux médias et l'engagement réfléchi avec l'actualité."}
           </Text>
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -297,7 +302,11 @@ const styles = StyleSheet.create({
     color: "black",
     textAlign: "center",
   },
-  content: {
+  scrollView: {
     flex: 1,
+  },
+  content: {
+    paddingHorizontal: 16,
+    paddingBottom: 24,
   },
 });

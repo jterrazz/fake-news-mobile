@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { format } from "date-fns";
 import { Feather } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
+import { LinearGradient } from "expo-linear-gradient"; 
 
 interface NewsItem {
   id: string;
@@ -341,12 +341,12 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
         </View>
       </View>
     );
-  };
-
+  }; 
+  
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <Text style={styles.publicationTitle}>THE DAILY AI</Text>
+        <Text style={styles.publicationTitle}>FAKE NEWS</Text>
         <View style={styles.tabContainer}>
           <Pressable style={[styles.tab, styles.tabActive]}>
             <Text style={[styles.tabText, styles.tabTextActive]}>Latest</Text>

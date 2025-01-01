@@ -5,6 +5,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
+  withSpring,
 } from "react-native-reanimated";
 import {
   TabNavigationState,
@@ -88,6 +89,15 @@ export const TabBarComponent = ({ state, navigation, descriptors }: Props) => {
         };
         const routeName = route.name.toLowerCase() as keyof typeof routes;
         const icon = routes[routeName]?.icon;
+
+        const scale = useSharedValue(1);
+
+        const animatedStyle = useAnimatedStyle(() => {
+          return {
+            transform: [{ scale: scale.value }],
+          };
+        });
+
         return (
           <Pressable
             key={`route-${index}`}
@@ -95,15 +105,23 @@ export const TabBarComponent = ({ state, navigation, descriptors }: Props) => {
             accessibilityState={isFocused ? { selected: true } : {}}
             accessibilityLabel={options.tabBarAccessibilityLabel}
             testID={options.tabBarTestID}
+            onPressIn={() => {
+              scale.value = withSpring(0.92);
+            }}
+            onPressOut={() => {
+              scale.value = withSpring(1);
+            }}
             onPress={onPress}
             onLongPress={onLongPress}
             style={styles.item}
           >
-            <MaterialCommunityIcons
-              name={icon}
-              size={24}
-              color={isFocused ? "white" : "black"}
-            />
+            <Animated.View style={animatedStyle}>
+              <MaterialCommunityIcons
+                name={icon as keyof typeof MaterialCommunityIcons.glyphMap}
+                size={24}
+                color={isFocused ? "white" : "black"}
+              />
+            </Animated.View>
           </Pressable>
         );
       })}
