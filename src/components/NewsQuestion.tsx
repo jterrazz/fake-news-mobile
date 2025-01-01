@@ -16,6 +16,13 @@ import { format } from "date-fns";
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient"; 
 import * as Haptics from 'expo-haptics';
+import ReAnimated, { 
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  interpolate,
+  Extrapolate,
+} from 'react-native-reanimated';
 
 interface NewsItem {
   id: string;
@@ -114,6 +121,63 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const buttonAnim = useRef(new Animated.Value(0)).current;
   const iconAnim = useRef(new Animated.Value(0)).current;
+
+  const scrollY = useSharedValue(0);
+  const lastScrollY = useSharedValue(0);
+  const headerHeight = useSharedValue(180); // Adjust this value based on your full header height
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      // Don't compress when scrolling past the top
+      if (event.contentOffset.y < 0) {
+        headerHeight.value = 180; // Maximum height
+        lastScrollY.value = 0;
+        scrollY.value = 0;
+        return;
+      }
+
+      const delta = event.contentOffset.y - lastScrollY.value;
+      headerHeight.value = Math.max(
+        70, // Minimum header height
+        Math.min(180, headerHeight.value - delta) // Maximum header height
+      );
+      lastScrollY.value = event.contentOffset.y;
+      scrollY.value = event.contentOffset.y;
+    },
+  });
+
+  const headerAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      paddingTop: interpolate(
+        headerHeight.value,
+        [70, 180],
+        [12, 24],
+        Extrapolate.CLAMP
+      ),
+      paddingBottom: 0,
+    };
+  });
+
+  const titleAnimatedStyle = useAnimatedStyle(() => {
+    const fontSize = interpolate(
+      headerHeight.value,
+      [70, 180],
+      [32, 42],
+      Extrapolate.CLAMP
+    );
+    
+    const marginBottom = interpolate(
+      headerHeight.value,
+      [70, 180],
+      [8, 16],
+      Extrapolate.CLAMP
+    );
+
+    return {
+      fontSize,
+      marginBottom,
+    };
+  });
 
   const handleArticleSelect = (index: number) => {
     if (selectedAnswer !== null) return;
@@ -351,27 +415,39 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
     );
   }; 
   
+  const renderTabs = () => (
+    <View style={styles.tabContainer}>
+      <Pressable style={[styles.tab, styles.tabActive]}>
+        <Text style={[styles.tabText, styles.tabTextActive]}>Latest</Text>
+        <View style={styles.activeIndicator} />
+      </Pressable>
+      <Pressable style={styles.tab}>
+        <Text style={styles.tabText}>New</Text>
+      </Pressable>
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
-        <Text style={styles.publicationTitle}>FAKE NEWS</Text>
-        <View style={styles.tabContainer}>
-          <Pressable style={[styles.tab, styles.tabActive]}>
-            <Text style={[styles.tabText, styles.tabTextActive]}>Latest</Text>
-          </Pressable>
-          <Pressable style={styles.tab}>
-            <Text style={styles.tabText}>New</Text>
-          </Pressable>
-        </View>
-      </View>
+      <ReAnimated.View style={[styles.header, headerAnimatedStyle]}>
+        <ReAnimated.Text style={[styles.publicationTitle, titleAnimatedStyle]}>
+          FAKE NEWS
+        </ReAnimated.Text>
+        {renderTabs()}
+      </ReAnimated.View>
       <View style={styles.scrollContainer}>
-        <ScrollView style={styles.container}>
+        <ReAnimated.ScrollView
+          style={styles.container}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
+          bounces={false}
+        >
           <Text style={styles.date}>{format(new Date(), "MMMM d, yyyy")}</Text>
           <View style={styles.articlesList}>
             {newsItems.map((item, index) => renderArticle(item, index))}
           </View>
           <View style={styles.bottomSpacer} />
-        </ScrollView>
+        </ReAnimated.ScrollView>
         <LinearGradient
           colors={["rgba(255,255,255,0)", "rgba(255,255,255,1)"]}
           style={styles.fadeGradient}
@@ -389,16 +465,19 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: "#FFFFFF",
-    padding: 24,
-    paddingBottom: 0,
-    borderBottomWidth: 2,
-    borderBottomColor: "#000000",
+    paddingHorizontal: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(0, 0, 0, 0.1)",
+    position: 'sticky',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
   },
   container: {
     flex: 1,
     backgroundColor: "#FFFFFF",
-    padding: 24,
-    paddingTop: 0,
+    paddingHorizontal: 24,
   },
   date: {
     color: "#000000",
@@ -613,49 +692,49 @@ const styles = StyleSheet.create({
     opacity: 0.08,
   },
   publicationTitle: {
-    fontSize: 42,
     fontFamily: "System",
     fontWeight: "900",
     textAlign: "center",
     color: "#000000",
     textTransform: "uppercase",
     letterSpacing: 2,
-    marginBottom: 8,
     textShadowColor: 'rgba(0, 0, 0, 0.1)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 1,
   },
   tabContainer: {
     flexDirection: "row",
-    gap: 1,
-    marginTop: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: "#000000",
+    gap: 32,
+    justifyContent: 'center',
+    transition: 'padding 0.2s ease-out',
+    paddingBottom: 12,
   },
   tab: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    backgroundColor: "#F5F5F5",
-    borderTopWidth: 1,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    borderColor: "#000000",
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: 4,
-    marginBottom: -1,
+    position: "relative",
+    paddingVertical: 8,
+    paddingHorizontal: 4,
   },
   tabActive: {
-    backgroundColor: "#000000",
+    backgroundColor: "transparent",
   },
   tabText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: "600",
-    color: "#000000",
-    letterSpacing: 1,
+    color: "#666666",
+    letterSpacing: 0.5,
     textTransform: "uppercase",
   },
   tabTextActive: {
-    color: "#FFFFFF",
+    color: "#000000",
+  },
+  activeIndicator: {
+    position: "absolute",
+    bottom: -13,
+    left: 0,
+    right: 0,
+    height: 2,
+    backgroundColor: "#000000",
+    borderRadius: 1,
   },
   scrollContainer: {
     flex: 1,
