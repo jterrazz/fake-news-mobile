@@ -19,7 +19,6 @@
     "expo-haptics": "~14.0.0",
     "expo-linear-gradient": "~13.0.2",
     "expo-status-bar": "~1.12.1",
-    "moti": "^0.29.0",
     "react": "18.2.0",
     "react-native": "0.76.5",
     "react-native-gesture-handler": "^2.21.2",
@@ -28,8 +27,8 @@
     "react-native-screens": "~4.4.0"
   },
   "devDependencies": {
-    "@jterrazz/package-typescript-quality": "^1.4.0",
     "@babel/core": "^7.20.0",
+    "@jterrazz/package-typescript-quality": "^1.4.0",
     "@types/react": "~18.3.12",
     "typescript": "^5.3.3"
   },
