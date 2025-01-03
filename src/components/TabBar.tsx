@@ -1,46 +1,43 @@
-import { StyleSheet } from "react-native";
-import React from "react";
-import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { TabBarComponent } from "./TabBarComponent";
-import { BlurView } from "expo-blur";
+import React from 'react';
+import { StyleSheet } from 'react-native';
+import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { BlurView } from 'expo-blur';
+
+import { TabBarComponent } from './TabBarComponent.jsx';
 
 const TAB_BAR_CONFIG = {
-  width: 114,
-  height: 54,
-  bottomOffset: 42,
-  borderRadius: 27,
+    borderRadius: 27,
+    bottomOffset: 42,
+    height: 54,
+    width: 114,
 } as const;
 
 export const TabBar = ({ state, navigation, descriptors }: BottomTabBarProps) => (
-  <BlurView 
-    intensity={35} 
-    tint="extraLight"
-    style={styles.container}
-  >
-    <TabBarComponent
-      state={state}
-      navigation={navigation}
-      descriptors={descriptors}
-      config={TAB_BAR_CONFIG}
-    />
-  </BlurView>
+    <BlurView intensity={35} tint="extraLight" style={styles.container}>
+        <TabBarComponent
+            state={state}
+            navigation={navigation}
+            descriptors={descriptors}
+            config={TAB_BAR_CONFIG}
+        />
+    </BlurView>
 );
 
 const styles = StyleSheet.create({
-  container: {
-    position: "absolute",
-    bottom: TAB_BAR_CONFIG.bottomOffset,
-    left: '50%',
-    width: TAB_BAR_CONFIG.width,
-    height: TAB_BAR_CONFIG.height,
-    transform: [{ translateX: -TAB_BAR_CONFIG.width / 2 }],
-    borderRadius: TAB_BAR_CONFIG.borderRadius,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "rgba(0, 0, 0, 0.06)",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-  },
+    container: {
+        borderColor: 'rgba(0, 0, 0, 0.06)',
+        borderRadius: TAB_BAR_CONFIG.borderRadius,
+        borderWidth: 1,
+        bottom: TAB_BAR_CONFIG.bottomOffset,
+        height: TAB_BAR_CONFIG.height,
+        left: '50%',
+        overflow: 'hidden',
+        position: 'absolute',
+        shadowColor: '#000',
+        shadowOffset: { height: 8, width: 0 },
+        shadowOpacity: 0.08,
+        shadowRadius: 16,
+        transform: [{ translateX: -TAB_BAR_CONFIG.width / 2 }],
+        width: TAB_BAR_CONFIG.width,
+    },
 });

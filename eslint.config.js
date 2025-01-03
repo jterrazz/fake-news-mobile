@@ -1,7 +1,3 @@
-import { eslintNodeConfig } from "@jterrazz/package-typescript-quality";
-// import { jestEslint } from '@jterrazz/package-typescript-test';
+import { eslintNodeConfig } from '@jterrazz/package-typescript-quality';
 
-export default [
-  ...eslintNodeConfig,
-  // ...jestEslint,
-];  
+export default [...eslintNodeConfig];

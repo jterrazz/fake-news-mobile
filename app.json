@@ -28,6 +28,7 @@
     },
     "updates": {
       "enabled": false
-    }
+    },
+    "plugins": ["expo-asset"]
   }
 }
