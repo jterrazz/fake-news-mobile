@@ -166,33 +166,89 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '500',
     },
+    bar: {
+        backgroundColor: 'black',
+        borderRadius: 4,
+        width: 40,
+    },
     dangerTitle: {
         color: 'black',
         fontSize: 18,
         fontWeight: '600',
         marginBottom: 12,
     },
+    barGroup: {
+        alignItems: 'center',
+        width: 60,
+    },
     dangerZone: {
-        borderRadius: 8,
         backgroundColor: '#FFF1F0',
-        marginTop: 32,
         borderColor: '#FFE4E6',
-        padding: 16,
+        borderRadius: 8,
         borderWidth: 1,
+        marginTop: 32,
+        padding: 16,
+    },
+    barLabel: {
+        color: '#666',
+        fontSize: 12,
+        marginTop: 8,
+        textAlign: 'center',
     },
     devNotesContainer: {
         backgroundColor: '#F3F4F6',
-        marginTop: 32,
         borderRadius: 8,
+        marginTop: 32,
         padding: 16,
     },
-    label: {
-        fontSize: 16,
+    barValue: {
+        color: 'black',
+        fontSize: 14,
+        fontWeight: '600',
+        marginTop: 4,
     },
     devNotesText: {
         color: '#374151',
         fontSize: 14,
         lineHeight: 20,
+    },
+    content: {
+        paddingBottom: 24,
+        paddingHorizontal: 16,
+    },
+    devNotesTitle: {
+        color: 'black',
+        fontSize: 18,
+        fontWeight: '600',
+        marginBottom: 8,
+    },
+    graphContainer: {
+        alignItems: 'flex-end',
+        flexDirection: 'row',
+        height: 160,
+        justifyContent: 'space-around',
+        paddingVertical: 20,
+    },
+    header: {
+        borderBottomColor: '#E5E7EB',
+        borderBottomWidth: 1,
+        marginBottom: 16,
+        paddingVertical: 16,
+    },
+    headerTitle: {
+        color: 'black',
+        fontSize: 24,
+        fontWeight: '700',
+        textAlign: 'center',
+    },
+    label: {
+        fontSize: 16,
+    },
+    languageButton: {
+        backgroundColor: 'black',
+        borderRadius: 6,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
     },
     languageContainer: {
         alignItems: 'center',
@@ -202,88 +258,32 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         padding: 16,
     },
-    devNotesTitle: {
-        color: 'black',
-        fontSize: 18,
-        fontWeight: '600',
-        marginBottom: 8,
+    resetButton: {
+        alignItems: 'center',
+        backgroundColor: 'black',
+        borderRadius: 6,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
     },
     safeArea: {
         backgroundColor: '#FFFFFF',
         flex: 1,
-    },
-    graphContainer: {
-        alignItems: 'flex-end',
-        flexDirection: 'row',
-        height: 160,
-        justifyContent: 'space-around',
-        paddingVertical: 20,
-    },
-    section: {
-        marginBottom: 24,
-    },
-    bar: {
-        backgroundColor: 'black',
-        borderRadius: 4,
-        width: 40,
-    },
-    sectionTitle: {
-        fontSize: 20,
-        fontWeight: '600',
-        marginBottom: 16,
-    },
-    barGroup: {
-        alignItems: 'center',
-        width: 60,
-    },
-    barLabel: {
-        color: '#666',
-        fontSize: 12,
-        marginTop: 8,
-        textAlign: 'center',
-    },
-    languageButton: {
-        backgroundColor: 'black',
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 6,
-    },
-    barValue: {
-        color: 'black',
-        fontSize: 14,
-        fontWeight: '600',
-        marginTop: 4,
-    },
-    content: {
-        paddingBottom: 24,
-        paddingHorizontal: 16,
-    },
-    resetButton: {
-        backgroundColor: 'black',
-        paddingHorizontal: 16,
-        borderRadius: 6,
-        paddingVertical: 12,
-        alignItems: 'center',
-    },
-    header: {
-        borderBottomColor: '#E5E7EB',
-        borderBottomWidth: 1,
-        marginBottom: 16,
-        paddingVertical: 16,
     },
     resetButtonText: {
         color: '#FFFFFF',
         fontSize: 16,
         fontWeight: '500',
     },
-    headerTitle: {
-        color: 'black',
-        fontSize: 24,
-        fontWeight: '700',
-        textAlign: 'center',
+    section: {
+        marginBottom: 24,
     },
     scrollView: {
         flex: 1,
+    },
+    sectionTitle: {
+        fontSize: 20,
+        fontWeight: '600',
+        marginBottom: 16,
     },
     statsContainer: {
         backgroundColor: '#f5f5f5',

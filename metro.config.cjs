@@ -16,13 +16,21 @@ config.resolver = {
             }
         }
 
-        // Handle .js -> .ts
+        // Handle .js -> .ts or .tsx
         if (moduleName.endsWith('.js')) {
+            // First try .ts
             const tsName = moduleName.replace(/\.js$/, '.ts');
             try {
                 return context.resolveRequest(context, tsName, platform);
             } catch (e) {
-                return context.resolveRequest(context, moduleName, platform);
+                // If .ts fails, try .tsx
+                const tsxName = moduleName.replace(/\.js$/, '.tsx');
+                try {
+                    return context.resolveRequest(context, tsxName, platform);
+                } catch (tsxError) {
+                    // If both fail, fallback to original .js
+                    return context.resolveRequest(context, moduleName, platform);
+                }
             }
         }
 

@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { BlurView } from 'expo-blur';
 
-import { TabBarComponent } from './TabBarComponent.jsx';
+import { TabBarComponent } from './tab-bar-component.js';
 
 const TAB_BAR_CONFIG = {
     borderRadius: 27,

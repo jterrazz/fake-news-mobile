@@ -21,13 +21,13 @@
     "expo-linear-gradient": "~13.0.2",
     "react": "18.2.0",
     "react-native": "0.76.5",
-    "react-native-reanimated": "^3.16.0"
+    "react-native-reanimated": "^3.16.6"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0",
+    "@babel/core": "^7.26.0",
+    "@jterrazz/package-typescript": "^1.8.1",
     "@jterrazz/package-typescript-quality": "^1.5.0",
-    "@types/react": "~18.3.12",
-    "typescript": "^5.3.3"
+    "@types/react": "~18.3.12"
   },
   "private": true
 }
