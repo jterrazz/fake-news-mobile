@@ -9,7 +9,7 @@ import {
     View,
 } from 'react-native';
 
-import { useNewsStore } from '@/application/store/news';
+import { useNewsStore } from '@/application/store/news.store';
 
 import { container } from '@/di/container';
 

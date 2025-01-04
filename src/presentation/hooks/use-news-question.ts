@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import * as Haptics from 'expo-haptics';
 
-import { useNewsStore } from '@/application/store/news';
+import { useNewsStore } from '@/application/store/news.store';
 
 import type { NewsEntity } from '@/domain/news/news.entity';
 

@@ -26,7 +26,7 @@ import { format } from 'date-fns';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { useNewsStore } from '@/application/store/news';
+import { useNewsStore } from '@/application/store/news.store';
 
 import { NewsEntity } from '@/domain/news/news.entity';
 
@@ -252,60 +252,58 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
         setLastClickedPosition(buttonPosition);
         setIsMergeComplete(false);
 
-        // Calculate positions
-        const centerX = 27.5;
-        const fakeStartX = 2;
-        const realStartX = 98 - 45;
+        // Calculate positions for merging animation
+        const centerX = 27.5; // Center position
+        const fakeStartX = 2; // Left button starting position
+        const realStartX = 98 - 45; // Right button starting position
 
         // Reset animation values
         animations.slide.fake.setValue(selectedFake ? fakeStartX : realStartX);
         animations.slide.real.setValue(selectedFake ? realStartX : fakeStartX);
 
-        // Start next button animation immediately
+        // Create smooth merging animation
         Animated.parallel([
-            Animated.spring(nextButtonAnim.opacity, {
-                damping: 20,
-                mass: 0.4, // Even lighter mass for faster response
-                stiffness: 300,
-                toValue: 1,
-                useNativeDriver: true,
-            }),
-            Animated.spring(nextButtonAnim.scale, {
-                damping: 15,
-                mass: 0.5,
-                stiffness: 250,
-                toValue: 1,
-                useNativeDriver: true,
-            }),
-        ]).start();
-
-        // Main button animations
-        Animated.parallel([
-            // Fade out unselected button with smooth cubic bezier
+            // Fade out unselected button
             Animated.timing(animations.fade[selectedFake ? 'real' : 'fake'], {
-                duration: 600,
-                easing: Easing.bezier(0.45, 0, 0.25, 1),
+                duration: 400,
+                easing: Easing.bezier(0.4, 0, 0.2, 1), // Smooth easing
                 toValue: 0,
                 useNativeDriver: true,
             }),
 
-            // Move selected button to center with refined spring physics
+            // Move selected button to center
             Animated.spring(animations.slide[selectedFake ? 'fake' : 'real'], {
-                damping: 28,
-                mass: 0.9,
-                stiffness: 250,
+                damping: 20,
+                mass: 0.8,
+                stiffness: 300,
                 toValue: centerX,
                 useNativeDriver: true,
-                velocity: 0,
             }),
 
-            // Move unselected button to center with smooth timing
+            // Move unselected button towards center before fading
             Animated.timing(animations.slide[selectedFake ? 'real' : 'fake'], {
-                duration: 600,
-                easing: Easing.bezier(0.45, 0, 0.25, 1),
+                duration: 400,
+                easing: Easing.bezier(0.4, 0, 0.2, 1),
                 toValue: centerX,
                 useNativeDriver: true,
             }),
+
+            // Scale animation for selected button
+            Animated.sequence([
+                Animated.timing(nextButtonAnim.scale, {
+                    duration: 150,
+                    easing: Easing.bezier(0.4, 0, 0.2, 1),
+                    toValue: 1.05, // Slightly scale up
+                    useNativeDriver: true,
+                }),
+                Animated.spring(nextButtonAnim.scale, {
+                    damping: 12,
+                    mass: 0.6,
+                    stiffness: 200,
+                    toValue: 1,
+                    useNativeDriver: true,
+                }),
+            ]),
         ]).start(() => {
             setIsMergeComplete(true);
         });
@@ -630,7 +628,6 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
         const isAnswered = selectedAnswer !== null || currentNewsItem.answered !== undefined;
         const wasCorrect = answer?.wasCorrect ?? currentNewsItem.answered?.wasCorrect;
 
-        // Initialize animations if they don't exist
         if (!animationStates.has(currentNewsItem.id)) {
             initializeAnimationState(currentNewsItem.id);
         }
@@ -653,7 +650,6 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                     </Text>
                 </View>
 
-                {/* Show centered answer for pre-answered articles */}
                 {currentNewsItem.answered ? (
                     <View style={styles.buttonWrapperCentered}>
                         <View
@@ -678,7 +674,6 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                     </View>
                 ) : (
                     <>
-                        {/* Existing FAKE/REAL buttons for unanswered articles */}
                         <Animated.View
                             style={[
                                 styles.buttonWrapper,
@@ -695,6 +690,10 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                                                 outputRange: ['0%', '100%'],
                                             }),
                                         },
+                                        {
+                                            scale:
+                                                selectedAnswer === true ? nextButtonAnim.scale : 1,
+                                        },
                                     ],
                                 },
                             ]}
@@ -702,8 +701,9 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                             <Pressable
                                 style={({ pressed }) => [
                                     styles.button,
-                                    isAnswered &&
-                                        (wasCorrect
+                                    selectedAnswer === true &&
+                                        answer &&
+                                        (answer.wasCorrect
                                             ? styles.buttonCorrect
                                             : styles.buttonIncorrect),
                                     pressed && { transform: [{ scale: 0.98 }] },
@@ -720,8 +720,9 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                                     <Text
                                         style={[
                                             styles.buttonText,
-                                            isAnswered &&
-                                                (wasCorrect
+                                            selectedAnswer === true &&
+                                                answer &&
+                                                (answer.wasCorrect
                                                     ? styles.buttonTextCorrect
                                                     : styles.buttonTextIncorrect),
                                         ]}
@@ -748,6 +749,10 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                                                 outputRange: ['0%', '100%'],
                                             }),
                                         },
+                                        {
+                                            scale:
+                                                selectedAnswer === false ? nextButtonAnim.scale : 1,
+                                        },
                                     ],
                                 },
                             ]}
@@ -755,8 +760,9 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                             <Pressable
                                 style={({ pressed }) => [
                                     styles.button,
-                                    isAnswered &&
-                                        (wasCorrect
+                                    selectedAnswer === false &&
+                                        answer &&
+                                        (answer.wasCorrect
                                             ? styles.buttonCorrect
                                             : styles.buttonIncorrect),
                                     pressed && { transform: [{ scale: 0.98 }] },
@@ -773,8 +779,9 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                                     <Text
                                         style={[
                                             styles.buttonText,
-                                            isAnswered &&
-                                                (wasCorrect
+                                            selectedAnswer === false &&
+                                                answer &&
+                                                (answer.wasCorrect
                                                     ? styles.buttonTextCorrect
                                                     : styles.buttonTextIncorrect),
                                         ]}
@@ -884,6 +891,7 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                         onScroll={scrollHandler}
                         scrollEventThrottle={16}
                         bounces={false}
+                        showsVerticalScrollIndicator={false}
                         contentContainerStyle={{ paddingTop: 24 }}
                     >
                         <Text style={styles.date}>{format(new Date(), 'MMMM d, yyyy')}</Text>
