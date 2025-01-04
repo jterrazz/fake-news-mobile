@@ -34,6 +34,7 @@ interface NewsItem {
     headline: string;
     article: string;
     isFake: boolean;
+    category: string;
     answered?: {
         wasCorrect: boolean;
     };
@@ -43,6 +44,7 @@ export const SAMPLE_NEWS_ITEMS: NewsItem[] = [
     {
         article:
             "Researchers have found that trees communicate and share resources through an underground fungal network, dubbed the 'Wood Wide Web'. This network allows trees to share nutrients and send warning signals about environmental changes and threats.",
+        category: 'SCIENCE',
         headline: 'Scientists Discover Trees Can Communicate Through Underground Network',
         id: '1',
         isFake: false,
@@ -50,6 +52,7 @@ export const SAMPLE_NEWS_ITEMS: NewsItem[] = [
     {
         article:
             'A startup claims to have developed a revolutionary pill that temporarily enables humans to extract oxygen from water, allowing them to breathe underwater for up to 4 hours. The pill supposedly modifies human lung tissue to process water like fish gills.',
+        category: 'TECH',
         headline: 'New Technology Allows Humans to Breathe Underwater Without Equipment',
         id: '2',
         isFake: true,
@@ -57,6 +60,7 @@ export const SAMPLE_NEWS_ITEMS: NewsItem[] = [
     {
         article:
             'Scientists at Stanford University have developed an AI system that successfully predicted a magnitude 5.2 earthquake in California two hours before it occurred. The system analyzes subtle changes in seismic activity and ground deformation patterns using machine learning algorithms trained on historical earthquake data.',
+        category: 'TECH',
         headline: 'AI System Predicts Earthquake 2 Hours Before It Happens',
         id: '3',
         isFake: true,
@@ -64,6 +68,7 @@ export const SAMPLE_NEWS_ITEMS: NewsItem[] = [
     {
         article:
             "Researchers have created the first living robots that can reproduce on their own. These microscopic 'xenobots,' made from frog cells, can find single cells, gather hundreds of them, and assemble baby robots inside their mouths that look and move like themselves.",
+        category: 'SCIENCE',
         headline: 'Scientists Create First Self-Replicating Living Robots',
         id: '4',
         isFake: false,
@@ -71,6 +76,7 @@ export const SAMPLE_NEWS_ITEMS: NewsItem[] = [
     {
         article:
             'A paralyzed individual has successfully posted messages on Twitter using only their thoughts, thanks to a brain-computer interface developed by researchers. The implant translates neural signals into text, allowing direct mental communication with digital devices.',
+        category: 'SCIENCE',
         headline: 'Brain Implant Allows Paralyzed Person to Tweet Using Thoughts',
         id: '5',
         isFake: false,
@@ -78,6 +84,7 @@ export const SAMPLE_NEWS_ITEMS: NewsItem[] = [
     {
         article:
             'A groundbreaking drug developed by MIT researchers can cure cancer in just 24 hours, thanks to an AI-powered drug design system. The drug targets the specific genetic mutation responsible for the disease, effectively eliminating it without causing harm to healthy cells.',
+        category: 'SCIENCE',
         headline: 'New AI-Powered Drug Can Cure Cancer in 24 Hours',
         id: '6',
         isFake: true,
@@ -85,6 +92,7 @@ export const SAMPLE_NEWS_ITEMS: NewsItem[] = [
     {
         article:
             'A groundbreaking drug developed by MIT researchers can cure cancer in just 24 hours, thanks to an AI-powered drug design system. The drug targets the specific genetic mutation responsible for the disease, effectively eliminating it without causing harm to healthy cells.',
+        category: 'SCIENCE',
         headline: 'New AI-Powered Drug Can Cure Cancer in 24 Hours',
         id: '7',
         isFake: true,
@@ -92,6 +100,7 @@ export const SAMPLE_NEWS_ITEMS: NewsItem[] = [
     {
         article:
             'A groundbreaking drug developed by MIT researchers can cure cancer in just 24 hours, thanks to an AI-powered drug design system. The drug targets the specific genetic mutation responsible for the disease, effectively eliminating it without causing harm to healthy cells.',
+        category: 'SCIENCE',
         headline: 'New AI-Powered Drug Can Cure Cancer in 24 Hours',
         id: '8',
         isFake: true,
@@ -402,8 +411,6 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
 
     const renderArticle = (item: NewsItem, index: number) => {
         const isExpanded = index === expandedIndex;
-        const categories = ['TECH', 'SCIENCE', 'HEALTH', 'WORLD'];
-        const randomCategory = categories[Math.floor(Math.random() * categories.length)];
 
         const expandAnimation = useSharedValue(0);
 
@@ -417,7 +424,7 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
         }, [isExpanded]);
 
         const containerAnimatedStyle = useAnimatedStyle(() => {
-            const borderRadius = interpolate(expandAnimation.value, [0, 1], [16, 20]);
+            const borderRadius = interpolate(expandAnimation.value, [0, 1], [12, 16]);
             const elevation = interpolate(expandAnimation.value, [0, 1], [2, 4]);
             const shadowOpacity = interpolate(expandAnimation.value, [0, 1], [0.08, 0.12]);
 
@@ -528,9 +535,7 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                                         </Text>
                                         <Text style={styles.previewDot}>•</Text>
                                         <View style={styles.categoryTag}>
-                                            <Text style={styles.categoryText}>
-                                                {randomCategory}
-                                            </Text>
+                                            <Text style={styles.categoryText}>{item.category}</Text>
                                         </View>
                                         <Text style={styles.previewDot}>•</Text>
                                         <Text style={styles.previewTime}>2h ago</Text>
@@ -567,7 +572,7 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                                         <View style={styles.expandedTopRow}>
                                             <View style={styles.categoryTag}>
                                                 <Text style={styles.categoryText}>
-                                                    {randomCategory}
+                                                    {item.category}
                                                 </Text>
                                             </View>
                                         </View>
@@ -704,126 +709,185 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
         );
     };
 
-    const renderAnswerButtons = () => {
-        const isAnswered = selectedAnswer !== null;
-        const wasCorrect = answer?.wasCorrect;
-        const animations = animationStates.get(currentNewsItem.id);
+    const initializeAnimationState = (itemId: string) => {
+        if (animationStates.has(itemId)) return;
 
+        const newAnimations = {
+            fade: {
+                fake: new Animated.Value(1),
+                real: new Animated.Value(1),
+            },
+            slide: {
+                fake: new Animated.Value(0),
+                real: new Animated.Value(0),
+            },
+        };
+
+        animationStates.set(itemId, newAnimations);
+    };
+
+    const renderAnswerButtons = () => {
+        if (!currentNewsItem) return null;
+
+        const isAnswered = selectedAnswer !== null || currentNewsItem.answered !== undefined;
+        const wasCorrect = answer?.wasCorrect ?? currentNewsItem.answered?.wasCorrect;
+
+        // Initialize animations if they don't exist
+        if (!animationStates.has(currentNewsItem.id)) {
+            initializeAnimationState(currentNewsItem.id);
+        }
+
+        const animations = animationStates.get(currentNewsItem.id);
         if (!animations) return null;
 
         return (
             <View style={styles.buttonContainer}>
-                {/* FAKE button */}
-                <Animated.View
-                    style={[
-                        styles.buttonWrapper,
-                        !isAnswered && styles.buttonWrapperLeft,
-                        isMergeComplete && selectedAnswer === true && styles.buttonWrapperCentered,
-                        {
-                            opacity: animations.fade.fake,
-                            transform: [
-                                {
-                                    translateX: animations.slide.fake.interpolate({
-                                        inputRange: [0, 100],
-                                        outputRange: ['0%', '100%'],
-                                    }),
-                                },
-                            ],
-                        },
-                    ]}
-                >
-                    <Pressable
-                        style={({ pressed }) => [
-                            styles.button,
-                            isAnswered &&
-                                (wasCorrect ? styles.buttonCorrect : styles.buttonIncorrect),
-                            pressed && { transform: [{ scale: 0.98 }] },
+                <View style={styles.hintContainer}>
+                    <Text
+                        style={[
+                            styles.hintText,
+                            { textTransform: isAnswered ? 'uppercase' : 'none' },
                         ]}
-                        onPress={(event) =>
-                            handleAnswerClick(true, {
-                                x: event.nativeEvent.pageX,
-                                y: event.nativeEvent.pageY,
-                            })
-                        }
-                        disabled={isAnswered}
                     >
-                        <View style={styles.buttonInner}>
-                            <MaterialCommunityIcons
-                                name="close-circle-outline"
-                                size={20}
-                                color={isAnswered ? '#FFFFFF' : '#000000'}
-                                style={styles.buttonIcon}
-                            />
-                            <Text
-                                style={[
-                                    styles.buttonText,
-                                    isAnswered &&
-                                        (wasCorrect
-                                            ? styles.buttonTextCorrect
-                                            : styles.buttonTextIncorrect),
-                                ]}
-                            >
-                                FAKE
-                            </Text>
-                        </View>
-                    </Pressable>
-                </Animated.View>
+                        {isAnswered
+                            ? `This article was ${currentNewsItem.isFake ? 'FAKE' : 'REAL'}`
+                            : 'Is this article fake or real?'}
+                    </Text>
+                </View>
 
-                {/* REAL button */}
-                <Animated.View
-                    style={[
-                        styles.buttonWrapper,
-                        !isAnswered && styles.buttonWrapperRight,
-                        isMergeComplete && selectedAnswer === false && styles.buttonWrapperCentered,
-                        {
-                            opacity: animations.fade.real,
-                            transform: [
+                {/* Show centered answer for pre-answered articles */}
+                {currentNewsItem.answered ? (
+                    <View style={styles.buttonWrapperCentered}>
+                        <View
+                            style={[
+                                styles.button,
+                                wasCorrect ? styles.buttonCorrect : styles.buttonIncorrect,
+                            ]}
+                        >
+                            <View style={styles.buttonInner}>
+                                <Text
+                                    style={[
+                                        styles.buttonText,
+                                        wasCorrect
+                                            ? styles.buttonTextCorrect
+                                            : styles.buttonTextIncorrect,
+                                    ]}
+                                >
+                                    {currentNewsItem.isFake ? 'FAKE' : 'REAL'}
+                                </Text>
+                            </View>
+                        </View>
+                    </View>
+                ) : (
+                    <>
+                        {/* Existing FAKE/REAL buttons for unanswered articles */}
+                        <Animated.View
+                            style={[
+                                styles.buttonWrapper,
+                                !isAnswered && styles.buttonWrapperLeft,
+                                isMergeComplete &&
+                                    selectedAnswer === true &&
+                                    styles.buttonWrapperCentered,
                                 {
-                                    translateX: animations.slide.real.interpolate({
-                                        inputRange: [0, 100],
-                                        outputRange: ['0%', '100%'],
-                                    }),
+                                    opacity: animations.fade.fake,
+                                    transform: [
+                                        {
+                                            translateX: animations.slide.fake.interpolate({
+                                                inputRange: [0, 100],
+                                                outputRange: ['0%', '100%'],
+                                            }),
+                                        },
+                                    ],
                                 },
-                            ],
-                        },
-                    ]}
-                >
-                    <Pressable
-                        style={({ pressed }) => [
-                            styles.button,
-                            isAnswered &&
-                                (wasCorrect ? styles.buttonCorrect : styles.buttonIncorrect),
-                            pressed && { transform: [{ scale: 0.98 }] },
-                        ]}
-                        onPress={(event) =>
-                            handleAnswerClick(false, {
-                                x: event.nativeEvent.pageX,
-                                y: event.nativeEvent.pageY,
-                            })
-                        }
-                        disabled={isAnswered}
-                    >
-                        <View style={styles.buttonInner}>
-                            <MaterialCommunityIcons
-                                name="check-circle-outline"
-                                size={20}
-                                color={isAnswered ? '#FFFFFF' : '#000000'}
-                                style={styles.buttonIcon}
-                            />
-                            <Text
-                                style={[
-                                    styles.buttonText,
+                            ]}
+                        >
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.button,
                                     isAnswered &&
                                         (wasCorrect
-                                            ? styles.buttonTextCorrect
-                                            : styles.buttonTextIncorrect),
+                                            ? styles.buttonCorrect
+                                            : styles.buttonIncorrect),
+                                    pressed && { transform: [{ scale: 0.98 }] },
                                 ]}
+                                onPress={(event) =>
+                                    handleAnswerClick(true, {
+                                        x: event.nativeEvent.pageX,
+                                        y: event.nativeEvent.pageY,
+                                    })
+                                }
+                                disabled={isAnswered}
                             >
-                                REAL
-                            </Text>
-                        </View>
-                    </Pressable>
-                </Animated.View>
+                                <View style={styles.buttonInner}>
+                                    <Text
+                                        style={[
+                                            styles.buttonText,
+                                            isAnswered &&
+                                                (wasCorrect
+                                                    ? styles.buttonTextCorrect
+                                                    : styles.buttonTextIncorrect),
+                                        ]}
+                                    >
+                                        FAKE
+                                    </Text>
+                                </View>
+                            </Pressable>
+                        </Animated.View>
+
+                        <Animated.View
+                            style={[
+                                styles.buttonWrapper,
+                                !isAnswered && styles.buttonWrapperRight,
+                                isMergeComplete &&
+                                    selectedAnswer === false &&
+                                    styles.buttonWrapperCentered,
+                                {
+                                    opacity: animations.fade.real,
+                                    transform: [
+                                        {
+                                            translateX: animations.slide.real.interpolate({
+                                                inputRange: [0, 100],
+                                                outputRange: ['0%', '100%'],
+                                            }),
+                                        },
+                                    ],
+                                },
+                            ]}
+                        >
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.button,
+                                    isAnswered &&
+                                        (wasCorrect
+                                            ? styles.buttonCorrect
+                                            : styles.buttonIncorrect),
+                                    pressed && { transform: [{ scale: 0.98 }] },
+                                ]}
+                                onPress={(event) =>
+                                    handleAnswerClick(false, {
+                                        x: event.nativeEvent.pageX,
+                                        y: event.nativeEvent.pageY,
+                                    })
+                                }
+                                disabled={isAnswered}
+                            >
+                                <View style={styles.buttonInner}>
+                                    <Text
+                                        style={[
+                                            styles.buttonText,
+                                            isAnswered &&
+                                                (wasCorrect
+                                                    ? styles.buttonTextCorrect
+                                                    : styles.buttonTextIncorrect),
+                                        ]}
+                                    >
+                                        REAL
+                                    </Text>
+                                </View>
+                            </Pressable>
+                        </Animated.View>
+                    </>
+                )}
 
                 {/* Next article button */}
                 {isAnswered && expandedIndex < newsItems.length - 1 && (
@@ -847,13 +911,23 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                             style={styles.nextButton}
                             onPress={() => handleArticleSelect(expandedIndex + 1)}
                         >
-                            <Feather name="arrow-right" size={18} color="#666666" />
+                            <Feather name="arrow-right" size={18} color="#FFFFFF" />
                         </Pressable>
                     </Animated.View>
                 )}
             </View>
         );
     };
+
+    useEffect(() => {
+        // Initialize animation states for the default expanded article
+        if (expandedIndex === 0 && newsItems.length > 0) {
+            const defaultItem = newsItems[0];
+            if (!animationStates.has(defaultItem.id)) {
+                initializeAnimationState(defaultItem.id);
+            }
+        }
+    }, []);
 
     return (
         <View style={styles.mainContainer}>
@@ -962,24 +1036,20 @@ const styles = StyleSheet.create({
         right: 0,
     },
     article: {
-        color: '#2D3748',
-        firstLineColor: '#1A202C',
-        firstLineSize: 20,
+        color: '#1A1A1A',
         fontFamily: Platform.OS === 'ios' ? 'New York' : 'Noto Serif',
-        fontSize: 16,
-        letterSpacing: 0.2,
-        lineHeight: 24,
+        fontSize: 17,
+        fontWeight: '400',
+        letterSpacing: 0.3,
+        lineHeight: 26,
         marginBottom: 0,
         paddingHorizontal: 2,
         textAlign: 'left',
-        textShadowColor: 'rgba(0, 0, 0, 0.02)',
-        textShadowOffset: { height: 0.5, width: 0 },
-        textShadowRadius: 0.5,
     },
     articleContainer: {
         backgroundColor: '#FFFFFF',
         borderColor: 'rgba(0, 0, 0, 0.04)',
-        borderRadius: 16,
+        borderRadius: 12,
         borderWidth: 1,
         elevation: 2,
         marginHorizontal: 2,
@@ -999,7 +1069,7 @@ const styles = StyleSheet.create({
     articleContainerExpanded: {
         backgroundColor: '#FFFFFF',
         borderColor: 'rgba(0, 0, 0, 0.06)',
-        borderRadius: 20,
+        borderRadius: 16,
         borderWidth: 1,
         elevation: 4,
         shadowColor: '#000',
@@ -1059,7 +1129,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFFFFF',
         borderBottomWidth: 3,
         borderColor: '#000000',
-        borderRadius: 12,
+        borderRadius: 10,
         borderWidth: 1.5,
         elevation: 3,
         height: 48,
@@ -1078,8 +1148,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flexDirection: 'row',
         justifyContent: 'center',
+        marginTop: 32,
         minHeight: 56,
-        overflow: 'hidden',
+        overflow: 'visible',
         position: 'relative',
         width: '100%',
     },
@@ -1102,7 +1173,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         height: '100%',
         justifyContent: 'center',
-        paddingHorizontal: 10,
     },
     buttonText: {
         color: '#000000',
@@ -1140,7 +1210,7 @@ const styles = StyleSheet.create({
     },
     categoryTag: {
         backgroundColor: 'rgba(0, 0, 0, 0.05)',
-        borderRadius: 4,
+        borderRadius: 6,
         paddingHorizontal: 6,
         paddingVertical: 2,
     },
@@ -1196,7 +1266,7 @@ const styles = StyleSheet.create({
         marginTop: 8,
     },
     expandedPublisherIcon: {
-        borderRadius: 8,
+        borderRadius: 10,
         height: 28,
         width: 28,
     },
@@ -1251,9 +1321,38 @@ const styles = StyleSheet.create({
         textShadowOffset: { height: 1, width: 0 },
         textShadowRadius: 1,
     },
+    hintContainer: {
+        alignItems: 'center',
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        top: -28,
+        zIndex: 10,
+    },
+    hintText: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 4,
+        color: '#666666',
+        elevation: 1,
+        fontFamily: Platform.OS === 'ios' ? 'SF Pro Text' : 'System',
+        fontSize: 13,
+        fontWeight: '500',
+        letterSpacing: 0.3,
+        opacity: 0.8,
+        overflow: 'hidden',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        shadowColor: '#000',
+        shadowOffset: {
+            height: 1,
+            width: 0,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+    },
     iconContainer: {
         backgroundColor: '#FFFFFF',
-        borderRadius: 16,
+        borderRadius: 12,
         elevation: 4,
         padding: 2,
         position: 'absolute',
@@ -1273,8 +1372,8 @@ const styles = StyleSheet.create({
     },
     nextButton: {
         alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.05)',
-        borderRadius: 10,
+        backgroundColor: '#242424',
+        borderRadius: 8,
         elevation: 1,
         height: 36,
         justifyContent: 'center',
@@ -1283,7 +1382,7 @@ const styles = StyleSheet.create({
             height: 2,
             width: 0,
         },
-        shadowOpacity: 0.04,
+        shadowOpacity: 0.08,
         shadowRadius: 3,
         width: 36,
     },
@@ -1340,7 +1439,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#F9F9F9',
         borderColor: 'rgba(0, 0, 0, 0.06)',
-        borderRadius: 8,
+        borderRadius: 12,
         borderWidth: 1,
         height: 36,
         justifyContent: 'center',
@@ -1396,7 +1495,7 @@ const styles = StyleSheet.create({
     resultIndicator: {
         backgroundColor: '#FFFFFF',
         borderColor: '#22C55E',
-        borderRadius: 10,
+        borderRadius: 8,
         borderWidth: 1.5,
         padding: 4,
         position: 'absolute',
@@ -1418,7 +1517,7 @@ const styles = StyleSheet.create({
     scoreItem: {
         alignItems: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.03)',
-        borderRadius: 6,
+        borderRadius: 8,
         flexDirection: 'row',
         gap: 4,
         paddingHorizontal: 8,
