@@ -1,11 +1,12 @@
 import { useCallback } from 'react';
 import * as Haptics from 'expo-haptics';
 
-import { useNewsStore } from '@/store/news';
-import type { NewsItem } from '@/types/news';
+import { useNewsStore } from '@/application/store/news';
+
+import type { NewsEntity } from '@/domain/news/news.entity';
 
 interface UseNewsQuestionProps {
-    newsItem: NewsItem;
+    newsItem: NewsEntity;
     onAnswer?: (isCorrect: boolean) => void;
 }
 

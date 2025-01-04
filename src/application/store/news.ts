@@ -1,9 +1,9 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-import { storageRepository } from '@/repositories/storage.repository';
-import { createStorageService } from '@/services/storage.service';
-import type { NewsAnswer, NewsScore } from '@/types/news';
+import { NewsAnswer, NewsScore } from '@/domain/news/news';
+
+import { container } from '@/di/container';
 
 interface NewsState {
     answers: Record<string, NewsAnswer>;
@@ -39,17 +39,18 @@ export const useNewsStore = create<NewsState>()(
             resetScore: () => {
                 set({ score: { score: 0, streak: 0 } });
             },
-            resetStore: () => set(() => ({
-                answers: {},
-                articles: [],
-                currentArticle: null,
-                error: null,
-                isLoading: false,
-                score: {
-                    score: 0,
-                    streak: 0,
-                },
-            })),
+            resetStore: () =>
+                set(() => ({
+                    answers: {},
+                    articles: [],
+                    currentArticle: null,
+                    error: null,
+                    isLoading: false,
+                    score: {
+                        score: 0,
+                        streak: 0,
+                    },
+                })),
             score: {
                 score: 0,
                 streak: 0,
@@ -57,7 +58,7 @@ export const useNewsStore = create<NewsState>()(
         }),
         {
             name: 'news-storage',
-            storage: createJSONStorage(() => createStorageService(storageRepository)),
+            storage: createJSONStorage(() => container.storageService),
         },
     ),
 );

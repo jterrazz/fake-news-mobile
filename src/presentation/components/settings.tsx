@@ -9,8 +9,9 @@ import {
     View,
 } from 'react-native';
 
-import { clearAllStorage } from '../services/storage.service.js';
-import { useNewsStore } from '../store/news.js';
+import { useNewsStore } from '@/application/store/news';
+
+import { container } from '@/di/container';
 
 type Language = 'en' | 'fr';
 
@@ -54,7 +55,7 @@ export function SettingsScreen() {
                     onPress: async () => {
                         try {
                             setIsResetting(true);
-                            await clearAllStorage();
+                            await container.storageService.clear();
                             resetStore();
                             setSelectedLanguage('en');
                             Alert.alert(

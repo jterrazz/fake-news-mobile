@@ -3,10 +3,11 @@ import { StatusBar, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 
-import { Providers } from '@/app/providers';
-import { NewsQuestion } from '@/components/news-question';
-import { SettingsScreen } from '@/components/settings';
-import { TabBar } from '@/components/tab-bar';
+import { NewsQuestion } from './components/news-question.jsx';
+import { SettingsScreen } from './components/settings.jsx';
+import { TabBar } from './components/tab-bar.jsx';
+import { ContainerProvider } from './providers/container-provider.jsx';
+import { QueryClientProvider } from './providers/query-client-provider.jsx';
 
 function HomeScreen() {
     const [score, setScore] = useState(0);
@@ -25,6 +26,14 @@ function HomeScreen() {
 // Create the Bottom Tab Navigator
 const BottomTab = createBottomTabNavigator();
 
+function Providers({ children }: { children: React.ReactNode }) {
+    return (
+        <ContainerProvider>
+            <QueryClientProvider>{children}</QueryClientProvider>
+        </ContainerProvider>
+    );
+}
+
 export const AppRoot = () => {
     return (
         <Providers>
@@ -42,4 +51,4 @@ export const AppRoot = () => {
             </NavigationContainer>
         </Providers>
     );
-};
+}; 

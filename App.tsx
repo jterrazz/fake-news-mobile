@@ -1,3 +1,3 @@
-import { AppRoot } from './src/app.root.js';
+import { AppRoot } from '@/presentation/app.root';
 
 export default AppRoot;
