@@ -35,7 +35,7 @@ type Props = {
 const SPRING_CONFIG = {
     damping: 20,
     mass: 0.5,
-    stiffness: 90,
+    stiffness: 120,
 } as const;
 
 const ANIMATION_CONFIG = {
@@ -56,7 +56,7 @@ type TabLayout = {
 export const TabBarComponent = ({ state, navigation, descriptors, config }: Props) => {
     const numTabs = Object.keys(ROUTES).length;
     const TAB_WIDTH = config.width / numTabs;
-    const INDICATOR_WIDTH = 44;
+    const INDICATOR_WIDTH = 80;
 
     const [tabLayouts, setTabLayouts] = React.useState<TabLayout[]>([]);
     const translateX = useSharedValue(0);
@@ -137,7 +137,7 @@ const TabItem = React.memo(
 
         const animatedStyle = useAnimatedStyle(() => ({
             opacity: withSpring(isFocused ? 1 : 0.7, ANIMATION_CONFIG),
-            transform: [{ scale: withSpring(isFocused ? 1.15 : 1, ANIMATION_CONFIG) }],
+            transform: [{ scale: withSpring(isFocused ? 1.1 : 1, ANIMATION_CONFIG) }],
         }));
 
         return (
@@ -156,7 +156,7 @@ const TabItem = React.memo(
                     <MaterialCommunityIcons
                         name={icon as keyof typeof MaterialCommunityIcons.glyphMap}
                         size={18}
-                        color={isFocused ? 'white' : 'black'}
+                        color={isFocused ? '#FFFFFF' : '#64748B'}
                     />
                 </Animated.View>
             </Pressable>
@@ -177,13 +177,13 @@ const styles = StyleSheet.create({
     },
     indicator: {
         backgroundColor: 'black',
-        borderRadius: 22,
-        elevation: 4,
+        borderRadius: 12,
+        elevation: 2,
         height: 44,
         position: 'absolute',
         shadowColor: '#000',
-        shadowOffset: { height: 4, width: 0 },
-        shadowOpacity: 0.15,
+        shadowOffset: { height: 2, width: 0 },
+        shadowOpacity: 0.08,
         shadowRadius: 8,
     },
     item: {
