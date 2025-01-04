@@ -18,6 +18,7 @@ import ReAnimated, {
     useAnimatedScrollHandler,
     useAnimatedStyle,
     useSharedValue,
+    withSpring,
 } from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -404,19 +405,91 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
         const categories = ['TECH', 'SCIENCE', 'HEALTH', 'WORLD'];
         const randomCategory = categories[Math.floor(Math.random() * categories.length)];
 
+        const expandAnimation = useSharedValue(0);
+
+        useEffect(() => {
+            expandAnimation.value = withSpring(isExpanded ? 1 : 0, {
+                damping: isExpanded ? 15 : 20,
+                mass: isExpanded ? 0.8 : 1,
+                stiffness: isExpanded ? 100 : 120,
+                velocity: isExpanded ? 0 : -1,
+            });
+        }, [isExpanded]);
+
+        const containerAnimatedStyle = useAnimatedStyle(() => {
+            const borderRadius = interpolate(expandAnimation.value, [0, 1], [16, 20]);
+            const elevation = interpolate(expandAnimation.value, [0, 1], [2, 4]);
+            const shadowOpacity = interpolate(expandAnimation.value, [0, 1], [0.08, 0.12]);
+
+            return {
+                borderRadius,
+                elevation,
+                shadowOpacity,
+                transform: [
+                    {
+                        scale: interpolate(expandAnimation.value, [0, 1], [1, 1.01]),
+                    },
+                ],
+            };
+        });
+
+        const previewAnimatedStyle = useAnimatedStyle(() => {
+            return {
+                opacity: interpolate(expandAnimation.value, [0, 0.3], [1, 0], {
+                    extrapolateRight: Extrapolate.CLAMP,
+                }),
+                transform: [
+                    {
+                        translateY: interpolate(expandAnimation.value, [0, 1], [0, -10], {
+                            extrapolateRight: Extrapolate.CLAMP,
+                        }),
+                    },
+                ],
+            };
+        });
+
+        const contentAnimatedStyle = useAnimatedStyle(() => {
+            return {
+                opacity: interpolate(
+                    expandAnimation.value,
+                    [0.3, 0.7], // Adjusted timing for content fade
+                    [0, 1],
+                    { extrapolateRight: Extrapolate.CLAMP },
+                ),
+                transform: [
+                    {
+                        translateY: interpolate(
+                            expandAnimation.value,
+                            [0, 1],
+                            [40, 0], // Increased initial offset
+                            { extrapolateRight: Extrapolate.CLAMP },
+                        ),
+                    },
+                ],
+            };
+        });
+
         return (
             <View key={item.id}>
                 <View style={styles.articleWrapper}>
-                    <Pressable
+                    <ReAnimated.View
                         style={[
                             styles.articleContainer,
-                            isExpanded && styles.articleContainerExpanded,
                             item.answered && styles.articleContainerAnswered,
+                            containerAnimatedStyle,
                         ]}
-                        onPress={() => handleArticleSelect(index)}
                     >
-                        {!isExpanded ? (
-                            <View style={styles.previewContent}>
+                        <Pressable
+                            onPress={() => handleArticleSelect(index)}
+                            style={styles.articlePressable}
+                        >
+                            <ReAnimated.View
+                                style={[
+                                    styles.previewContent,
+                                    previewAnimatedStyle,
+                                    isExpanded && styles.previewContentHidden,
+                                ]}
+                            >
                                 <View style={styles.previewLeftColumn}>
                                     <View style={styles.previewIconContainer}>
                                         <Image
@@ -424,6 +497,24 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                                             style={styles.previewIcon}
                                             resizeMode="cover"
                                         />
+                                        <View
+                                            style={[
+                                                styles.statusIcon,
+                                                !item.answered && styles.statusIconEmpty,
+                                                item.answered &&
+                                                    !item.answered.wasCorrect &&
+                                                    styles.statusIconIncorrect,
+                                                item.answered &&
+                                                    item.answered.wasCorrect &&
+                                                    styles.statusIconCorrect,
+                                            ]}
+                                        >
+                                            {item.answered && (
+                                                <Text style={styles.statusIconText}>
+                                                    {item.isFake ? 'F' : 'R'}
+                                                </Text>
+                                            )}
+                                        </View>
                                     </View>
                                 </View>
 
@@ -460,48 +551,52 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                                         ]}
                                     >
                                         {item.answered && (
-                                            <Feather
-                                                name={item.answered.wasCorrect ? 'check' : 'x'}
-                                                size={10}
-                                                color="#FFFFFF"
-                                            />
+                                            <Text style={styles.statusIconText}>
+                                                {item.isFake ? 'F' : 'R'}
+                                            </Text>
                                         )}
                                     </View>
                                 </View>
-                            </View>
-                        ) : (
-                            <View>
-                                <View style={styles.articleHeader}>
-                                    <View style={styles.expandedTopRow}>
-                                        <View style={styles.categoryTag}>
-                                            <Text style={styles.categoryText}>
-                                                {randomCategory}
-                                            </Text>
+                            </ReAnimated.View>
+
+                            {isExpanded && (
+                                <ReAnimated.View
+                                    style={[styles.expandedContent, contentAnimatedStyle]}
+                                >
+                                    <View style={styles.articleHeader}>
+                                        <View style={styles.expandedTopRow}>
+                                            <View style={styles.categoryTag}>
+                                                <Text style={styles.categoryText}>
+                                                    {randomCategory}
+                                                </Text>
+                                            </View>
+                                        </View>
+                                        <Text style={styles.headline}>{item.headline}</Text>
+                                        <View style={styles.expandedPublisherContainer}>
+                                            <Image
+                                                source={require('../../assets/icon.png')}
+                                                style={styles.expandedPublisherIcon}
+                                            />
+                                            <View style={styles.expandedPublisherInfo}>
+                                                <Text style={styles.expandedPublisher}>
+                                                    AI BREAKING NEWS
+                                                </Text>
+                                                <Text style={styles.articleDate}>
+                                                    {format(new Date(), 'MMMM d, yyyy')}
+                                                </Text>
+                                            </View>
                                         </View>
                                     </View>
-                                    <Text style={styles.headline}>{item.headline}</Text>
-                                    <View style={styles.expandedPublisherContainer}>
-                                        <Image
-                                            source={require('../../assets/icon.png')}
-                                            style={styles.expandedPublisherIcon}
-                                        />
-                                        <View style={styles.expandedPublisherInfo}>
-                                            <Text style={styles.expandedPublisher}>
-                                                AI BREAKING NEWS
-                                            </Text>
-                                            <Text style={styles.articleDate}>
-                                                {format(new Date(), 'MMMM d, yyyy')}
-                                            </Text>
-                                        </View>
+                                    <View style={styles.articleContent}>
+                                        <Text style={styles.article}>{item.article}</Text>
                                     </View>
-                                </View>
-                                <View style={styles.articleContent}>
-                                    <Text style={styles.article}>{item.article}</Text>
-                                </View>
-                                <View style={styles.actionContainer}>{renderAnswerButtons()}</View>
-                            </View>
-                        )}
-                    </Pressable>
+                                    <View style={styles.actionContainer}>
+                                        {renderAnswerButtons()}
+                                    </View>
+                                </ReAnimated.View>
+                            )}
+                        </Pressable>
+                    </ReAnimated.View>
                 </View>
             </View>
         );
@@ -840,11 +935,22 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
 
 const styles = StyleSheet.create({
     actionContainer: {
-        borderTopColor: 'rgba(0, 0, 0, 0.08)',
+        backgroundColor: '#FFFFFF',
+        borderTopColor: 'rgba(0, 0, 0, 0.06)',
         borderTopWidth: 1,
+        elevation: 4,
         marginTop: 6,
-        paddingHorizontal: 16,
-        paddingVertical: 14,
+        paddingHorizontal: 12,
+        paddingVertical: 12,
+        position: 'relative',
+        shadowColor: '#000',
+        shadowOffset: {
+            height: -2,
+            width: 0,
+        },
+        shadowOpacity: 0.04,
+        shadowRadius: 8,
+        zIndex: 2,
     },
     activeIndicator: {
         backgroundColor: '#000000',
@@ -908,6 +1014,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFFFFF',
         paddingHorizontal: 16,
         paddingVertical: 20,
+        position: 'relative',
+        zIndex: 1,
     },
     articleDate: {
         color: '#999999',
@@ -921,18 +1029,24 @@ const styles = StyleSheet.create({
     },
     articleHeader: {
         backgroundColor: '#FFFFFF',
-        borderBottomColor: 'rgba(0, 0, 0, 0.08)',
+        borderBottomColor: 'rgba(0, 0, 0, 0.06)',
         borderBottomWidth: 1,
+        elevation: 4,
         paddingBottom: 14,
         paddingHorizontal: 16,
-        paddingTop: 16,
+        paddingTop: 20,
+        position: 'relative',
         shadowColor: '#000',
         shadowOffset: {
             height: 2,
             width: 0,
         },
-        shadowOpacity: 0.02,
-        shadowRadius: 4,
+        shadowOpacity: 0.04,
+        shadowRadius: 8,
+        zIndex: 3,
+    },
+    articlePressable: {
+        overflow: 'hidden',
     },
     articleWrapper: {
         elevation: 1,
@@ -948,7 +1062,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         borderWidth: 1.5,
         elevation: 3,
-        height: 56,
+        height: 48,
         overflow: 'hidden',
         position: 'relative',
         shadowColor: '#000',
@@ -988,15 +1102,15 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         height: '100%',
         justifyContent: 'center',
-        paddingHorizontal: 12,
+        paddingHorizontal: 10,
     },
     buttonText: {
         color: '#000000',
         fontFamily: Platform.OS === 'ios' ? 'SF Pro Text' : 'System',
-        fontSize: 15,
+        fontSize: 14,
         fontWeight: '800',
         letterSpacing: 2,
-        lineHeight: 56,
+        lineHeight: 48,
         textAlign: 'center',
         textShadowColor: 'rgba(0, 0, 0, 0.1)',
         textShadowOffset: { height: 1, width: 0 },
@@ -1064,6 +1178,9 @@ const styles = StyleSheet.create({
     dotContainer: {
         justifyContent: 'center',
         paddingLeft: 12,
+    },
+    expandedContent: {
+        position: 'relative',
     },
     expandedPublisher: {
         color: '#454545',
@@ -1195,6 +1312,12 @@ const styles = StyleSheet.create({
         gap: 8,
         padding: 14,
     },
+    previewContentHidden: {
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        top: 0,
+    },
     previewDot: {
         color: '#999999',
         fontSize: 10,
@@ -1209,7 +1332,7 @@ const styles = StyleSheet.create({
         lineHeight: 19,
     },
     previewIcon: {
-        borderRadius: 0,
+        borderRadius: 8,
         height: '100%',
         width: '100%',
     },
@@ -1221,12 +1344,14 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         height: 36,
         justifyContent: 'center',
-        overflow: 'hidden',
+        overflow: 'visible',
+        position: 'relative',
         width: 36,
     },
     previewLeftColumn: {
         alignItems: 'center',
         marginRight: 4,
+        position: 'relative',
         width: 40,
     },
     previewMetaContainer: {
@@ -1242,9 +1367,7 @@ const styles = StyleSheet.create({
         textTransform: 'uppercase',
     },
     previewRightColumn: {
-        alignItems: 'center',
-        marginLeft: 'auto',
-        width: 20,
+        display: 'none',
     },
     previewTextContainer: {
         flex: 1,
@@ -1308,10 +1431,14 @@ const styles = StyleSheet.create({
     statusIcon: {
         alignItems: 'center',
         backgroundColor: '#242424',
-        borderRadius: 6,
+        borderRadius: 8,
         height: 16,
         justifyContent: 'center',
+        position: 'absolute',
+        right: -4,
+        top: -4,
         width: 16,
+        zIndex: 1,
     },
     statusIconCorrect: {
         backgroundColor: '#03A678',
@@ -1323,6 +1450,12 @@ const styles = StyleSheet.create({
     },
     statusIconIncorrect: {
         backgroundColor: '#E15554',
+    },
+    statusIconText: {
+        color: '#FFFFFF',
+        fontSize: 10,
+        fontWeight: '800',
+        textAlign: 'center',
     },
     tab: {
         paddingHorizontal: 4,
