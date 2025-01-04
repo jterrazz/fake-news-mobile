@@ -401,10 +401,11 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
 
     const renderArticle = (item: NewsItem, index: number) => {
         const isExpanded = index === expandedIndex;
+        const categories = ['TECH', 'SCIENCE', 'HEALTH', 'WORLD'];
+        const randomCategory = categories[Math.floor(Math.random() * categories.length)];
 
         return (
             <View key={item.id}>
-                {index > 0}
                 <View style={styles.articleWrapper}>
                     <Pressable
                         style={[
@@ -416,40 +417,36 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                     >
                         {!isExpanded ? (
                             <View style={styles.previewContent}>
-                                <View
-                                    style={[
-                                        styles.previewIconContainer,
-                                        item.answered && styles.previewIconContainerAnswered,
-                                    ]}
-                                >
-                                    <Image
-                                        source={require('../../assets/icon.png')}
-                                        style={styles.previewIcon}
-                                    />
+                                <View style={styles.previewLeftColumn}>
+                                    <View style={styles.previewIconContainer}>
+                                        <Image
+                                            source={require('../../assets/icon.png')}
+                                            style={styles.previewIcon}
+                                            resizeMode="cover"
+                                        />
+                                    </View>
                                 </View>
+
                                 <View style={styles.previewTextContainer}>
-                                    <Text
-                                        numberOfLines={2}
-                                        style={[
-                                            styles.previewHeadline,
-                                            item.answered && styles.previewHeadlineAnswered,
-                                        ]}
-                                    >
+                                    <Text style={styles.previewHeadline} numberOfLines={2}>
                                         {item.headline}
                                     </Text>
                                     <View style={styles.previewMetaContainer}>
-                                        <Text
-                                            style={[
-                                                styles.previewPublisher,
-                                                item.answered && styles.previewPublisherAnswered,
-                                            ]}
-                                        >
+                                        <Text style={styles.previewPublisher}>
                                             AI BREAKING NEWS
                                         </Text>
+                                        <Text style={styles.previewDot}>•</Text>
+                                        <View style={styles.categoryTag}>
+                                            <Text style={styles.categoryText}>
+                                                {randomCategory}
+                                            </Text>
+                                        </View>
+                                        <Text style={styles.previewDot}>•</Text>
                                         <Text style={styles.previewTime}>2h ago</Text>
                                     </View>
                                 </View>
-                                <View style={styles.dotContainer}>
+
+                                <View style={styles.previewRightColumn}>
                                     <View
                                         style={[
                                             styles.statusIcon,
@@ -473,17 +470,22 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                                 </View>
                             </View>
                         ) : (
-                            // Expanded mode with new layout
                             <View>
-                                {/* Article Header */}
                                 <View style={styles.articleHeader}>
+                                    <View style={styles.expandedTopRow}>
+                                        <View style={styles.categoryTag}>
+                                            <Text style={styles.categoryText}>
+                                                {randomCategory}
+                                            </Text>
+                                        </View>
+                                    </View>
                                     <Text style={styles.headline}>{item.headline}</Text>
                                     <View style={styles.expandedPublisherContainer}>
                                         <Image
                                             source={require('../../assets/icon.png')}
                                             style={styles.expandedPublisherIcon}
                                         />
-                                        <View>
+                                        <View style={styles.expandedPublisherInfo}>
                                             <Text style={styles.expandedPublisher}>
                                                 AI BREAKING NEWS
                                             </Text>
@@ -493,13 +495,9 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                                         </View>
                                     </View>
                                 </View>
-
-                                {/* Article Content */}
                                 <View style={styles.articleContent}>
                                     <Text style={styles.article}>{item.article}</Text>
                                 </View>
-
-                                {/* Action Buttons */}
                                 <View style={styles.actionContainer}>{renderAnswerButtons()}</View>
                             </View>
                         )}
@@ -756,7 +754,7 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                                 {
                                     translateX: nextButtonAnim.opacity.interpolate({
                                         inputRange: [0, 1],
-                                        outputRange: [20, 0], // Slightly larger slide for smoother entrance
+                                        outputRange: [20, 0],
                                     }),
                                 },
                             ],
@@ -766,7 +764,7 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                             style={styles.nextButton}
                             onPress={() => handleArticleSelect(expandedIndex + 1)}
                         >
-                            <Feather name="arrow-right" size={24} color="#FFFFFF" />
+                            <Feather name="arrow-right" size={18} color="#666666" />
                         </Pressable>
                     </Animated.View>
                 )}
@@ -856,8 +854,9 @@ const styles = StyleSheet.create({
     actionContainer: {
         borderTopColor: 'rgba(0, 0, 0, 0.08)',
         borderTopWidth: 1,
-        paddingHorizontal: 24,
-        paddingTop: 32,
+        marginTop: 12,
+        paddingHorizontal: 20,
+        paddingVertical: 24,
     },
     activeIndicator: {
         backgroundColor: '#000000',
@@ -871,26 +870,29 @@ const styles = StyleSheet.create({
     article: {
         color: '#333333',
         fontFamily: Platform.OS === 'ios' ? 'New York' : 'serif',
-        fontSize: 18,
+        fontSize: 17,
         letterSpacing: 0.2,
-        lineHeight: 32,
-        marginBottom: 32,
+        lineHeight: 28,
+        marginBottom: 0,
+        textAlign: 'justify',
+        textShadowColor: 'rgba(0, 0, 0, 0.02)',
+        textShadowOffset: { height: 1, width: 0 },
+        textShadowRadius: 1,
     },
     articleContainer: {
         backgroundColor: '#FFFFFF',
         borderColor: 'rgba(0, 0, 0, 0.04)',
-        borderRadius: 20,
+        borderRadius: 24,
         borderWidth: 1,
-        elevation: 3,
-        flex: 1,
-        marginVertical: 8,
-        paddingVertical: 16,
+        elevation: 2,
+        marginVertical: 12,
+        overflow: 'hidden',
         shadowColor: '#000',
         shadowOffset: {
-            height: 8,
+            height: 4,
             width: 0,
         },
-        shadowOpacity: 0.06,
+        shadowOpacity: 0.08,
         shadowRadius: 12,
     },
     articleContainerAnswered: {
@@ -898,23 +900,46 @@ const styles = StyleSheet.create({
     },
     articleContainerExpanded: {
         backgroundColor: '#FFFFFF',
-        borderColor: 'rgba(0, 0, 0, 0.04)',
-        borderRadius: 24,
+        borderColor: 'rgba(0, 0, 0, 0.06)',
+        borderRadius: 28,
         borderWidth: 1,
         elevation: 4,
-        paddingVertical: 32,
+        shadowColor: '#000',
+        shadowOffset: {
+            height: 8,
+            width: 0,
+        },
+        shadowOpacity: 0.12,
+        shadowRadius: 16,
     },
     articleContent: {
-        paddingHorizontal: 24,
+        paddingHorizontal: 20,
+        paddingVertical: 24,
     },
     articleDate: {
         color: '#999999',
-        fontSize: 12,
+        fontSize: 11,
+        fontWeight: '500',
+    },
+    articleDate: {
+        color: '#999999',
+        fontSize: 11,
         fontWeight: '500',
     },
     articleHeader: {
-        marginBottom: 24,
-        paddingHorizontal: 24,
+        backgroundColor: '#FFFFFF',
+        borderBottomColor: 'rgba(0, 0, 0, 0.08)',
+        borderBottomWidth: 1,
+        paddingBottom: 20,
+        paddingHorizontal: 20,
+        paddingTop: 24,
+        shadowColor: '#000',
+        shadowOffset: {
+            height: 2,
+            width: 0,
+        },
+        shadowOpacity: 0.02,
+        shadowRadius: 4,
     },
     articleWrapper: {
         elevation: 1,
@@ -928,6 +953,7 @@ const styles = StyleSheet.create({
         borderColor: '#000000',
         borderRadius: 16,
         borderWidth: 1.5,
+        height: 56,
         overflow: 'hidden',
         position: 'relative',
         width: '100%',
@@ -936,9 +962,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flexDirection: 'row',
         justifyContent: 'center',
-        minHeight: 60,
+        minHeight: 56,
         overflow: 'hidden',
-        paddingVertical: 16,
         position: 'relative',
         width: '100%',
     },
@@ -956,7 +981,7 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: '700',
         letterSpacing: 1,
-        paddingVertical: 16,
+        lineHeight: 56,
         textAlign: 'center',
     },
     buttonTextCorrect: {
@@ -979,6 +1004,20 @@ const styles = StyleSheet.create({
     },
     buttonWrapperRight: {
         right: '2%',
+    },
+    categoryTag: {
+        backgroundColor: 'rgba(0, 0, 0, 0.05)',
+        borderRadius: 3,
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+    },
+    categoryText: {
+        color: '#666666',
+        fontSize: 9,
+        fontWeight: '600',
+        letterSpacing: 0.5,
+        lineHeight: 11,
+        textTransform: 'uppercase',
     },
     celebrationContainer: {
         alignItems: 'center',
@@ -1009,24 +1048,30 @@ const styles = StyleSheet.create({
     },
     expandedPublisher: {
         color: '#454545',
-        fontSize: 13,
+        fontSize: 12,
         fontWeight: '700',
-        letterSpacing: 1,
+        letterSpacing: 0.8,
+        marginBottom: 1,
         textTransform: 'uppercase',
     },
     expandedPublisherContainer: {
         alignItems: 'center',
-        borderBottomColor: 'rgba(0, 0, 0, 0.08)',
-        borderBottomWidth: 1,
         flexDirection: 'row',
-        marginBottom: 24,
-        paddingBottom: 24,
+        marginTop: 6,
     },
     expandedPublisherIcon: {
         borderRadius: 8,
         height: 32,
-        marginRight: 12,
         width: 32,
+    },
+    expandedPublisherInfo: {
+        marginLeft: 12,
+    },
+    expandedTopRow: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 12,
     },
     fadeGradient: {
         bottom: 0,
@@ -1061,11 +1106,14 @@ const styles = StyleSheet.create({
     headline: {
         color: '#000000',
         fontFamily: Platform.OS === 'ios' ? 'New York' : 'serif',
-        fontSize: 32,
-        fontWeight: '800',
+        fontSize: 28,
+        fontWeight: '700',
         letterSpacing: -0.5,
-        lineHeight: 40,
-        marginBottom: 20,
+        lineHeight: 34,
+        marginBottom: 16,
+        textShadowColor: 'rgba(0, 0, 0, 0.04)',
+        textShadowOffset: { height: 1, width: 0 },
+        textShadowRadius: 1,
     },
     iconContainer: {
         backgroundColor: '#FFFFFF',
@@ -1089,11 +1137,19 @@ const styles = StyleSheet.create({
     },
     nextButton: {
         alignItems: 'center',
-        backgroundColor: '#000000',
-        borderRadius: 24,
-        height: 48,
+        backgroundColor: 'rgba(0, 0, 0, 0.05)',
+        borderRadius: 12,
+        elevation: 1,
+        height: 36,
         justifyContent: 'center',
-        width: 48,
+        shadowColor: '#000',
+        shadowOffset: {
+            height: 2,
+            width: 0,
+        },
+        shadowOpacity: 0.04,
+        shadowRadius: 3,
+        width: 36,
     },
     nextButtonContainer: {
         marginTop: 24,
@@ -1117,64 +1173,64 @@ const styles = StyleSheet.create({
     previewContent: {
         alignItems: 'center',
         flexDirection: 'row',
-        gap: 16,
-        paddingHorizontal: 20,
+        gap: 12,
+        padding: 16,
     },
     previewHeadline: {
         color: '#1A1A1A',
-        fontFamily: Platform.OS === 'ios' ? 'SF Pro Display' : 'System',
-        fontSize: 17,
-        fontWeight: '700',
-        letterSpacing: 0.3,
-        lineHeight: 24,
-    },
-    previewHeadlineAnswered: {
-        color: '#666666',
+        fontFamily: Platform.OS === 'ios' ? 'New York' : 'serif',
+        fontSize: 16,
+        fontWeight: '600',
+        letterSpacing: 0.2,
+        lineHeight: 20,
     },
     previewIcon: {
-        borderRadius: 8,
-        height: 32,
-        width: 32,
+        borderRadius: 0,
+        height: '100%',
+        width: '100%',
     },
     previewIconContainer: {
+        alignItems: 'center',
         backgroundColor: '#F9F9F9',
-        borderColor: 'rgba(0, 0, 0, 0.03)',
-        borderRadius: 16,
+        borderColor: 'rgba(0, 0, 0, 0.06)',
+        borderRadius: 8,
         borderWidth: 1,
-        padding: 12,
-        shadowColor: '#000',
-        shadowOffset: {
-            height: 4,
-            width: 0,
-        },
-        shadowOpacity: 0.06,
-        shadowRadius: 8,
+        height: 40,
+        justifyContent: 'center',
+        overflow: 'hidden',
+        width: 40,
     },
-    previewIconContainerAnswered: {
-        backgroundColor: '#F0F0F0',
+    previewLeftColumn: {
+        alignItems: 'center',
+        marginRight: 4,
+        width: 40,
     },
     previewMetaContainer: {
         alignItems: 'center',
         flexDirection: 'row',
-        gap: 8,
+        gap: 6,
     },
     previewPublisher: {
         color: '#666666',
-        fontSize: 12,
+        fontSize: 11,
         fontWeight: '600',
-        letterSpacing: 0.8,
+        letterSpacing: 0.5,
         textTransform: 'uppercase',
     },
-    previewPublisherAnswered: {
-        color: '#999999',
+    previewRightColumn: {
+        alignItems: 'center',
+        marginLeft: 'auto',
+        width: 20,
     },
     previewTextContainer: {
         flex: 1,
-        gap: 4,
+        gap: 6,
+        justifyContent: 'center',
+        paddingRight: 12,
     },
     previewTime: {
         color: '#999999',
-        fontSize: 12,
+        fontSize: 11,
         fontWeight: '500',
     },
     publicationTitle: {
@@ -1211,6 +1267,11 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: 12,
     },
+    previewDot: {
+        color: '#999999',
+        fontSize: 10,
+        lineHeight: 10,
+    },
     scoreItem: {
         alignItems: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.03)',
@@ -1219,11 +1280,6 @@ const styles = StyleSheet.create({
         gap: 4,
         paddingHorizontal: 8,
         paddingVertical: 4,
-    },
-    scoreText: {
-        color: '#333',
-        fontSize: 15,
-        fontWeight: '700',
     },
     scrollContainer: {
         flex: 1,
@@ -1243,7 +1299,7 @@ const styles = StyleSheet.create({
     statusIconEmpty: {
         backgroundColor: 'transparent',
         borderColor: '#242424',
-        borderWidth: 1.5,
+        borderWidth: 2,
     },
     statusIconIncorrect: {
         backgroundColor: '#E15554',
