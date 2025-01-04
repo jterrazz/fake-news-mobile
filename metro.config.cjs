@@ -5,7 +5,16 @@ const config = getDefaultConfig(__dirname);
 
 config.resolver = {
     ...config.resolver,
+    alias: {
+        '@': './src',
+    },
     resolveRequest: (context, moduleName, platform) => {
+        // Handle @ alias
+        if (moduleName.startsWith('@/')) {
+            const newModuleName = moduleName.replace('@/', `${__dirname}/src/`);
+            return context.resolveRequest(context, newModuleName, platform);
+        }
+
         // Handle .jsx -> .tsx
         if (moduleName.endsWith('.jsx')) {
             const tsxName = moduleName.replace(/\.jsx$/, '.tsx');

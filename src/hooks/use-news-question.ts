@@ -1,8 +1,8 @@
 import { useCallback } from 'react';
 import * as Haptics from 'expo-haptics';
 
-import { useNewsStore } from '../store/news.js';
-import type { NewsItem } from '../types/news.js';
+import { useNewsStore } from '@/store/news';
+import type { NewsItem } from '@/types/news';
 
 interface UseNewsQuestionProps {
     newsItem: NewsItem;

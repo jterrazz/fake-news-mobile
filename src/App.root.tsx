@@ -3,9 +3,9 @@ import { StatusBar, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 
-import { NewsQuestion, SAMPLE_NEWS_ITEMS } from './components/news-question.js';
-import { SettingsScreen } from './components/settings.js';
-import { TabBar } from './components/tab-bar.js';
+import { NewsQuestion, SAMPLE_NEWS_ITEMS } from '@/components/news-question';
+import { SettingsScreen } from '@/components/settings';
+import { TabBar } from '@/components/tab-bar';
 
 function HomeScreen() {
     const [score, setScore] = useState(0);

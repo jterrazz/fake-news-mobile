@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { StorageRepository } from '@/repositories/storage.repository';
 
 export interface StorageService {
     getItem: (key: string) => Promise<string | null>;
@@ -6,10 +6,10 @@ export interface StorageService {
     removeItem: (key: string) => Promise<void>;
 }
 
-export const createStorageService = (): StorageService => ({
+export const createStorageService = (repository: StorageRepository): StorageService => ({
     getItem: async (key: string): Promise<string | null> => {
         try {
-            return await AsyncStorage.getItem(key);
+            return await repository.get(key);
         } catch (error) {
             console.error('Error reading from storage:', error);
             return null;
@@ -18,7 +18,7 @@ export const createStorageService = (): StorageService => ({
 
     removeItem: async (key: string): Promise<void> => {
         try {
-            await AsyncStorage.removeItem(key);
+            await repository.remove(key);
         } catch (error) {
             console.error('Error removing from storage:', error);
         }
@@ -26,7 +26,7 @@ export const createStorageService = (): StorageService => ({
 
     setItem: async (key: string, value: string): Promise<void> => {
         try {
-            await AsyncStorage.setItem(key, value);
+            await repository.set(key, value);
         } catch (error) {
             console.error('Error writing to storage:', error);
         }

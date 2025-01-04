@@ -25,7 +25,7 @@ import { format } from 'date-fns';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { useNewsQuestion } from '../hooks/use-news-question.js';
+import { useNewsQuestion } from '@/hooks/use-news-question';
 
 interface NewsItem {
     id: string;
@@ -128,20 +128,10 @@ interface Particle {
 }
 
 const BURST_PARTICLE_COUNT = 32;
-const BUTTON_PARTICLE_COUNT = 16;
 
 interface BurstParticle extends Particle {
     delay: number;
     size: number;
-}
-
-interface ButtonParticle {
-    animation: Animated.Value;
-    size: number;
-    color: string;
-    offsetX: number;
-    offsetY: number;
-    duration: number;
 }
 
 interface ButtonPosition {
@@ -174,12 +164,6 @@ const createParticles = (): BurstParticle[] => {
         };
     });
 };
-
-const COLORS = {
-    BORDER_COLOR: 'rgba(0, 0, 0, 0.08)',
-    BORDER_COLOR_LIGHT: 'rgba(0, 0, 0, 0.05)',
-    SHADOW_COLOR: 'rgba(0, 0, 0, 0.12)',
-} as const;
 
 export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
     const [expandedIndex, setExpandedIndex] = useState(0);
@@ -726,6 +710,11 @@ const styles = StyleSheet.create({
     },
     articleContent: {
         paddingHorizontal: 24,
+    },
+    articleDate: {
+        color: '#999999',
+        fontSize: 12,
+        fontWeight: '500',
     },
     articleHeader: {
         marginBottom: 24,
