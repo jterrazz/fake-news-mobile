@@ -3,20 +3,21 @@ import { StatusBar, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 
-import { NewsQuestion, SAMPLE_NEWS_ITEMS } from '@/components/news-question';
+import { Providers } from '@/app/providers';
+import { NewsQuestion } from '@/components/news-question';
 import { SettingsScreen } from '@/components/settings';
 import { TabBar } from '@/components/tab-bar';
 
 function HomeScreen() {
     const [score, setScore] = useState(0);
 
-    const handleAnswer = (isCorrect) => {
+    const handleAnswer = (isCorrect: boolean) => {
         if (isCorrect) setScore(score + 1);
     };
 
     return (
         <View style={{ backgroundColor: '#FFFFFF', flex: 1 }}>
-            <NewsQuestion newsItems={SAMPLE_NEWS_ITEMS} onAnswer={handleAnswer} />
+            <NewsQuestion onAnswer={handleAnswer} />
         </View>
     );
 }
@@ -26,7 +27,7 @@ const BottomTab = createBottomTabNavigator();
 
 export const AppRoot = () => {
     return (
-        <>
+        <Providers>
             <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
             <NavigationContainer>
                 <BottomTab.Navigator
@@ -39,6 +40,6 @@ export const AppRoot = () => {
                     <BottomTab.Screen name="Settings" component={SettingsScreen} />
                 </BottomTab.Navigator>
             </NavigationContainer>
-        </>
+        </Providers>
     );
 };

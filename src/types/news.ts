@@ -9,10 +9,24 @@ export interface NewsItem {
   headline: string;
   article: string;
   isFake: boolean;
-  answered?: NewsAnswer;
+  category: string;
+  answered?: {
+    wasCorrect: boolean;
+  };
 }
 
 export interface NewsScore {
   score: number;
   streak: number;
+}
+
+export interface NewsArticleResponse {
+  articles: NewsItem[];
+  version: string;
+}
+
+export interface NewsArticleError {
+  code: string;
+  message: string;
+  status: number;
 } 

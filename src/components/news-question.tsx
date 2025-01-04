@@ -26,19 +26,10 @@ import { format } from 'date-fns';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import { useNewsArticles } from '@/hooks/use-news-articles';
 import { useNewsQuestion } from '@/hooks/use-news-question';
 import { useNewsStore } from '@/store/news';
-
-interface NewsItem {
-    id: string;
-    headline: string;
-    article: string;
-    isFake: boolean;
-    category: string;
-    answered?: {
-        wasCorrect: boolean;
-    };
-}
+import type { NewsItem } from '@/types/news';
 
 export const SAMPLE_NEWS_ITEMS: NewsItem[] = [
     {
@@ -256,10 +247,11 @@ const createParticles = (): BurstParticle[] => {
     });
 };
 
-export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
+export function NewsQuestion({ onAnswer }: Omit<NewsQuestionProps, 'newsItems'>) {
+    const { data: newsItems } = useNewsArticles();
+
     const { answers } = useNewsStore();
 
-    // Merge the stored answers with news items
     const newsItemsWithAnswers = newsItems.map((item) => ({
         ...item,
         answered: answers[item.id]
@@ -597,24 +589,21 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                                             style={styles.previewIcon}
                                             resizeMode="cover"
                                         />
-                                        <View
-                                            style={[
-                                                styles.statusIcon,
-                                                !item.answered && styles.statusIconEmpty,
-                                                item.answered &&
+                                        {item.answered && (
+                                            <View
+                                                style={[
+                                                    styles.statusIcon,
                                                     !item.answered.wasCorrect &&
-                                                    styles.statusIconIncorrect,
-                                                item.answered &&
+                                                        styles.statusIconIncorrect,
                                                     item.answered.wasCorrect &&
-                                                    styles.statusIconCorrect,
-                                            ]}
-                                        >
-                                            {item.answered && (
+                                                        styles.statusIconCorrect,
+                                                ]}
+                                            >
                                                 <Text style={styles.statusIconText}>
                                                     {item.isFake ? 'F' : 'R'}
                                                 </Text>
-                                            )}
-                                        </View>
+                                            </View>
+                                        )}
                                     </View>
                                 </View>
 
@@ -636,24 +625,21 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                                 </View>
 
                                 <View style={styles.previewRightColumn}>
-                                    <View
-                                        style={[
-                                            styles.statusIcon,
-                                            !item.answered && styles.statusIconEmpty,
-                                            item.answered &&
+                                    {item.answered && (
+                                        <View
+                                            style={[
+                                                styles.statusIcon,
                                                 !item.answered.wasCorrect &&
-                                                styles.statusIconIncorrect,
-                                            item.answered &&
+                                                    styles.statusIconIncorrect,
                                                 item.answered.wasCorrect &&
-                                                styles.statusIconCorrect,
-                                        ]}
-                                    >
-                                        {item.answered && (
+                                                    styles.statusIconCorrect,
+                                            ]}
+                                        >
                                             <Text style={styles.statusIconText}>
                                                 {item.isFake ? 'F' : 'R'}
                                             </Text>
-                                        )}
-                                    </View>
+                                        </View>
+                                    )}
                                 </View>
                             </ReAnimated.View>
 
@@ -1635,11 +1621,6 @@ const styles = StyleSheet.create({
     },
     statusIconCorrect: {
         backgroundColor: '#03A678',
-    },
-    statusIconEmpty: {
-        backgroundColor: 'transparent',
-        borderColor: '#242424',
-        borderWidth: 2,
     },
     statusIconIncorrect: {
         backgroundColor: '#E15554',
