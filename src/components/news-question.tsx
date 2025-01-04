@@ -633,16 +633,16 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                                         outputRange: ['0%', '100%'],
                                     }),
                                 },
-                                { scale: selectedAnswer === true ? 1.02 : 1 },
                             ],
                         },
                     ]}
                 >
                     <Pressable
-                        style={[
+                        style={({ pressed }) => [
                             styles.button,
                             isAnswered &&
                                 (wasCorrect ? styles.buttonCorrect : styles.buttonIncorrect),
+                            pressed && { transform: [{ scale: 0.98 }] },
                         ]}
                         onPress={(event) =>
                             handleAnswerClick(true, {
@@ -652,31 +652,25 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                         }
                         disabled={isAnswered}
                     >
-                        <Text
-                            style={[
-                                styles.buttonText,
-                                isAnswered &&
-                                    (wasCorrect
-                                        ? styles.buttonTextCorrect
-                                        : styles.buttonTextIncorrect),
-                            ]}
-                        >
-                            FAKE
-                        </Text>
-                        {isAnswered && (
-                            <View
+                        <View style={styles.buttonInner}>
+                            <MaterialCommunityIcons
+                                name="close-circle-outline"
+                                size={20}
+                                color={isAnswered ? '#FFFFFF' : '#000000'}
+                                style={styles.buttonIcon}
+                            />
+                            <Text
                                 style={[
-                                    styles.resultIndicator,
-                                    !wasCorrect && styles.resultIndicatorError,
+                                    styles.buttonText,
+                                    isAnswered &&
+                                        (wasCorrect
+                                            ? styles.buttonTextCorrect
+                                            : styles.buttonTextIncorrect),
                                 ]}
                             >
-                                <Feather
-                                    name={wasCorrect ? 'check' : 'x'}
-                                    size={16}
-                                    color={wasCorrect ? '#22C55E' : '#EF4444'}
-                                />
-                            </View>
-                        )}
+                                FAKE
+                            </Text>
+                        </View>
                     </Pressable>
                 </Animated.View>
 
@@ -695,16 +689,16 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                                         outputRange: ['0%', '100%'],
                                     }),
                                 },
-                                { scale: selectedAnswer === false ? 1.02 : 1 },
                             ],
                         },
                     ]}
                 >
                     <Pressable
-                        style={[
+                        style={({ pressed }) => [
                             styles.button,
                             isAnswered &&
                                 (wasCorrect ? styles.buttonCorrect : styles.buttonIncorrect),
+                            pressed && { transform: [{ scale: 0.98 }] },
                         ]}
                         onPress={(event) =>
                             handleAnswerClick(false, {
@@ -714,31 +708,25 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                         }
                         disabled={isAnswered}
                     >
-                        <Text
-                            style={[
-                                styles.buttonText,
-                                isAnswered &&
-                                    (wasCorrect
-                                        ? styles.buttonTextCorrect
-                                        : styles.buttonTextIncorrect),
-                            ]}
-                        >
-                            REAL
-                        </Text>
-                        {isAnswered && (
-                            <View
+                        <View style={styles.buttonInner}>
+                            <MaterialCommunityIcons
+                                name="check-circle-outline"
+                                size={20}
+                                color={isAnswered ? '#FFFFFF' : '#000000'}
+                                style={styles.buttonIcon}
+                            />
+                            <Text
                                 style={[
-                                    styles.resultIndicator,
-                                    !wasCorrect && styles.resultIndicatorError,
+                                    styles.buttonText,
+                                    isAnswered &&
+                                        (wasCorrect
+                                            ? styles.buttonTextCorrect
+                                            : styles.buttonTextIncorrect),
                                 ]}
                             >
-                                <Feather
-                                    name={wasCorrect ? 'check' : 'x'}
-                                    size={16}
-                                    color={wasCorrect ? '#22C55E' : '#EF4444'}
-                                />
-                            </View>
-                        )}
+                                REAL
+                            </Text>
+                        </View>
                     </Pressable>
                 </Animated.View>
 
@@ -950,12 +938,21 @@ const styles = StyleSheet.create({
     },
     button: {
         backgroundColor: '#FFFFFF',
+        borderBottomWidth: 3,
         borderColor: '#000000',
         borderRadius: 16,
         borderWidth: 1.5,
+        elevation: 3,
         height: 56,
         overflow: 'hidden',
         position: 'relative',
+        shadowColor: '#000',
+        shadowOffset: {
+            height: 2,
+            width: 0,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
         width: '100%',
     },
     buttonContainer: {
@@ -969,20 +966,36 @@ const styles = StyleSheet.create({
     },
     buttonCorrect: {
         backgroundColor: '#22C55E',
-        borderColor: '#22C55E',
+        borderBottomColor: '#167C3D',
+        borderColor: '#1B9D4D',
+    },
+    buttonIcon: {
+        marginRight: 8,
+        opacity: 0.7,
     },
     buttonIncorrect: {
         backgroundColor: '#EF4444',
-        borderColor: '#EF4444',
+        borderBottomColor: '#B91C1C',
+        borderColor: '#DC2626',
+    },
+    buttonInner: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        height: '100%',
+        justifyContent: 'center',
+        paddingHorizontal: 12,
     },
     buttonText: {
         color: '#000000',
         fontFamily: Platform.OS === 'ios' ? 'SF Pro Text' : 'System',
         fontSize: 15,
-        fontWeight: '700',
-        letterSpacing: 1,
+        fontWeight: '800',
+        letterSpacing: 2,
         lineHeight: 56,
         textAlign: 'center',
+        textShadowColor: 'rgba(0, 0, 0, 0.1)',
+        textShadowOffset: { height: 1, width: 0 },
+        textShadowRadius: 1,
     },
     buttonTextCorrect: {
         color: '#FFFFFF',
@@ -992,10 +1005,11 @@ const styles = StyleSheet.create({
     },
     buttonWrapper: {
         position: 'absolute',
+        transform: [{ scale: 1 }],
         width: '45%',
     },
     buttonWrapperCentered: {
-        left: '27.5%', // Centers the button (50% - 45%/2)
+        left: '27.5%',
         position: 'absolute',
         width: '45%',
     },
@@ -1176,6 +1190,11 @@ const styles = StyleSheet.create({
         gap: 12,
         padding: 16,
     },
+    previewDot: {
+        color: '#999999',
+        fontSize: 10,
+        lineHeight: 10,
+    },
     previewHeadline: {
         color: '#1A1A1A',
         fontFamily: Platform.OS === 'ios' ? 'New York' : 'serif',
@@ -1266,11 +1285,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flexDirection: 'row',
         gap: 12,
-    },
-    previewDot: {
-        color: '#999999',
-        fontSize: 10,
-        lineHeight: 10,
     },
     scoreItem: {
         alignItems: 'center',
