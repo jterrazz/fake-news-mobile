@@ -23,8 +23,9 @@ import { Feather } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import { BlurView } from 'expo-blur';
-import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
+
+import { useNewsQuestion } from '../hooks/use-news-question.js';
 
 interface NewsItem {
     id: string;
@@ -97,7 +98,7 @@ export const SAMPLE_NEWS_ITEMS: NewsItem[] = [
 
 interface NewsQuestionProps {
     newsItems: NewsItem[];
-    onAnswer: (isCorrect: boolean) => void;
+    onAnswer?: (isCorrect: boolean) => void;
 }
 
 // Enable LayoutAnimation for Android
@@ -174,14 +175,23 @@ const createParticles = (): BurstParticle[] => {
     });
 };
 
+const COLORS = {
+    BORDER_COLOR: 'rgba(0, 0, 0, 0.08)',
+    BORDER_COLOR_LIGHT: 'rgba(0, 0, 0, 0.05)',
+    SHADOW_COLOR: 'rgba(0, 0, 0, 0.12)',
+} as const;
+
 export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
     const [expandedIndex, setExpandedIndex] = useState(0);
     const [selectedAnswer, setSelectedAnswer] = useState<boolean | null>(null);
-    const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
     const [activeTab, setActiveTab] = useState<TabType>('latest');
-    const [score, setScore] = useState(0);
-    const [streak, setStreak] = useState(0);
     const [lastClickedPosition, setLastClickedPosition] = useState<ButtonPosition>({ x: 0, y: 0 });
+
+    const currentNewsItem = newsItems[expandedIndex];
+    const { answer, handleAnswer, score } = useNewsQuestion({
+        newsItem: currentNewsItem,
+        onAnswer,
+    });
 
     // Remove height animations, keep other animation values
     const iconAnim = useRef(new Animated.Value(0)).current;
@@ -249,55 +259,13 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
         setExpandedIndex(index);
         // Reset states when switching articles
         setSelectedAnswer(null);
-        setIsCorrect(null);
         setLastClickedPosition({ x: 0, y: 0 });
     };
 
-    const handleAnswer = async (selectedFake: boolean, buttonPosition: ButtonPosition) => {
-        const correct = selectedFake === newsItems[expandedIndex].isFake;
-
-        if (correct) {
-            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            setScore((prev) => prev + 100);
-            setStreak((prev) => prev + 1);
-            setLastClickedPosition(buttonPosition);
-        } else {
-            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-            setStreak(0);
-        }
-
+    const handleAnswerClick = async (selectedFake: boolean, buttonPosition: ButtonPosition) => {
         setSelectedAnswer(selectedFake);
-        setIsCorrect(correct);
-        onAnswer(correct);
-
-        // Store the answer in the newsItem
-        newsItems[expandedIndex].answered = {
-            wasCorrect: correct,
-        };
-    };
-
-    const handleNextArticle = () => {
-        if (expandedIndex < newsItems.length - 1) {
-            // Configure the animation for expanding
-            LayoutAnimation.configureNext(
-                LayoutAnimation.create(
-                    200,
-                    LayoutAnimation.Types.easeInEaseOut,
-                    LayoutAnimation.Properties.opacity,
-                ),
-            );
-
-            // Move to next article and expand it
-            const nextIndex = expandedIndex + 1;
-            setExpandedIndex(nextIndex);
-            setSelectedAnswer(null);
-            setIsCorrect(null);
-            setLastClickedPosition({ x: 0, y: 0 });
-
-            // Scroll to the next article
-            const yOffset = nextIndex * 200; // Approximate height of collapsed articles
-            scrollY.value = yOffset;
-        }
+        setLastClickedPosition(buttonPosition);
+        await handleAnswer(selectedFake);
     };
 
     // Simplified button animations
@@ -425,7 +393,7 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                                                     styles.button,
                                                     getButtonStyle(
                                                         item.isFake,
-                                                        isCorrect,
+                                                        answer?.wasCorrect,
                                                         selectedAnswer,
                                                     ),
                                                 ]}
@@ -434,14 +402,20 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                                                     style={styles.pressable}
                                                     onPress={(event) => {
                                                         const { pageX, pageY } = event.nativeEvent;
-                                                        handleAnswer(true, { x: pageX, y: pageY });
+                                                        handleAnswerClick(true, {
+                                                            x: pageX,
+                                                            y: pageY,
+                                                        });
                                                     }}
                                                     disabled={selectedAnswer !== null}
                                                 >
                                                     <Animated.Text
                                                         style={[
                                                             styles.buttonText,
-                                                            getTextStyle(isCorrect, selectedAnswer),
+                                                            getTextStyle(
+                                                                answer?.wasCorrect,
+                                                                selectedAnswer,
+                                                            ),
                                                         ]}
                                                     >
                                                         FAKE
@@ -457,7 +431,7 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                                                     styles.button,
                                                     getButtonStyle(
                                                         !item.isFake,
-                                                        isCorrect,
+                                                        answer?.wasCorrect,
                                                         selectedAnswer,
                                                     ),
                                                 ]}
@@ -466,14 +440,20 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                                                     style={styles.pressable}
                                                     onPress={(event) => {
                                                         const { pageX, pageY } = event.nativeEvent;
-                                                        handleAnswer(false, { x: pageX, y: pageY });
+                                                        handleAnswerClick(false, {
+                                                            x: pageX,
+                                                            y: pageY,
+                                                        });
                                                     }}
                                                     disabled={selectedAnswer !== null}
                                                 >
                                                     <Animated.Text
                                                         style={[
                                                             styles.buttonText,
-                                                            getTextStyle(isCorrect, selectedAnswer),
+                                                            getTextStyle(
+                                                                answer?.wasCorrect,
+                                                                selectedAnswer,
+                                                            ),
                                                         ]}
                                                     >
                                                         REAL
@@ -489,7 +469,9 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                                             <View style={styles.nextButtonContainer}>
                                                 <Pressable
                                                     style={styles.nextButton}
-                                                    onPress={handleNextArticle}
+                                                    onPress={() =>
+                                                        handleArticleSelect(expandedIndex + 1)
+                                                    }
                                                 >
                                                     <Text style={styles.nextButtonText}>
                                                         NEXT ARTICLE
@@ -518,7 +500,7 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
         const [particles] = useState(() => createParticles());
 
         useEffect(() => {
-            if (isCorrect && lastClickedPosition.x !== 0) {
+            if (answer?.wasCorrect && lastClickedPosition.x !== 0) {
                 particles.forEach((particle) => {
                     particle.animation.setValue(0);
                     particle.rotation.setValue(0);
@@ -539,9 +521,9 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                     ]).start();
                 });
             }
-        }, [isCorrect, lastClickedPosition]);
+        }, [answer?.wasCorrect, lastClickedPosition]);
 
-        if (!isCorrect || lastClickedPosition.x === 0) return null;
+        if (!answer?.wasCorrect || lastClickedPosition.x === 0) return null;
 
         return (
             <View
@@ -647,11 +629,11 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                         <View style={styles.scoreContainer}>
                             <View style={styles.scoreItem}>
                                 <MaterialCommunityIcons name="star" size={20} color="#FFD700" />
-                                <Text style={styles.scoreText}>{score}</Text>
+                                <Text style={styles.scoreText}>{score.score}</Text>
                             </View>
                             <View style={styles.scoreItem}>
                                 <MaterialCommunityIcons name="fire" size={20} color="#FF4500" />
-                                <Text style={styles.scoreText}>×{streak}</Text>
+                                <Text style={styles.scoreText}>×{score.streak}</Text>
                             </View>
                         </View>
                     </View>
@@ -745,11 +727,6 @@ const styles = StyleSheet.create({
     articleContent: {
         paddingHorizontal: 24,
     },
-    articleDate: {
-        color: '#999999',
-        fontSize: 12,
-        fontWeight: '500',
-    },
     articleHeader: {
         marginBottom: 24,
         paddingHorizontal: 24,
@@ -779,25 +756,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: 12,
         justifyContent: 'space-between',
-    },
-    buttonParticle: {
-        borderRadius: 4,
-        elevation: 2,
-        position: 'absolute',
-        shadowColor: '#000',
-        shadowOffset: {
-            height: 1,
-            width: 0,
-        },
-        shadowOpacity: 0.2,
-        shadowRadius: 1.41,
-    },
-    buttonParticlesContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        pointerEvents: 'none',
-        position: 'absolute',
-        zIndex: 99,
     },
     buttonText: {
         fontFamily: Platform.OS === 'ios' ? 'SF Pro Text' : 'System',
@@ -833,24 +791,9 @@ const styles = StyleSheet.create({
         marginTop: 24,
         textTransform: 'uppercase',
     },
-    divider: {
-        backgroundColor: '#000000',
-        height: 1,
-        opacity: 0.08,
-    },
     dotContainer: {
         justifyContent: 'center',
         paddingLeft: 12,
-    },
-    emptyDot: {
-        backgroundColor: '#242424',
-        borderRadius: 1,
-        height: 2,
-        width: 2,
-    },
-    expandedContent: {
-        padding: 24,
-        paddingTop: 16,
     },
     expandedPublisher: {
         color: '#454545',
@@ -880,19 +823,6 @@ const styles = StyleSheet.create({
         position: 'absolute',
         right: 0,
         zIndex: 1,
-    },
-    header: {
-        backgroundColor: 'transparent',
-        borderBottomColor: 'rgba(0, 0, 0, 0.05)',
-        borderBottomWidth: 1,
-        left: 0,
-        paddingBottom: 12,
-        paddingHorizontal: 24,
-        paddingTop: 16,
-        position: 'absolute',
-        right: 0,
-        top: 0,
-        zIndex: 10,
     },
     headerBlur: {
         borderBottomColor: 'rgba(0, 0, 0, 0.05)',
@@ -971,18 +901,7 @@ const styles = StyleSheet.create({
         textTransform: 'uppercase',
     },
     particle: {
-        borderRadius: 6,
-        elevation: 5,
-        height: 12,
         position: 'absolute',
-        shadowColor: '#000',
-        shadowOffset: {
-            height: 2,
-            width: 0,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        width: 12,
     },
     pressable: {
         alignItems: 'center',
@@ -1022,22 +941,6 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.06,
         shadowRadius: 8,
     },
-    previewItem: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 8,
-        elevation: 2,
-        padding: 16,
-        shadowColor: '#000',
-        shadowOffset: {
-            height: 1,
-            width: 0,
-        },
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
-    },
-    previewList: {
-        gap: 12,
-    },
     previewMetaContainer: {
         alignItems: 'center',
         flexDirection: 'row',
@@ -1070,18 +973,6 @@ const styles = StyleSheet.create({
         textShadowOffset: { height: 1, width: 0 },
         textShadowRadius: 2,
         textTransform: 'uppercase',
-    },
-    publisher: {
-        color: '#6B6B6B',
-        fontFamily: 'System',
-        fontSize: 14,
-        fontWeight: '600',
-        letterSpacing: 0.2,
-    },
-    publisherIcon: {
-        height: 20,
-        marginRight: 8,
-        width: 20,
     },
     safeArea: {
         backgroundColor: 'transparent',
