@@ -10,6 +10,7 @@ interface NewsState {
     score: NewsScore;
     addAnswer: (newsId: string, wasCorrect: boolean) => void;
     resetScore: () => void;
+    resetStore: () => void;
 }
 
 export const useNewsStore = create<NewsState>()(
@@ -38,6 +39,17 @@ export const useNewsStore = create<NewsState>()(
             resetScore: () => {
                 set({ score: { score: 0, streak: 0 } });
             },
+            resetStore: () => set(() => ({
+                answers: {},
+                articles: [],
+                currentArticle: null,
+                error: null,
+                isLoading: false,
+                score: {
+                    score: 0,
+                    streak: 0,
+                },
+            })),
             score: {
                 score: 0,
                 streak: 0,

@@ -1,3 +1,5 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import { StorageRepository } from '@/repositories/storage.repository';
 
 export interface StorageService {
@@ -32,3 +34,12 @@ export const createStorageService = (repository: StorageRepository): StorageServ
         }
     },
 });
+
+export const clearAllStorage = async (): Promise<void> => {
+    try {
+        await AsyncStorage.clear();
+    } catch (error) {
+        console.error('Failed to clear storage:', error);
+        throw new Error('Failed to reset app data');
+    }
+};

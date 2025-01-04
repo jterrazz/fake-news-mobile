@@ -9,6 +9,9 @@ import {
     View,
 } from 'react-native';
 
+import { clearAllStorage } from '../services/storage.service.js';
+import { useNewsStore } from '../store/news.js';
+
 type Language = 'en' | 'fr';
 
 // Mock data for the reading stats
@@ -29,6 +32,8 @@ const mockStats = {
 
 export function SettingsScreen() {
     const [selectedLanguage, setSelectedLanguage] = useState<Language>('en');
+    const [isResetting, setIsResetting] = useState(false);
+    const resetStore = useNewsStore((state) => state.resetStore);
 
     const toggleLanguage = () => {
         setSelectedLanguage((prev) => (prev === 'en' ? 'fr' : 'en'));
@@ -46,9 +51,28 @@ export function SettingsScreen() {
                     text: selectedLanguage === 'en' ? 'Cancel' : 'Annuler',
                 },
                 {
-                    onPress: () => {
-                        // Add your reset logic here
-                        setSelectedLanguage('en');
+                    onPress: async () => {
+                        try {
+                            setIsResetting(true);
+                            await clearAllStorage();
+                            resetStore();
+                            setSelectedLanguage('en');
+                            Alert.alert(
+                                selectedLanguage === 'en' ? 'Success' : 'Succès',
+                                selectedLanguage === 'en'
+                                    ? 'All data has been reset successfully.'
+                                    : 'Toutes les données ont été réinitialisées avec succès.',
+                            );
+                        } catch (error) {
+                            Alert.alert(
+                                selectedLanguage === 'en' ? 'Error' : 'Erreur',
+                                selectedLanguage === 'en'
+                                    ? 'Failed to reset data. Please try again.'
+                                    : 'Échec de la réinitialisation des données. Veuillez réessayer.',
+                            );
+                        } finally {
+                            setIsResetting(false);
+                        }
                     },
                     style: 'destructive',
                     text: selectedLanguage === 'en' ? 'Reset' : 'Réinitialiser',
@@ -138,9 +162,19 @@ export function SettingsScreen() {
                     <Text style={styles.dangerTitle}>
                         {selectedLanguage === 'en' ? 'Danger Zone' : 'Zone dangereuse'}
                     </Text>
-                    <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
+                    <TouchableOpacity
+                        style={[styles.resetButton, isResetting && styles.resetButtonDisabled]}
+                        onPress={handleReset}
+                        disabled={isResetting}
+                    >
                         <Text style={styles.resetButtonText}>
-                            {selectedLanguage === 'en' ? 'Reset Everything' : 'Réinitialiser tout'}
+                            {isResetting
+                                ? selectedLanguage === 'en'
+                                    ? 'Resetting...'
+                                    : 'Réinitialisation...'
+                                : selectedLanguage === 'en'
+                                  ? 'Reset Everything'
+                                  : 'Réinitialiser tout'}
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -161,25 +195,41 @@ export function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
+    bar: {
+        backgroundColor: 'black',
+        borderRadius: 4,
+        width: 40,
+    },
+    barGroup: {
+        alignItems: 'center',
+        width: 60,
+    },
+    barLabel: {
+        color: '#666',
+        fontSize: 12,
+        marginTop: 8,
+        textAlign: 'center',
+    },
+    barValue: {
+        color: 'black',
+        fontSize: 14,
+        fontWeight: '600',
+        marginTop: 4,
+    },
     buttonText: {
         color: '#FFFFFF',
         fontSize: 16,
         fontWeight: '500',
     },
-    bar: {
-        backgroundColor: 'black',
-        borderRadius: 4,
-        width: 40,
+    content: {
+        paddingBottom: 24,
+        paddingHorizontal: 16,
     },
     dangerTitle: {
         color: 'black',
         fontSize: 18,
         fontWeight: '600',
         marginBottom: 12,
-    },
-    barGroup: {
-        alignItems: 'center',
-        width: 60,
     },
     dangerZone: {
         backgroundColor: '#FFF1F0',
@@ -189,32 +239,16 @@ const styles = StyleSheet.create({
         marginTop: 32,
         padding: 16,
     },
-    barLabel: {
-        color: '#666',
-        fontSize: 12,
-        marginTop: 8,
-        textAlign: 'center',
-    },
     devNotesContainer: {
         backgroundColor: '#F3F4F6',
         borderRadius: 8,
         marginTop: 32,
         padding: 16,
     },
-    barValue: {
-        color: 'black',
-        fontSize: 14,
-        fontWeight: '600',
-        marginTop: 4,
-    },
     devNotesText: {
         color: '#374151',
         fontSize: 14,
         lineHeight: 20,
-    },
-    content: {
-        paddingBottom: 24,
-        paddingHorizontal: 16,
     },
     devNotesTitle: {
         color: 'black',
@@ -252,10 +286,10 @@ const styles = StyleSheet.create({
     },
     languageContainer: {
         alignItems: 'center',
-        flexDirection: 'row',
         backgroundColor: '#f5f5f5',
-        justifyContent: 'space-between',
         borderRadius: 8,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         padding: 16,
     },
     resetButton: {
@@ -265,20 +299,23 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 12,
     },
-    safeArea: {
-        backgroundColor: '#FFFFFF',
-        flex: 1,
+    resetButtonDisabled: {
+        opacity: 0.5,
     },
     resetButtonText: {
         color: '#FFFFFF',
         fontSize: 16,
         fontWeight: '500',
     },
-    section: {
-        marginBottom: 24,
+    safeArea: {
+        backgroundColor: '#FFFFFF',
+        flex: 1,
     },
     scrollView: {
         flex: 1,
+    },
+    section: {
+        marginBottom: 24,
     },
     sectionTitle: {
         fontSize: 20,
