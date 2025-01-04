@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     Animated,
     Easing,
@@ -73,6 +73,11 @@ interface ButtonPosition {
     y: number;
 }
 
+const LETTER_ANIMATION_INTERVAL = 3000; // 3 seconds between animations
+const LETTER_ANIMATION_DURATION = 300; // 300ms for each animation
+const GLITCH_OFFSET = 2; // Maximum pixel offset for glitch
+const GLITCH_DURATION = 50; // Duration of each glitch movement
+
 const createParticles = (): BurstParticle[] => {
     return Array.from({ length: BURST_PARTICLE_COUNT }, (_, i) => {
         const sizeVariation = Math.random();
@@ -90,6 +95,11 @@ const createParticles = (): BurstParticle[] => {
             size: 2 + sizeVariation * 6, // Slightly smaller particles
         };
     });
+};
+
+type LetterAnimation = {
+    value: Animated.Value;
+    isAnimating: boolean;
 };
 
 export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
@@ -165,20 +175,20 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
 
     const titleAnimatedStyle = useAnimatedStyle(() => {
         const fontSize = interpolate(headerHeight.value, [70, 180], [32, 42], Extrapolate.CLAMP);
-
         const marginBottom = interpolate(
             headerHeight.value,
             [70, 180],
             [16, 40],
             Extrapolate.CLAMP,
         );
-
         const marginTop = interpolate(headerHeight.value, [70, 180], [8, 24], Extrapolate.CLAMP);
+        const scale = interpolate(headerHeight.value, [70, 180], [0.8, 1], Extrapolate.CLAMP);
 
         return {
             fontSize,
             marginBottom,
             marginTop,
+            transform: [{ scale }],
         };
     });
 
@@ -848,6 +858,104 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
         }
     }, []);
 
+    const [letterAnimations] = useState(() =>
+        Array.from({ length: 9 }, () => ({
+            isAnimating: false,
+            offset: new Animated.ValueXY({ x: 0, y: 0 }),
+            value: new Animated.Value(1),
+        })),
+    );
+
+    const animateLetter = useCallback(
+        (index: number) => {
+            if (letterAnimations[index].isAnimating) return;
+
+            letterAnimations[index].isAnimating = true;
+
+            // Create random glitch offsets
+            const xOffset = (Math.random() - 0.5) * GLITCH_OFFSET * 2;
+            const yOffset = (Math.random() - 0.5) * GLITCH_OFFSET * 2;
+
+            Animated.sequence([
+                // Initial scale up with glitch
+                Animated.parallel([
+                    Animated.timing(letterAnimations[index].value, {
+                        duration: LETTER_ANIMATION_DURATION / 2,
+                        easing: Easing.easeOut,
+                        toValue: 1.2,
+                        useNativeDriver: true,
+                    }),
+                    // Quick random position shifts
+                    Animated.sequence([
+                        Animated.timing(letterAnimations[index].offset, {
+                            duration: GLITCH_DURATION,
+                            easing: Easing.linear,
+                            toValue: { x: xOffset, y: yOffset },
+                            useNativeDriver: true,
+                        }),
+                        Animated.timing(letterAnimations[index].offset, {
+                            duration: GLITCH_DURATION,
+                            easing: Easing.linear,
+                            toValue: { x: -xOffset, y: -yOffset },
+                            useNativeDriver: true,
+                        }),
+                        Animated.timing(letterAnimations[index].offset, {
+                            duration: GLITCH_DURATION,
+                            easing: Easing.linear,
+                            toValue: { x: 0, y: 0 },
+                            useNativeDriver: true,
+                        }),
+                    ]),
+                ]),
+                // Scale back to normal
+                Animated.timing(letterAnimations[index].value, {
+                    duration: LETTER_ANIMATION_DURATION / 2,
+                    easing: Easing.easeIn,
+                    toValue: 1,
+                    useNativeDriver: true,
+                }),
+            ]).start(() => {
+                letterAnimations[index].isAnimating = false;
+            });
+        },
+        [letterAnimations],
+    );
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const randomIndex = Math.floor(Math.random() * 9);
+            animateLetter(randomIndex);
+        }, LETTER_ANIMATION_INTERVAL);
+
+        return () => clearInterval(interval);
+    }, [animateLetter]);
+
+    const renderAnimatedTitle = () => {
+        const letters = 'FAKE NEWS'.split('');
+
+        return (
+            <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
+                {letters.map((letter, index) => (
+                    <Animated.Text
+                        key={`${letter}-${index}`}
+                        style={[
+                            styles.publicationTitleLetter,
+                            {
+                                transform: [
+                                    { scale: letterAnimations[index].value },
+                                    { translateX: letterAnimations[index].offset.x },
+                                    { translateY: letterAnimations[index].offset.y },
+                                ],
+                            },
+                        ]}
+                    >
+                        {letter}
+                    </Animated.Text>
+                ))}
+            </View>
+        );
+    };
+
     return (
         <View style={styles.mainContainer}>
             <BlurView
@@ -856,9 +964,9 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                 style={[styles.headerBlur, headerAnimatedStyle]}
             >
                 <SafeAreaView style={styles.headerContent}>
-                    <ReAnimated.Text style={[styles.publicationTitle, titleAnimatedStyle]}>
-                        FAKE NEWS
-                    </ReAnimated.Text>
+                    <ReAnimated.View style={[styles.publicationTitleContainer, titleAnimatedStyle]}>
+                        {renderAnimatedTitle()}
+                    </ReAnimated.View>
                     <View style={styles.headerContentInner}>
                         <View style={styles.tabContainer}>
                             <Pressable style={[styles.tab]} onPress={() => setActiveTab('latest')}>
@@ -1409,18 +1517,20 @@ const styles = StyleSheet.create({
         fontSize: 11,
         fontWeight: '500',
     },
-    publicationTitle: {
+    publicationTitleContainer: {
+        marginBottom: 16,
+        width: '100%',
+    },
+    publicationTitleLetter: {
         color: '#000000',
-        fontFamily: Platform.OS === 'ios' ? 'SF Pro Display' : 'System',
-        fontSize: 28,
+        fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'Roboto-Black',
+        fontSize: 42,
         fontWeight: '900',
         letterSpacing: 4,
-        marginBottom: 16,
         textAlign: 'center',
-        textShadowColor: 'rgba(0, 0, 0, 0.08)',
-        textShadowOffset: { height: 1, width: 0 },
-        textShadowRadius: 2,
-        textTransform: 'uppercase',
+        textShadowColor: 'rgba(0, 0, 0, 0.12)',
+        textShadowOffset: { height: 2, width: 0 },
+        textShadowRadius: 3,
     },
     resultIndicator: {
         backgroundColor: '#FFFFFF',
@@ -1488,7 +1598,7 @@ const styles = StyleSheet.create({
     },
     tab: {
         paddingHorizontal: 4,
-        paddingVertical: 8,
+        paddingVertical: 5,
         position: 'relative',
     },
     tabContainer: {
