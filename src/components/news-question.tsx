@@ -183,6 +183,16 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
     const [selectedAnswer, setSelectedAnswer] = useState<boolean | null>(null);
     const [activeTab, setActiveTab] = useState<TabType>('latest');
     const [lastClickedPosition, setLastClickedPosition] = useState<ButtonPosition>({ x: 0, y: 0 });
+    const [animationStates] = useState(
+        () =>
+            new Map<
+                string,
+                {
+                    fade: { fake: Animated.Value; real: Animated.Value };
+                    slide: { fake: Animated.Value; real: Animated.Value };
+                }
+            >(),
+    );
 
     const currentNewsItem = newsItemsWithAnswers[expandedIndex];
     const { answer, handleAnswer, score } = useNewsQuestion({
@@ -253,15 +263,104 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
             ),
         );
 
+        const newArticleId = newsItems[index].id;
+        if (!animationStates.has(newArticleId)) {
+            animationStates.set(newArticleId, {
+                fade: {
+                    fake: new Animated.Value(1),
+                    real: new Animated.Value(1),
+                },
+                slide: {
+                    fake: new Animated.Value(0),
+                    real: new Animated.Value(0),
+                },
+            });
+        }
+
+        // Reset with new initial values
+        nextButtonAnim.opacity.setValue(0);
+        nextButtonAnim.scale.setValue(0.95);
+
         setExpandedIndex(index);
-        // Reset states when switching articles
         setSelectedAnswer(null);
         setLastClickedPosition({ x: 0, y: 0 });
     };
 
+    const [isMergeComplete, setIsMergeComplete] = useState(false);
+
+    const [nextButtonAnim] = useState(() => ({
+        opacity: new Animated.Value(0),
+        scale: new Animated.Value(0.95), // Slightly larger initial scale
+    }));
+
     const handleAnswerClick = async (selectedFake: boolean, buttonPosition: ButtonPosition) => {
+        const currentArticleId = currentNewsItem.id;
+        const animations = animationStates.get(currentArticleId);
+
+        if (!animations) return;
+
         setSelectedAnswer(selectedFake);
         setLastClickedPosition(buttonPosition);
+        setIsMergeComplete(false);
+
+        // Calculate positions
+        const centerX = 27.5;
+        const fakeStartX = 2;
+        const realStartX = 98 - 45;
+
+        // Reset animation values
+        animations.slide.fake.setValue(selectedFake ? fakeStartX : realStartX);
+        animations.slide.real.setValue(selectedFake ? realStartX : fakeStartX);
+
+        // Start next button animation immediately
+        Animated.parallel([
+            Animated.spring(nextButtonAnim.opacity, {
+                damping: 20,
+                mass: 0.4, // Even lighter mass for faster response
+                stiffness: 300,
+                toValue: 1,
+                useNativeDriver: true,
+            }),
+            Animated.spring(nextButtonAnim.scale, {
+                damping: 15,
+                mass: 0.5,
+                stiffness: 250,
+                toValue: 1,
+                useNativeDriver: true,
+            }),
+        ]).start();
+
+        // Main button animations
+        Animated.parallel([
+            // Fade out unselected button with smooth cubic bezier
+            Animated.timing(animations.fade[selectedFake ? 'real' : 'fake'], {
+                duration: 600,
+                easing: Easing.bezier(0.45, 0, 0.25, 1),
+                toValue: 0,
+                useNativeDriver: true,
+            }),
+
+            // Move selected button to center with refined spring physics
+            Animated.spring(animations.slide[selectedFake ? 'fake' : 'real'], {
+                damping: 28,
+                mass: 0.9,
+                stiffness: 250,
+                toValue: centerX,
+                useNativeDriver: true,
+                velocity: 0,
+            }),
+
+            // Move unselected button to center with smooth timing
+            Animated.timing(animations.slide[selectedFake ? 'real' : 'fake'], {
+                duration: 600,
+                easing: Easing.bezier(0.45, 0, 0.25, 1),
+                toValue: centerX,
+                useNativeDriver: true,
+            }),
+        ]).start(() => {
+            setIsMergeComplete(true);
+        });
+
         await handleAnswer(selectedFake);
     };
 
@@ -401,101 +500,7 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                                 </View>
 
                                 {/* Action Buttons */}
-                                <View style={styles.actionContainer}>
-                                    <View style={styles.buttonContainer}>
-                                        <View style={styles.buttonWrapper}>
-                                            <Animated.View
-                                                style={[
-                                                    styles.button,
-                                                    getButtonStyle(
-                                                        item.isFake,
-                                                        answer?.wasCorrect,
-                                                        selectedAnswer,
-                                                    ),
-                                                ]}
-                                            >
-                                                <Pressable
-                                                    style={styles.pressable}
-                                                    onPress={(event) => {
-                                                        const { pageX, pageY } = event.nativeEvent;
-                                                        handleAnswerClick(true, {
-                                                            x: pageX,
-                                                            y: pageY,
-                                                        });
-                                                    }}
-                                                    disabled={selectedAnswer !== null}
-                                                >
-                                                    <Animated.Text
-                                                        style={[
-                                                            styles.buttonText,
-                                                            getTextStyle(
-                                                                answer?.wasCorrect,
-                                                                selectedAnswer,
-                                                            ),
-                                                        ]}
-                                                    >
-                                                        FAKE
-                                                    </Animated.Text>
-                                                </Pressable>
-                                            </Animated.View>
-                                            {selectedAnswer === true && renderIcon(item.isFake)}
-                                        </View>
-
-                                        <View style={styles.buttonWrapper}>
-                                            <Animated.View
-                                                style={[
-                                                    styles.button,
-                                                    getButtonStyle(
-                                                        !item.isFake,
-                                                        answer?.wasCorrect,
-                                                        selectedAnswer,
-                                                    ),
-                                                ]}
-                                            >
-                                                <Pressable
-                                                    style={styles.pressable}
-                                                    onPress={(event) => {
-                                                        const { pageX, pageY } = event.nativeEvent;
-                                                        handleAnswerClick(false, {
-                                                            x: pageX,
-                                                            y: pageY,
-                                                        });
-                                                    }}
-                                                    disabled={selectedAnswer !== null}
-                                                >
-                                                    <Animated.Text
-                                                        style={[
-                                                            styles.buttonText,
-                                                            getTextStyle(
-                                                                answer?.wasCorrect,
-                                                                selectedAnswer,
-                                                            ),
-                                                        ]}
-                                                    >
-                                                        REAL
-                                                    </Animated.Text>
-                                                </Pressable>
-                                            </Animated.View>
-                                            {selectedAnswer === false && renderIcon(!item.isFake)}
-                                        </View>
-                                    </View>
-
-                                    {selectedAnswer !== null &&
-                                        expandedIndex < newsItems.length - 1 && (
-                                            <View style={styles.nextButtonContainer}>
-                                                <Pressable
-                                                    style={styles.nextButton}
-                                                    onPress={() =>
-                                                        handleArticleSelect(expandedIndex + 1)
-                                                    }
-                                                >
-                                                    <Text style={styles.nextButtonText}>
-                                                        NEXT ARTICLE
-                                                    </Text>
-                                                </Pressable>
-                                            </View>
-                                        )}
-                                </View>
+                                <View style={styles.actionContainer}>{renderAnswerButtons()}</View>
                             </View>
                         )}
                     </Pressable>
@@ -602,6 +607,169 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                         />
                     );
                 })}
+            </View>
+        );
+    };
+
+    const renderAnswerButtons = () => {
+        const isAnswered = selectedAnswer !== null;
+        const wasCorrect = answer?.wasCorrect;
+        const animations = animationStates.get(currentNewsItem.id);
+
+        if (!animations) return null;
+
+        return (
+            <View style={styles.buttonContainer}>
+                {/* FAKE button */}
+                <Animated.View
+                    style={[
+                        styles.buttonWrapper,
+                        !isAnswered && styles.buttonWrapperLeft,
+                        isMergeComplete && selectedAnswer === true && styles.buttonWrapperCentered,
+                        {
+                            opacity: animations.fade.fake,
+                            transform: [
+                                {
+                                    translateX: animations.slide.fake.interpolate({
+                                        inputRange: [0, 100],
+                                        outputRange: ['0%', '100%'],
+                                    }),
+                                },
+                                { scale: selectedAnswer === true ? 1.02 : 1 },
+                            ],
+                        },
+                    ]}
+                >
+                    <Pressable
+                        style={[
+                            styles.button,
+                            isAnswered &&
+                                (wasCorrect ? styles.buttonCorrect : styles.buttonIncorrect),
+                        ]}
+                        onPress={(event) =>
+                            handleAnswerClick(true, {
+                                x: event.nativeEvent.pageX,
+                                y: event.nativeEvent.pageY,
+                            })
+                        }
+                        disabled={isAnswered}
+                    >
+                        <Text
+                            style={[
+                                styles.buttonText,
+                                isAnswered &&
+                                    (wasCorrect
+                                        ? styles.buttonTextCorrect
+                                        : styles.buttonTextIncorrect),
+                            ]}
+                        >
+                            FAKE
+                        </Text>
+                        {isAnswered && (
+                            <View
+                                style={[
+                                    styles.resultIndicator,
+                                    !wasCorrect && styles.resultIndicatorError,
+                                ]}
+                            >
+                                <Feather
+                                    name={wasCorrect ? 'check' : 'x'}
+                                    size={16}
+                                    color={wasCorrect ? '#22C55E' : '#EF4444'}
+                                />
+                            </View>
+                        )}
+                    </Pressable>
+                </Animated.View>
+
+                {/* REAL button */}
+                <Animated.View
+                    style={[
+                        styles.buttonWrapper,
+                        !isAnswered && styles.buttonWrapperRight,
+                        isMergeComplete && selectedAnswer === false && styles.buttonWrapperCentered,
+                        {
+                            opacity: animations.fade.real,
+                            transform: [
+                                {
+                                    translateX: animations.slide.real.interpolate({
+                                        inputRange: [0, 100],
+                                        outputRange: ['0%', '100%'],
+                                    }),
+                                },
+                                { scale: selectedAnswer === false ? 1.02 : 1 },
+                            ],
+                        },
+                    ]}
+                >
+                    <Pressable
+                        style={[
+                            styles.button,
+                            isAnswered &&
+                                (wasCorrect ? styles.buttonCorrect : styles.buttonIncorrect),
+                        ]}
+                        onPress={(event) =>
+                            handleAnswerClick(false, {
+                                x: event.nativeEvent.pageX,
+                                y: event.nativeEvent.pageY,
+                            })
+                        }
+                        disabled={isAnswered}
+                    >
+                        <Text
+                            style={[
+                                styles.buttonText,
+                                isAnswered &&
+                                    (wasCorrect
+                                        ? styles.buttonTextCorrect
+                                        : styles.buttonTextIncorrect),
+                            ]}
+                        >
+                            REAL
+                        </Text>
+                        {isAnswered && (
+                            <View
+                                style={[
+                                    styles.resultIndicator,
+                                    !wasCorrect && styles.resultIndicatorError,
+                                ]}
+                            >
+                                <Feather
+                                    name={wasCorrect ? 'check' : 'x'}
+                                    size={16}
+                                    color={wasCorrect ? '#22C55E' : '#EF4444'}
+                                />
+                            </View>
+                        )}
+                    </Pressable>
+                </Animated.View>
+
+                {/* Next article button */}
+                {isAnswered && expandedIndex < newsItems.length - 1 && (
+                    <Animated.View
+                        style={{
+                            opacity: nextButtonAnim.opacity,
+                            position: 'absolute',
+                            right: '2%',
+                            transform: [
+                                { scale: nextButtonAnim.scale },
+                                {
+                                    translateX: nextButtonAnim.opacity.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: [20, 0], // Slightly larger slide for smoother entrance
+                                    }),
+                                },
+                            ],
+                        }}
+                    >
+                        <Pressable
+                            style={styles.nextButton}
+                            onPress={() => handleArticleSelect(expandedIndex + 1)}
+                        >
+                            <Feather name="arrow-right" size={24} color="#FFFFFF" />
+                        </Pressable>
+                    </Animated.View>
+                )}
             </View>
         );
     };
@@ -735,13 +903,6 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         elevation: 4,
         paddingVertical: 32,
-        shadowColor: '#000',
-        shadowOffset: {
-            height: 8,
-            width: 0,
-        },
-        shadowOpacity: 0.12,
-        shadowRadius: 16,
     },
     articleContent: {
         paddingHorizontal: 24,
@@ -764,33 +925,60 @@ const styles = StyleSheet.create({
     },
     button: {
         backgroundColor: '#FFFFFF',
+        borderColor: '#000000',
         borderRadius: 16,
-        borderWidth: 2,
-        elevation: 3,
+        borderWidth: 1.5,
         overflow: 'hidden',
-        shadowColor: '#000',
-        shadowOffset: {
-            height: 4,
-            width: 0,
-        },
-        shadowOpacity: 0.12,
-        shadowRadius: 8,
+        position: 'relative',
+        width: '100%',
     },
     buttonContainer: {
+        alignItems: 'center',
         flexDirection: 'row',
-        gap: 12,
-        justifyContent: 'space-between',
+        justifyContent: 'center',
+        minHeight: 60,
+        overflow: 'hidden',
+        paddingVertical: 16,
+        position: 'relative',
+        width: '100%',
+    },
+    buttonCorrect: {
+        backgroundColor: '#22C55E',
+        borderColor: '#22C55E',
+    },
+    buttonIncorrect: {
+        backgroundColor: '#EF4444',
+        borderColor: '#EF4444',
     },
     buttonText: {
+        color: '#000000',
         fontFamily: Platform.OS === 'ios' ? 'SF Pro Text' : 'System',
-        fontSize: 14,
-        fontWeight: '800',
-        letterSpacing: 1.5,
-        textTransform: 'uppercase',
+        fontSize: 15,
+        fontWeight: '700',
+        letterSpacing: 1,
+        paddingVertical: 16,
+        textAlign: 'center',
+    },
+    buttonTextCorrect: {
+        color: '#FFFFFF',
+    },
+    buttonTextIncorrect: {
+        color: '#FFFFFF',
     },
     buttonWrapper: {
-        flex: 1,
-        position: 'relative',
+        position: 'absolute',
+        width: '45%',
+    },
+    buttonWrapperCentered: {
+        left: '27.5%', // Centers the button (50% - 45%/2)
+        position: 'absolute',
+        width: '45%',
+    },
+    buttonWrapperLeft: {
+        left: '2%',
+    },
+    buttonWrapperRight: {
+        right: '2%',
     },
     celebrationContainer: {
         alignItems: 'center',
@@ -800,7 +988,7 @@ const styles = StyleSheet.create({
         zIndex: 99,
     },
     container: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#F8F9FA',
         flex: 1,
         paddingHorizontal: 24,
         paddingTop: 140,
@@ -902,16 +1090,10 @@ const styles = StyleSheet.create({
     nextButton: {
         alignItems: 'center',
         backgroundColor: '#000000',
-        borderRadius: 16,
-        elevation: 3,
-        padding: 16,
-        shadowColor: '#000',
-        shadowOffset: {
-            height: 4,
-            width: 0,
-        },
-        shadowOpacity: 0.12,
-        shadowRadius: 8,
+        borderRadius: 24,
+        height: 48,
+        justifyContent: 'center',
+        width: 48,
     },
     nextButtonContainer: {
         marginTop: 24,
@@ -1007,6 +1189,19 @@ const styles = StyleSheet.create({
         textShadowRadius: 2,
         textTransform: 'uppercase',
     },
+    resultIndicator: {
+        backgroundColor: '#FFFFFF',
+        borderColor: '#22C55E',
+        borderRadius: 12,
+        borderWidth: 1.5,
+        padding: 4,
+        position: 'absolute',
+        right: -8,
+        top: -8,
+    },
+    resultIndicatorError: {
+        borderColor: '#EF4444',
+    },
     safeArea: {
         backgroundColor: 'transparent',
         flex: 1,
@@ -1049,9 +1244,6 @@ const styles = StyleSheet.create({
         backgroundColor: 'transparent',
         borderColor: '#242424',
         borderWidth: 1.5,
-    },
-    statusIconIncorrect: {
-        backgroundColor: '#666666',
     },
     statusIconIncorrect: {
         backgroundColor: '#E15554',
