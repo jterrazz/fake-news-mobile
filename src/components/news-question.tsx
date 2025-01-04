@@ -26,6 +26,7 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { useNewsQuestion } from '@/hooks/use-news-question';
+import { useNewsStore } from '@/store/news';
 
 interface NewsItem {
     id: string;
@@ -166,12 +167,24 @@ const createParticles = (): BurstParticle[] => {
 };
 
 export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
+    const { answers } = useNewsStore();
+
+    // Merge the stored answers with news items
+    const newsItemsWithAnswers = newsItems.map((item) => ({
+        ...item,
+        answered: answers[item.id]
+            ? {
+                  wasCorrect: answers[item.id].wasCorrect,
+              }
+            : undefined,
+    }));
+
     const [expandedIndex, setExpandedIndex] = useState(0);
     const [selectedAnswer, setSelectedAnswer] = useState<boolean | null>(null);
     const [activeTab, setActiveTab] = useState<TabType>('latest');
     const [lastClickedPosition, setLastClickedPosition] = useState<ButtonPosition>({ x: 0, y: 0 });
 
-    const currentNewsItem = newsItems[expandedIndex];
+    const currentNewsItem = newsItemsWithAnswers[expandedIndex];
     const { answer, handleAnswer, score } = useNewsQuestion({
         newsItem: currentNewsItem,
         onAnswer,
@@ -298,24 +311,40 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                         style={[
                             styles.articleContainer,
                             isExpanded && styles.articleContainerExpanded,
+                            item.answered && styles.articleContainerAnswered,
                         ]}
                         onPress={() => handleArticleSelect(index)}
                     >
                         {!isExpanded ? (
-                            // Preview mode with enhanced styling
                             <View style={styles.previewContent}>
-                                <View style={styles.previewIconContainer}>
+                                <View
+                                    style={[
+                                        styles.previewIconContainer,
+                                        item.answered && styles.previewIconContainerAnswered,
+                                    ]}
+                                >
                                     <Image
                                         source={require('../../assets/icon.png')}
                                         style={styles.previewIcon}
                                     />
                                 </View>
                                 <View style={styles.previewTextContainer}>
-                                    <Text numberOfLines={2} style={styles.previewHeadline}>
+                                    <Text
+                                        numberOfLines={2}
+                                        style={[
+                                            styles.previewHeadline,
+                                            item.answered && styles.previewHeadlineAnswered,
+                                        ]}
+                                    >
                                         {item.headline}
                                     </Text>
                                     <View style={styles.previewMetaContainer}>
-                                        <Text style={styles.previewPublisher}>
+                                        <Text
+                                            style={[
+                                                styles.previewPublisher,
+                                                item.answered && styles.previewPublisherAnswered,
+                                            ]}
+                                        >
                                             AI BREAKING NEWS
                                         </Text>
                                         <Text style={styles.previewTime}>2h ago</Text>
@@ -329,15 +358,18 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                                             item.answered &&
                                                 !item.answered.wasCorrect &&
                                                 styles.statusIconIncorrect,
+                                            item.answered &&
+                                                item.answered.wasCorrect &&
+                                                styles.statusIconCorrect,
                                         ]}
                                     >
-                                        {item.answered ? (
+                                        {item.answered && (
                                             <Feather
                                                 name={item.answered.wasCorrect ? 'check' : 'x'}
                                                 size={10}
                                                 color="#FFFFFF"
                                             />
-                                        ) : null}
+                                        )}
                                     </View>
                                 </View>
                             </View>
@@ -472,11 +504,11 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
         );
     };
 
-    const getFilteredNewsItems = () => {
+    const getFilteredNewsItems = (items: NewsItem[]) => {
         if (activeTab === 'to-read') {
-            return newsItems.filter((item) => !item.answered);
+            return items.filter((item) => !item.answered);
         }
-        return newsItems;
+        return items;
     };
 
     const renderCelebrationEffect = () => {
@@ -634,7 +666,7 @@ export function NewsQuestion({ newsItems, onAnswer }: NewsQuestionProps) {
                     >
                         <Text style={styles.date}>{format(new Date(), 'MMMM d, yyyy')}</Text>
                         <View style={styles.articlesList}>
-                            {getFilteredNewsItems().map((item, index) =>
+                            {getFilteredNewsItems(newsItemsWithAnswers).map((item, index) =>
                                 renderArticle(item, index),
                             )}
                         </View>
@@ -692,6 +724,9 @@ const styles = StyleSheet.create({
         },
         shadowOpacity: 0.06,
         shadowRadius: 12,
+    },
+    articleContainerAnswered: {
+        opacity: 0.8,
     },
     articleContainerExpanded: {
         backgroundColor: '#FFFFFF',
@@ -911,6 +946,9 @@ const styles = StyleSheet.create({
         letterSpacing: 0.3,
         lineHeight: 24,
     },
+    previewHeadlineAnswered: {
+        color: '#666666',
+    },
     previewIcon: {
         borderRadius: 8,
         height: 32,
@@ -930,6 +968,9 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.06,
         shadowRadius: 8,
     },
+    previewIconContainerAnswered: {
+        backgroundColor: '#F0F0F0',
+    },
     previewMetaContainer: {
         alignItems: 'center',
         flexDirection: 'row',
@@ -941,6 +982,9 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         letterSpacing: 0.8,
         textTransform: 'uppercase',
+    },
+    previewPublisherAnswered: {
+        color: '#999999',
     },
     previewTextContainer: {
         flex: 1,
@@ -998,6 +1042,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         width: 16,
     },
+    statusIconCorrect: {
+        backgroundColor: '#03A678',
+    },
     statusIconEmpty: {
         backgroundColor: 'transparent',
         borderColor: '#242424',
@@ -1005,6 +1052,9 @@ const styles = StyleSheet.create({
     },
     statusIconIncorrect: {
         backgroundColor: '#666666',
+    },
+    statusIconIncorrect: {
+        backgroundColor: '#E15554',
     },
     tab: {
         paddingHorizontal: 4,
