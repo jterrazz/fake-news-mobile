@@ -45,11 +45,11 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 type TabType = 'latest' | 'to-read';
 
 const ENHANCED_COLORS = [
-    'rgba(0, 0, 0, 0.9)',
-    'rgba(0, 0, 0, 0.8)',
-    'rgba(0, 0, 0, 0.7)',
-    'rgba(0, 0, 0, 0.6)',
-    'rgba(0, 0, 0, 0.5)',
+    'rgba(34, 197, 94, 0.95)', // Green-500
+    'rgba(34, 197, 94, 0.85)',
+    'rgba(22, 163, 74, 0.75)', // Green-600
+    'rgba(255, 255, 255, 0.9)', // White
+    'rgba(255, 255, 255, 0.8)', // White
 ];
 
 interface Particle {
@@ -75,26 +75,19 @@ interface ButtonPosition {
 
 const createParticles = (): BurstParticle[] => {
     return Array.from({ length: BURST_PARTICLE_COUNT }, (_, i) => {
-        // Create more varied sizes and distances based on random factors
         const sizeVariation = Math.random();
         const distanceVariation = Math.random();
 
         return {
             angle: (i * 2 * Math.PI) / BURST_PARTICLE_COUNT,
             animation: new Animated.Value(0),
-
             color: ENHANCED_COLORS[Math.floor(Math.random() * ENHANCED_COLORS.length)],
-
-            delay: Math.random() * 50,
-
-            // More varied distances: smaller particles can travel further
-            distance: (40 + Math.random() * 60) * (1 + distanceVariation),
-
+            delay: Math.random() * 30, // Reduced from 50
+            // Reduced distance range
+            distance: (20 + Math.random() * 40) * (1 + distanceVariation), // Reduced from (40 + Math.random() * 60)
             rotation: new Animated.Value(0),
-            // More varied scales
             scale: 0.2 + Math.random() * 0.8,
-            // More varied sizes
-            size: 3 + sizeVariation * 8,
+            size: 2 + sizeVariation * 6, // Slightly smaller particles
         };
     });
 };
@@ -254,56 +247,71 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
 
         // Calculate positions for merging animation
         const centerX = 27.5; // Center position
-        const fakeStartX = 2; // Left button starting position
-        const realStartX = 98 - 45; // Right button starting position
+        const leftStartX = 2; // Left button starting position
+        const rightStartX = 98 - 45; // Right button starting position
 
         // Reset animation values
-        animations.slide.fake.setValue(selectedFake ? fakeStartX : realStartX);
-        animations.slide.real.setValue(selectedFake ? realStartX : fakeStartX);
+        animations.slide.fake.setValue(selectedFake ? leftStartX : rightStartX);
+        animations.slide.real.setValue(selectedFake ? rightStartX : leftStartX);
+        animations.fade.fake.setValue(1);
+        animations.fade.real.setValue(1);
 
         // Create smooth merging animation
         Animated.parallel([
-            // Fade out unselected button
+            // Fade out unselected button with smoother easing
             Animated.timing(animations.fade[selectedFake ? 'real' : 'fake'], {
-                duration: 400,
-                easing: Easing.bezier(0.4, 0, 0.2, 1), // Smooth easing
+                duration: 400, // Increased from 300 for smoother fade
+                easing: Easing.bezier(0.4, 0.0, 0.2, 1), // Material Design easing
                 toValue: 0,
                 useNativeDriver: true,
             }),
 
-            // Move selected button to center
+            // Move selected button to center with refined spring physics
             Animated.spring(animations.slide[selectedFake ? 'fake' : 'real'], {
-                damping: 20,
-                mass: 0.8,
-                stiffness: 300,
+                damping: 28, // Increased from 20 for less bounce
+                mass: 1, // Increased from 0.8 for more natural feel
+                restDisplacementThreshold: 0.01,
+                restSpeedThreshold: 0.01,
+                stiffness: 300, // Increased from 250 for faster initial movement
                 toValue: centerX,
                 useNativeDriver: true,
             }),
 
-            // Move unselected button towards center before fading
+            // Move unselected button with smoother timing
             Animated.timing(animations.slide[selectedFake ? 'real' : 'fake'], {
-                duration: 400,
-                easing: Easing.bezier(0.4, 0, 0.2, 1),
+                duration: 400, // Increased from 300 to match fade duration
+                easing: Easing.bezier(0.4, 0.0, 0.2, 1), // Material Design easing
                 toValue: centerX,
                 useNativeDriver: true,
             }),
 
-            // Scale animation for selected button
+            // Scale animation for selected button with refined timing
             Animated.sequence([
                 Animated.timing(nextButtonAnim.scale, {
-                    duration: 150,
-                    easing: Easing.bezier(0.4, 0, 0.2, 1),
-                    toValue: 1.05, // Slightly scale up
+                    duration: 200, // Increased from 150 for smoother scale
+                    easing: Easing.bezier(0.4, 0.0, 0.2, 1),
+                    toValue: 1.05,
                     useNativeDriver: true,
                 }),
                 Animated.spring(nextButtonAnim.scale, {
-                    damping: 12,
-                    mass: 0.6,
-                    stiffness: 200,
+                    damping: 15, // Adjusted for subtle bounce
+                    mass: 0.8,
+                    restDisplacementThreshold: 0.01,
+                    restSpeedThreshold: 0.01,
+                    stiffness: 250,
                     toValue: 1,
                     useNativeDriver: true,
                 }),
             ]),
+
+            // Fade in scale animation with smoother timing
+            Animated.timing(nextButtonAnim.opacity, {
+                delay: 200, // Increased from 150 to better match movement
+                duration: 300, // Increased from 200 for smoother fade
+                easing: Easing.bezier(0.4, 0.0, 0.2, 1),
+                toValue: 1,
+                useNativeDriver: true,
+            }),
         ]).start(() => {
             setIsMergeComplete(true);
         });
@@ -522,13 +530,13 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
 
                     Animated.parallel([
                         Animated.timing(particle.animation, {
-                            duration: 600,
+                            duration: 400, // Reduced from 600
                             easing: Easing.bezier(0.25, 0.1, 0.25, 1),
                             toValue: 1,
                             useNativeDriver: true,
                         }),
                         Animated.timing(particle.rotation, {
-                            duration: 600,
+                            duration: 400, // Reduced from 600
                             easing: Easing.bezier(0.33, 0, 0.67, 1),
                             toValue: 2,
                             useNativeDriver: true,
@@ -580,13 +588,23 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                         outputRange: ['0deg', '720deg'],
                     });
 
+                    const backgroundColor = particle.animation.interpolate({
+                        inputRange: [0, 0.3, 0.8, 1],
+                        outputRange: [
+                            particle.color,
+                            particle.color,
+                            'rgba(255, 255, 255, 0.9)',
+                            'rgba(255, 255, 255, 0)',
+                        ],
+                    });
+
                     return (
                         <Animated.View
                             key={`burst-${index}`}
                             style={[
                                 styles.particle,
                                 {
-                                    backgroundColor: particle.color,
+                                    backgroundColor,
                                     borderRadius: particle.size / 2,
                                     height: particle.size,
                                     transform: [
@@ -685,16 +703,14 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                                     opacity: animations.fade.fake,
                                     transform: [
                                         {
-                                            translateX: animations.slide.fake.interpolate({
-                                                inputRange: [0, 100],
-                                                outputRange: ['0%', '100%'],
-                                            }),
+                                            translateX: animations.slide.fake,
                                         },
                                         {
                                             scale:
                                                 selectedAnswer === true ? nextButtonAnim.scale : 1,
                                         },
                                     ],
+                                    zIndex: selectedAnswer === true ? 2 : 1,
                                 },
                             ]}
                         >
@@ -744,16 +760,14 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                                     opacity: animations.fade.real,
                                     transform: [
                                         {
-                                            translateX: animations.slide.real.interpolate({
-                                                inputRange: [0, 100],
-                                                outputRange: ['0%', '100%'],
-                                            }),
+                                            translateX: animations.slide.real,
                                         },
                                         {
                                             scale:
                                                 selectedAnswer === false ? nextButtonAnim.scale : 1,
                                         },
                                     ],
+                                    zIndex: selectedAnswer === false ? 2 : 1,
                                 },
                             ]}
                         >
@@ -872,7 +886,12 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                         </View>
                         <View style={styles.scoreContainer}>
                             <View style={styles.scoreItem}>
-                                <MaterialCommunityIcons name="star" size={20} color="#FFD700" />
+                                <MaterialCommunityIcons
+                                    name="check-circle"
+                                    size={18}
+                                    color="#22C55E"
+                                    style={{ marginVertical: 1 }}
+                                />
                                 <Text style={styles.scoreText}>{score.score}</Text>
                             </View>
                             <View style={styles.scoreItem}>
@@ -958,17 +977,17 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(0, 0, 0, 0.04)',
         borderRadius: 12,
         borderWidth: 1,
-        elevation: 2,
+        elevation: 4,
         marginHorizontal: 2,
-        marginVertical: 6,
+        marginVertical: 8,
         overflow: 'hidden',
         shadowColor: '#000',
         shadowOffset: {
-            height: 4,
+            height: 6,
             width: 0,
         },
-        shadowOpacity: 0.08,
-        shadowRadius: 12,
+        shadowOpacity: 0.12,
+        shadowRadius: 16,
     },
     articleContainerAnswered: {
         opacity: 0.8,
@@ -978,14 +997,14 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(0, 0, 0, 0.06)',
         borderRadius: 16,
         borderWidth: 1,
-        elevation: 4,
+        elevation: 8,
         shadowColor: '#000',
         shadowOffset: {
-            height: 8,
+            height: 12,
             width: 0,
         },
-        shadowOpacity: 0.12,
-        shadowRadius: 16,
+        shadowOpacity: 0.16,
+        shadowRadius: 24,
     },
     articleContent: {
         backgroundColor: '#FFFFFF',
@@ -1021,11 +1040,20 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
     },
     articleWrapper: {
-        elevation: 1,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: {
+            height: 2,
+            width: 0,
+        },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
     },
-    articlesList: {},
+    articlesList: {
+        paddingTop: 8,
+    },
     bottomSpacer: {
-        height: 80,
+        height: 100,
     },
     button: {
         backgroundColor: '#FFFFFF',
@@ -1135,7 +1163,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#F8F9FA',
         flex: 1,
         paddingHorizontal: 14,
-        paddingTop: 120,
+        paddingTop: 140,
     },
     date: {
         color: '#000000',
@@ -1143,8 +1171,8 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: '600',
         letterSpacing: 1.5,
-        marginBottom: 16,
-        marginTop: 24,
+        marginBottom: 24,
+        marginTop: 32,
         textTransform: 'uppercase',
     },
     dotContainer: {
