@@ -93,11 +93,14 @@ export function ArticleList({
                                 .map((article) => {
                                     const currentIndex = globalIndex++;
                                     const isExpanded = currentIndex === expandedIndex;
+                                    const animationStyles = getAnimationStyles(currentIndex);
+                                    if (!animationStyles) return null;
+
                                     const {
                                         containerAnimatedStyle,
                                         contentAnimatedStyle,
                                         previewAnimatedStyle,
-                                    } = getAnimationStyles(currentIndex);
+                                    } = animationStyles;
 
                                     return (
                                         <ArticleCard

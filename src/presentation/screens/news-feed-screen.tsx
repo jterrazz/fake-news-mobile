@@ -8,13 +8,22 @@ import { useHeaderAnimation } from '@/presentation/hooks/animations/use-header-a
 import { useNewsArticles } from '@/presentation/hooks/use-news-articles';
 import { useNewsQuestion } from '@/presentation/hooks/use-news-question';
 
-
 export function NewsFeedScreen() {
-    const { data: newsItems = [], refetch } = useNewsArticles();
+    const { data: newsItems } = useNewsArticles();
     const { answers } = useNewsStore();
+    const [expandedIndex, setExpandedIndex] = useState(0);
+    const [selectedAnswer, setSelectedAnswer] = useState<boolean | null>(null);
+    const [activeTab, setActiveTab] = useState<'latest' | 'to-read'>('latest');
+    const [lastClickedPosition, setLastClickedPosition] = useState({ x: 0, y: 0 });
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
-    const newsItemsWithAnswers =
-        newsItems?.map((item) => ({
+    const animations = (newsItems ?? []).map((_, index) => {
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        return useArticleAnimation(index === expandedIndex);
+    });
+
+    const newsItemsWithAnswers = React.useMemo(() => {
+        return (newsItems ?? []).map((item) => ({
             ...item,
             answered: answers[item.id]
                 ? {
@@ -23,13 +32,29 @@ export function NewsFeedScreen() {
                       wasCorrect: answers[item.id].wasCorrect,
                   }
                 : undefined,
-        })) ?? [];
+        }));
+    }, [newsItems, answers]);
 
-    const [expandedIndex, setExpandedIndex] = useState(0);
-    const [selectedAnswer, setSelectedAnswer] = useState<boolean | null>(null);
-    const [activeTab, setActiveTab] = useState<'latest' | 'to-read'>('latest');
-    const [lastClickedPosition, setLastClickedPosition] = useState({ x: 0, y: 0 });
-    const [isRefreshing, setIsRefreshing] = useState(false);
+    React.useEffect(() => {
+        if (newsItemsWithAnswers.length === 0) {
+            setExpandedIndex(0);
+        } else if (expandedIndex >= newsItemsWithAnswers.length) {
+            setExpandedIndex(newsItemsWithAnswers.length - 1);
+        }
+    }, [newsItemsWithAnswers.length, expandedIndex]);
+
+    const filteredNewsItems = React.useMemo(() => {
+        if (activeTab === 'to-read') return newsItemsWithAnswers.filter((item) => !item.answered);
+        return newsItemsWithAnswers;
+    }, [newsItemsWithAnswers, activeTab]);
+
+    const getAnimationStyles = React.useCallback(
+        (index: number) => {
+            if (!animations[index]) return null;
+            return animations[index];
+        },
+        [animations],
+    );
 
     const currentNewsItem = newsItemsWithAnswers[expandedIndex] ?? null;
     const { answer, handleAnswer, score } = useNewsQuestion({
@@ -37,11 +62,6 @@ export function NewsFeedScreen() {
     });
 
     const { headerAnimatedStyle, titleAnimatedStyle, scrollHandler } = useHeaderAnimation();
-
-    const getAnimationStyles = (index: number) => {
-        const isExpanded = index === expandedIndex;
-        return useArticleAnimation(isExpanded);
-    };
 
     const handleArticleSelect = (index: number) => {
         setExpandedIndex(index);
@@ -58,11 +78,6 @@ export function NewsFeedScreen() {
         await handleAnswer(selectedFake);
     };
 
-    const getFilteredNewsItems = (items: typeof newsItemsWithAnswers) => {
-        if (activeTab === 'to-read') return items.filter((item) => !item.answered);
-        return items;
-    };
-
     const handleRefresh = async () => {
         setIsRefreshing(true);
         await refetch();
@@ -71,7 +86,7 @@ export function NewsFeedScreen() {
 
     return (
         <NewsFeedTemplate
-            newsItems={getFilteredNewsItems(newsItemsWithAnswers)}
+            newsItems={filteredNewsItems}
             expandedIndex={expandedIndex}
             selectedAnswer={selectedAnswer}
             activeTab={activeTab}

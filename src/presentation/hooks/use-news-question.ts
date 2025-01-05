@@ -6,15 +6,28 @@ import { useNewsStore } from '@/application/store/news.store';
 import type { NewsEntity } from '@/domain/news/news.entity';
 
 interface UseNewsQuestionProps {
-    newsItem: NewsEntity;
-    onAnswer?: (isCorrect: boolean) => void;
+    newsItem: NewsEntity | null;
 }
 
-export const useNewsQuestion = ({ newsItem, onAnswer }: UseNewsQuestionProps) => {
+interface NewsQuestionResult {
+    answer:
+        | {
+              answeredAt: string;
+              id: string;
+              wasCorrect: boolean;
+          }
+        | undefined;
+    handleAnswer: (selectedFake: boolean) => Promise<void>;
+    score: { score: number; streak: number };
+}
+
+export const useNewsQuestion = ({ newsItem }: UseNewsQuestionProps): NewsQuestionResult => {
     const { addAnswer, answers, score } = useNewsStore();
 
     const handleAnswer = useCallback(
         async (selectedFake: boolean) => {
+            if (!newsItem) return;
+
             const isCorrect = selectedFake === newsItem.isFake;
 
             if (isCorrect) {
@@ -24,23 +37,12 @@ export const useNewsQuestion = ({ newsItem, onAnswer }: UseNewsQuestionProps) =>
             }
 
             addAnswer(newsItem.id, isCorrect);
-            onAnswer?.(isCorrect);
-
-            setAnswers((prev) => ({
-                ...prev,
-                [newsItem.id]: {
-                    answeredAt: Date.now(),
-                    id: newsItem.id,
-                    selectedFake,
-                    wasCorrect: selectedFake === newsItem.isFake,
-                },
-            }));
         },
-        [newsItem.id, newsItem.isFake, addAnswer, onAnswer],
+        [newsItem, addAnswer],
     );
 
     return {
-        answer: answers[newsItem.id],
+        answer: newsItem ? answers[newsItem.id] : undefined,
         handleAnswer,
         score,
     };

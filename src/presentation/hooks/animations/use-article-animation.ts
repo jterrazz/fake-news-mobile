@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import React from 'react';
 import type { ViewStyle } from 'react-native';
 import type { StyleProp } from 'react-native';
 import {
@@ -17,8 +18,18 @@ interface ArticleAnimationStyles {
 
 export function useArticleAnimation(isExpanded: boolean): ArticleAnimationStyles {
     const expandAnimation = useSharedValue(0);
+    const isMounted = React.useRef(true);
 
     useEffect(() => {
+        isMounted.current = true;
+        return () => {
+            isMounted.current = false;
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!isMounted.current) return;
+        
         expandAnimation.value = withSpring(isExpanded ? 1 : 0, {
             damping: isExpanded ? 15 : 20,
             mass: isExpanded ? 0.8 : 1,
