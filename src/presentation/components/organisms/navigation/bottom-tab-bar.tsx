@@ -2,8 +2,8 @@ import React from 'react';
 import { LayoutRectangle, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { BottomTabNavigationEventMap } from '@react-navigation/bottom-tabs';
-import { NavigationHelpers, ParamListBase, TabNavigationState } from '@react-navigation/native';
+import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 
 type TabRoute = {
@@ -18,19 +18,12 @@ const ROUTES: Record<string, TabRoute> = {
     settings: { icon: 'tune', name: 'Settings' },
 } as const;
 
-type TabBarConfig = {
-    width: number;
-    height: number;
-    bottomOffset: number;
-    borderRadius: number;
-};
-
-type Props = {
-    state: TabNavigationState<ParamListBase>;
-    descriptors: Record<string, any>;
-    navigation: NavigationHelpers<ParamListBase, BottomTabNavigationEventMap>;
-    config: TabBarConfig;
-};
+const TAB_BAR_CONFIG = {
+    borderRadius: 16,
+    bottomOffset: 42,
+    height: 60,
+    width: 196,
+} as const;
 
 const SPRING_CONFIG = {
     damping: 20,
@@ -53,9 +46,53 @@ type TabLayout = {
     centerX: number;
 };
 
-export const TabBarComponent = ({ state, navigation, descriptors, config }: Props) => {
+type TabItemProps = {
+    route: any;
+    index: number;
+    isFocused: boolean;
+    descriptors: Record<string, any>;
+    onPress: (route: any, isFocused: boolean) => void;
+    width: number;
+    onLayout: (index: number, layout: LayoutRectangle) => void;
+};
+
+const TabItem = React.memo(
+    ({ route, index, isFocused, descriptors, onPress, width, onLayout }: TabItemProps) => {
+        const routeName = route.name.toLowerCase() as keyof typeof ROUTES;
+        const icon = ROUTES[routeName]?.icon;
+
+        const animatedStyle = useAnimatedStyle(() => ({
+            opacity: withSpring(isFocused ? 1 : 0.7, ANIMATION_CONFIG),
+            transform: [{ scale: withSpring(isFocused ? 1.1 : 1, ANIMATION_CONFIG) }],
+        }));
+
+        return (
+            <Pressable
+                onLayout={(event) => onLayout(index, event.nativeEvent.layout)}
+                accessibilityRole="button"
+                accessibilityState={isFocused ? { selected: true } : {}}
+                accessibilityLabel={descriptors[route.key].options.tabBarAccessibilityLabel}
+                testID={descriptors[route.key].options.tabBarTestID}
+                onPress={() => onPress(route, isFocused)}
+                style={[styles.item, { width }]}
+            >
+                <Animated.View style={animatedStyle}>
+                    <MaterialCommunityIcons
+                        name={icon as keyof typeof MaterialCommunityIcons.glyphMap}
+                        size={18}
+                        color={isFocused ? '#FFFFFF' : '#64748B'}
+                    />
+                </Animated.View>
+            </Pressable>
+        );
+    },
+);
+
+TabItem.displayName = 'TabItem';
+
+const TabBarContent = ({ state, navigation, descriptors }: BottomTabBarProps) => {
     const numTabs = Object.keys(ROUTES).length;
-    const TAB_WIDTH = config.width / numTabs;
+    const TAB_WIDTH = TAB_BAR_CONFIG.width / numTabs;
     const INDICATOR_WIDTH = 80;
 
     const [tabLayouts, setTabLayouts] = React.useState<TabLayout[]>([]);
@@ -120,53 +157,34 @@ export const TabBarComponent = ({ state, navigation, descriptors, config }: Prop
     );
 };
 
-type TabItemProps = {
-    route: any;
-    index: number;
-    isFocused: boolean;
-    descriptors: Record<string, any>;
-    onPress: (route: any, isFocused: boolean) => void;
-    width: number;
-    onLayout: (index: number, layout: LayoutRectangle) => void;
-};
-
-const TabItem = React.memo(
-    ({ route, index, isFocused, descriptors, onPress, width, onLayout }: TabItemProps) => {
-        const routeName = route.name.toLowerCase() as keyof typeof ROUTES;
-        const icon = ROUTES[routeName]?.icon;
-
-        const animatedStyle = useAnimatedStyle(() => ({
-            opacity: withSpring(isFocused ? 1 : 0.7, ANIMATION_CONFIG),
-            transform: [{ scale: withSpring(isFocused ? 1.1 : 1, ANIMATION_CONFIG) }],
-        }));
-
-        return (
-            <Pressable
-                onLayout={(event) => {
-                    onLayout(index, event.nativeEvent.layout);
-                }}
-                accessibilityRole="button"
-                accessibilityState={isFocused ? { selected: true } : {}}
-                accessibilityLabel={descriptors[route.key].options.tabBarAccessibilityLabel}
-                testID={descriptors[route.key].options.tabBarTestID}
-                onPress={() => onPress(route, isFocused)}
-                style={[styles.item, { width }]}
-            >
-                <Animated.View style={animatedStyle}>
-                    <MaterialCommunityIcons
-                        name={icon as keyof typeof MaterialCommunityIcons.glyphMap}
-                        size={18}
-                        color={isFocused ? '#FFFFFF' : '#64748B'}
-                    />
-                </Animated.View>
-            </Pressable>
-        );
-    },
+export const BottomTabBar = (props: BottomTabBarProps) => (
+    <BlurView intensity={30} tint="extraLight" style={styles.blurContainer}>
+        <TabBarContent {...props} />
+    </BlurView>
 );
 
-TabItem.displayName = 'TabItem';
-
 const styles = StyleSheet.create({
+    blurContainer: {
+        backgroundColor: 'rgba(255, 255, 255, 0.85)',
+        borderColor: 'rgba(148, 163, 184, 0.08)',
+        borderRadius: TAB_BAR_CONFIG.borderRadius,
+        borderWidth: 1,
+        bottom: TAB_BAR_CONFIG.bottomOffset,
+        elevation: 8,
+        height: TAB_BAR_CONFIG.height,
+        left: '50%',
+        overflow: 'hidden',
+        position: 'absolute',
+        shadowColor: '#000',
+        shadowOffset: {
+            height: 8,
+            width: 0,
+        },
+        shadowOpacity: 0.15,
+        shadowRadius: 16,
+        transform: [{ translateX: -TAB_BAR_CONFIG.width / 2 }],
+        width: TAB_BAR_CONFIG.width,
+    },
     container: {
         alignItems: 'center',
         flexDirection: 'row',

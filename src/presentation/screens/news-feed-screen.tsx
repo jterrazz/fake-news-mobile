@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Platform, UIManager } from 'react-native';
 
 import { useNewsStore } from '@/application/store/news.store';
 
@@ -9,11 +8,8 @@ import { useHeaderAnimation } from '@/presentation/hooks/animations/use-header-a
 import { useNewsArticles } from '@/presentation/hooks/use-news-articles';
 import { useNewsQuestion } from '@/presentation/hooks/use-news-question';
 
-interface NewsFeedScreenProps {
-    onAnswer?: (isCorrect: boolean) => void;
-}
 
-export function NewsFeedScreen({ onAnswer }: NewsFeedScreenProps) {
+export function NewsFeedScreen() {
     const { data: newsItems = [], refetch } = useNewsArticles();
     const { answers } = useNewsStore();
 
@@ -38,7 +34,6 @@ export function NewsFeedScreen({ onAnswer }: NewsFeedScreenProps) {
     const currentNewsItem = newsItemsWithAnswers[expandedIndex] ?? null;
     const { answer, handleAnswer, score } = useNewsQuestion({
         newsItem: currentNewsItem,
-        onAnswer,
     });
 
     const { headerAnimatedStyle, titleAnimatedStyle, scrollHandler } = useHeaderAnimation();

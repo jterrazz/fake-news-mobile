@@ -8,6 +8,7 @@ import { AnimatedTitle } from '../../atoms/typography/animated-title.jsx';
 
 import { HeaderTabs } from './header-tabs.jsx';
 import { ScoreDisplay } from './score-display.jsx';
+import { SIZES } from '@/presentation/constants/sizes.js';
 
 interface NewsHeaderProps {
     activeTab: 'latest' | 'to-read';
@@ -59,8 +60,8 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         flexDirection: 'row',
         justifyContent: 'space-between',
-        paddingBottom: 12,
-        paddingHorizontal: 16,
+        paddingBottom: SIZES.xs,
+        paddingHorizontal: SIZES.xl + SIZES['2xs'],
     },
     titleContainer: {
         marginBottom: 16,
