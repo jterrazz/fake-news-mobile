@@ -32,6 +32,9 @@ import { NewsEntity } from '@/domain/news/news.entity';
 
 import { FONT_SIZES, SIZES } from '../constants/sizes.js';
 
+import { Body } from './atoms/typography/body.jsx';
+import { CategoryLabel } from './atoms/typography/category-label.jsx';
+import { Headline } from './atoms/typography/headline.jsx';
 import { CelebrationParticle } from './molecules/feedback/celebration-particle.js';
 
 import { useNewsArticles } from '@/presentation/hooks/use-news-articles';
@@ -396,9 +399,7 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                                             AI BREAKING NEWS
                                         </Text>
                                         <Text style={styles.previewDot}>•</Text>
-                                        <View style={styles.categoryTag}>
-                                            <Text style={styles.categoryText}>{item.category}</Text>
-                                        </View>
+                                        <CategoryLabel>{item.category}</CategoryLabel>
                                         <Text style={styles.previewDot}>•</Text>
                                         <Text style={styles.previewTime}>2h ago</Text>
                                     </View>
@@ -435,7 +436,9 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                                                 </Text>
                                             </View>
                                         </View>
-                                        <Text style={styles.headline}>{item.headline}</Text>
+                                        <Headline style={{ marginBottom: 12 }}>
+                                            {item.headline}
+                                        </Headline>
                                         <View style={styles.expandedPublisherContainer}>
                                             <Image
                                                 source={require('../../../assets/icon.png')}
@@ -452,7 +455,7 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                                         </View>
                                     </View>
                                     <View style={styles.articleContent}>
-                                        <Text style={styles.article}>{item.article}</Text>
+                                        <Body size="medium">{item.article}</Body>
                                     </View>
                                     <View style={styles.actionContainer}>
                                         {renderAnswerButtons()}
