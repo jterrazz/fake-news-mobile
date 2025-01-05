@@ -15,6 +15,7 @@ export function NewsFeedScreen() {
     const [activeTab, setActiveTab] = useState<'latest' | 'to-read'>('latest');
     const [lastClickedPosition, setLastClickedPosition] = useState({ x: 0, y: 0 });
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [answeredInSession, setAnsweredInSession] = useState<Set<string>>(new Set());
 
     const newsItemsWithAnswers = React.useMemo(() => {
         return (newsItems ?? []).map((item) => ({
@@ -38,11 +39,26 @@ export function NewsFeedScreen() {
     }, [newsItemsWithAnswers.length, expandedIndex]);
 
     const filteredNewsItems = React.useMemo(() => {
-        if (activeTab === 'to-read') return newsItemsWithAnswers.filter((item) => !item.answered);
+        if (activeTab === 'to-read') {
+            return newsItemsWithAnswers.filter(
+                (item) => !item.answered || answeredInSession.has(item.id),
+            );
+        }
         return newsItemsWithAnswers;
-    }, [newsItemsWithAnswers, activeTab]);
+    }, [newsItemsWithAnswers, activeTab, answeredInSession]);
 
-    const currentNewsItem = newsItemsWithAnswers[expandedIndex] ?? null;
+    React.useEffect(() => {
+        if (currentNewsItem) {
+            const newIndex = filteredNewsItems.findIndex((item) => item.id === currentNewsItem.id);
+            if (newIndex !== -1 && newIndex !== expandedIndex) {
+                setExpandedIndex(newIndex);
+            }
+        } else if (expandedIndex >= filteredNewsItems.length) {
+            setExpandedIndex(Math.max(0, filteredNewsItems.length - 1));
+        }
+    }, [filteredNewsItems, currentNewsItem, expandedIndex]);
+
+    const currentNewsItem = filteredNewsItems[expandedIndex] ?? null;
     const { answer, handleAnswer, score } = useNewsQuestion({
         newsItem: currentNewsItem,
     });
@@ -61,6 +77,11 @@ export function NewsFeedScreen() {
     ) => {
         setSelectedAnswer(selectedFake);
         setLastClickedPosition(buttonPosition);
+
+        if (currentNewsItem) {
+            setAnsweredInSession((prev) => new Set(prev).add(currentNewsItem.id));
+        }
+
         await handleAnswer(selectedFake);
     };
 
@@ -68,6 +89,11 @@ export function NewsFeedScreen() {
         setIsRefreshing(true);
         await refetch();
         setIsRefreshing(false);
+    };
+
+    const handleTabChange = (newTab: 'latest' | 'to-read') => {
+        setActiveTab(newTab);
+        setAnsweredInSession(new Set());
     };
 
     return (
@@ -83,7 +109,7 @@ export function NewsFeedScreen() {
             headerAnimatedStyle={headerAnimatedStyle}
             titleAnimatedStyle={titleAnimatedStyle}
             scrollHandler={scrollHandler}
-            onTabChange={setActiveTab}
+            onTabChange={handleTabChange}
             onArticleSelect={handleArticleSelect}
             onAnswerClick={handleAnswerClick}
             onRefresh={handleRefresh}
