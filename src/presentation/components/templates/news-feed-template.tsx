@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-    RefreshControl,
-    StyleSheet,
-    Text,
-    View,
-} from 'react-native';
+import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 import ReAnimated from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -54,7 +49,6 @@ export function NewsFeedTemplate({
     onArticleSelect,
     onAnswerClick,
     onRefresh,
-    getAnimationStyles,
 }: NewsFeedTemplateProps) {
     const scrollViewRef = React.useRef<ReAnimated.ScrollView>(null);
 
@@ -125,7 +119,6 @@ export function NewsFeedTemplate({
                                     articles={newsItems}
                                     expandedIndex={expandedIndex}
                                     onArticlePress={onArticleSelect}
-                                    getAnimationStyles={getAnimationStyles}
                                     renderExpandedContent={renderExpandedContent}
                                     isRefreshing={isRefreshing}
                                     scrollViewRef={scrollViewRef}
@@ -179,4 +172,4 @@ const styles = StyleSheet.create({
     scrollView: {
         flex: 1,
     },
-}); 
+});

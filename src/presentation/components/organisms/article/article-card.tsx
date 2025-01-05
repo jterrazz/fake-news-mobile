@@ -1,10 +1,11 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import ReAnimated, { AnimatedStyleProp, ViewStyle } from 'react-native-reanimated';
+import ReAnimated from 'react-native-reanimated';
 
 import { ArticlePreview } from '../../molecules/article-preview/article-preview.jsx';
 
 import { SIZES } from '@/presentation/constants/sizes';
+import { useArticleAnimation } from '@/presentation/hooks/animations/use-article-animation';
 
 interface ArticleCardProps {
     headline: string;
@@ -15,8 +16,6 @@ interface ArticleCardProps {
     isFake?: boolean;
     isExpanded?: boolean;
     onPress?: () => void;
-    previewAnimatedStyle?: AnimatedStyleProp<ViewStyle>;
-    containerAnimatedStyle?: AnimatedStyleProp<ViewStyle>;
     expandedContent?: React.ReactNode;
 }
 
@@ -29,10 +28,11 @@ export function ArticleCard({
     isFake,
     isExpanded,
     onPress,
-    previewAnimatedStyle,
-    containerAnimatedStyle,
     expandedContent,
 }: ArticleCardProps) {
+    const { containerAnimatedStyle, contentAnimatedStyle, previewAnimatedStyle } =
+        useArticleAnimation(isExpanded ?? false);
+
     return (
         <View style={styles.articleWrapper}>
             <ReAnimated.View
@@ -60,7 +60,11 @@ export function ArticleCard({
                         />
                     </ReAnimated.View>
 
-                    {isExpanded && expandedContent}
+                    {isExpanded && (
+                        <ReAnimated.View style={[styles.expandedContent, contentAnimatedStyle]}>
+                            {expandedContent}
+                        </ReAnimated.View>
+                    )}
                 </Pressable>
             </ReAnimated.View>
         </View>
@@ -91,6 +95,9 @@ const styles = StyleSheet.create({
         },
         shadowOpacity: 0.06,
         shadowRadius: 8,
+    },
+    expandedContent: {
+        position: 'relative',
     },
     previewContent: {
         position: 'relative',

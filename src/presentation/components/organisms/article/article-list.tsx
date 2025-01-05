@@ -12,14 +12,12 @@ interface ArticleListProps {
     articles: NewsEntity[];
     expandedIndex: number;
     onArticlePress: (index: number) => void;
-    getAnimationStyles: (index: number) => any;
     renderExpandedContent: (
         article: NewsEntity,
         contentAnimatedStyle: AnimatedStyleProp<ViewStyle>,
         scrollToArticle?: (index: number) => void,
     ) => React.ReactNode;
-    isRefreshing: boolean;
-    scrollViewRef: any;
+    scrollViewRef?: React.RefObject<ReAnimated.ScrollView>;
 }
 
 interface GroupedArticles {
@@ -61,7 +59,6 @@ export function ArticleList({
     articles,
     expandedIndex,
     onArticlePress,
-    getAnimationStyles,
     renderExpandedContent,
     scrollViewRef,
 }: ArticleListProps) {
@@ -93,14 +90,6 @@ export function ArticleList({
                                 .map((article) => {
                                     const currentIndex = globalIndex++;
                                     const isExpanded = currentIndex === expandedIndex;
-                                    const animationStyles = getAnimationStyles(currentIndex);
-                                    if (!animationStyles) return null;
-
-                                    const {
-                                        containerAnimatedStyle,
-                                        contentAnimatedStyle,
-                                        previewAnimatedStyle,
-                                    } = animationStyles;
 
                                     return (
                                         <ArticleCard
@@ -113,13 +102,10 @@ export function ArticleList({
                                             isFake={article.isFake}
                                             isExpanded={isExpanded}
                                             onPress={() => onArticlePress(currentIndex)}
-                                            containerAnimatedStyle={containerAnimatedStyle}
-                                            previewAnimatedStyle={previewAnimatedStyle}
                                             expandedContent={
                                                 isExpanded
                                                     ? renderExpandedContent(
                                                           article,
-                                                          contentAnimatedStyle,
                                                           scrollToArticle,
                                                       )
                                                     : undefined
