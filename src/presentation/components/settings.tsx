@@ -11,7 +11,7 @@ import {
 
 import { useNewsStore } from '@/application/store/news.store';
 
-import { container } from '@/di/container';
+import { container } from '@/core/container';
 
 type Language = 'en' | 'fr';
 

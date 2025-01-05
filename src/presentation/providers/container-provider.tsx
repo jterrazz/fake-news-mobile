@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 
-import { type Container, container } from '@/di/container';
+import { type Container, container } from '@/core/container';
 
 const ContainerContext = createContext<Container | null>(null);
 

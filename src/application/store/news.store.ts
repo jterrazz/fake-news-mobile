@@ -3,7 +3,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { NewsAnswer, NewsScore } from '@/domain/news/news';
 
-import { container } from '@/di/container';
+import { container } from '@/core/container';
 
 interface NewsState {
     answers: Record<string, NewsAnswer>;

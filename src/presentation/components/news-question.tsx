@@ -30,6 +30,8 @@ import { useNewsStore } from '@/application/store/news.store';
 
 import { NewsEntity } from '@/domain/news/news.entity';
 
+import { FONT_SIZES, SIZES } from '../constants/sizes.js';
+
 import { useNewsArticles } from '@/presentation/hooks/use-news-articles';
 import { useNewsQuestion } from '@/presentation/hooks/use-news-question';
 
@@ -97,11 +99,6 @@ const createParticles = (): BurstParticle[] => {
     });
 };
 
-type LetterAnimation = {
-    value: Animated.Value;
-    isAnimating: boolean;
-};
-
 export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
     const { data: newsItems } = useNewsArticles();
 
@@ -138,9 +135,6 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
         newsItem: currentNewsItem,
         onAnswer,
     });
-
-    // Remove height animations, keep other animation values
-    const iconAnim = useRef(new Animated.Value(0)).current;
 
     const scrollY = useSharedValue(0);
     const lastScrollY = useSharedValue(0);
@@ -345,18 +339,10 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
 
         const containerAnimatedStyle = useAnimatedStyle(() => {
             const borderRadius = interpolate(expandAnimation.value, [0, 1], [12, 16]);
-            const elevation = interpolate(expandAnimation.value, [0, 1], [2, 4]);
-            const shadowOpacity = interpolate(expandAnimation.value, [0, 1], [0.08, 0.12]);
 
             return {
                 borderRadius,
-                elevation,
-                shadowOpacity,
-                transform: [
-                    {
-                        scale: interpolate(expandAnimation.value, [0, 1], [1, 1.01]),
-                    },
-                ],
+                borderWidth: 1,
             };
         });
 
@@ -1048,8 +1034,8 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         elevation: 4,
         marginTop: 6,
-        paddingHorizontal: 12,
-        paddingVertical: 12,
+        paddingHorizontal: SIZES.md,
+        paddingVertical: SIZES.sm,
         position: 'relative',
         shadowColor: '#000',
         shadowOffset: {
@@ -1072,12 +1058,12 @@ const styles = StyleSheet.create({
     article: {
         color: '#1A1A1A',
         fontFamily: Platform.OS === 'ios' ? 'New York' : 'Noto Serif',
-        fontSize: 17,
+        fontSize: FONT_SIZES.md,
         fontWeight: '400',
-        letterSpacing: 0.3,
+        letterSpacing: 0.1,
         lineHeight: 26,
         marginBottom: 0,
-        paddingHorizontal: 2,
+        marginTop: SIZES['2xs'],
         textAlign: 'left',
     },
     articleContainer: {
@@ -1085,17 +1071,8 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(0, 0, 0, 0.04)',
         borderRadius: 12,
         borderWidth: 1,
-        elevation: 4,
-        marginHorizontal: 2,
-        marginVertical: 8,
+        marginVertical: SIZES.xs,
         overflow: 'hidden',
-        shadowColor: '#000',
-        shadowOffset: {
-            height: 6,
-            width: 0,
-        },
-        shadowOpacity: 0.12,
-        shadowRadius: 16,
     },
     articleContainerAnswered: {
         opacity: 0.8,
@@ -1116,8 +1093,8 @@ const styles = StyleSheet.create({
     },
     articleContent: {
         backgroundColor: '#FFFFFF',
-        paddingHorizontal: 16,
-        paddingVertical: 20,
+        paddingHorizontal: SIZES.lg,
+        paddingVertical: SIZES.sm,
         position: 'relative',
         zIndex: 1,
     },
@@ -1131,9 +1108,9 @@ const styles = StyleSheet.create({
         borderBottomColor: 'rgba(0, 0, 0, 0.06)',
         borderBottomWidth: 1,
         elevation: 4,
-        paddingBottom: 14,
-        paddingHorizontal: 16,
-        paddingTop: 20,
+        paddingBottom: SIZES.lg,
+        paddingHorizontal: SIZES.lg,
+        paddingTop: SIZES.lg,
         position: 'relative',
         shadowColor: '#000',
         shadowOffset: {
@@ -1186,7 +1163,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flexDirection: 'row',
         justifyContent: 'center',
-        marginTop: 32,
+        marginTop: SIZES.xl,
         minHeight: 56,
         overflow: 'visible',
         position: 'relative',
@@ -1215,12 +1192,12 @@ const styles = StyleSheet.create({
     buttonText: {
         color: '#000000',
         fontFamily: Platform.OS === 'ios' ? 'SF Pro Text' : 'System',
-        fontSize: 14,
-        fontWeight: '800',
+        fontSize: FONT_SIZES.sm,
+        fontWeight: '700',
         letterSpacing: 2,
         lineHeight: 48,
         textAlign: 'center',
-        textShadowColor: 'rgba(0, 0, 0, 0.1)',
+        textShadowColor: 'rgba(0, 0, 0, 0.05)',
         textShadowOffset: { height: 1, width: 0 },
         textShadowRadius: 1,
     },
@@ -1270,8 +1247,8 @@ const styles = StyleSheet.create({
     container: {
         backgroundColor: '#F8F9FA',
         flex: 1,
-        paddingHorizontal: 14,
-        paddingTop: 140,
+        paddingHorizontal: SIZES.sm,
+        paddingTop: 128,
     },
     date: {
         color: '#000000',
@@ -1279,8 +1256,9 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: '600',
         letterSpacing: 1.5,
-        marginBottom: 24,
-        marginTop: 32,
+        marginBottom: SIZES.xs,
+        marginLeft: SIZES.lg + SIZES['2xs'],
+        marginTop: SIZES.xl,
         textTransform: 'uppercase',
     },
     dotContainer: {
@@ -1301,7 +1279,6 @@ const styles = StyleSheet.create({
     expandedPublisherContainer: {
         alignItems: 'center',
         flexDirection: 'row',
-        marginTop: 8,
     },
     expandedPublisherIcon: {
         borderRadius: 10,
@@ -1309,7 +1286,7 @@ const styles = StyleSheet.create({
         width: 28,
     },
     expandedPublisherInfo: {
-        marginLeft: 8,
+        marginLeft: SIZES.md + SIZES['2xs'],
     },
     expandedTopRow: {
         alignItems: 'center',
@@ -1446,8 +1423,9 @@ const styles = StyleSheet.create({
     previewContent: {
         alignItems: 'center',
         flexDirection: 'row',
-        gap: 8,
-        padding: 14,
+        gap: SIZES.xs * 3,
+        padding: SIZES.md,
+        paddingVertical: SIZES.sm + SIZES['2xs'],
     },
     previewContentHidden: {
         left: 0,
@@ -1487,14 +1465,13 @@ const styles = StyleSheet.create({
     },
     previewLeftColumn: {
         alignItems: 'center',
-        marginRight: 4,
         position: 'relative',
         width: 40,
     },
     previewMetaContainer: {
         alignItems: 'center',
         flexDirection: 'row',
-        gap: 6,
+        gap: SIZES.xs,
     },
     previewPublisher: {
         color: '#666666',
@@ -1603,7 +1580,7 @@ const styles = StyleSheet.create({
     },
     tabContainer: {
         flexDirection: 'row',
-        gap: 24,
+        gap: SIZES.lg,
     },
     tabText: {
         color: '#666666',
