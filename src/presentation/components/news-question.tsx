@@ -32,6 +32,7 @@ import { NewsEntity } from '@/domain/news/news.entity';
 
 import { FONT_SIZES, SIZES } from '../constants/sizes.js';
 
+import { TextButton } from './atoms/buttons/text-button.jsx';
 import { Body } from './atoms/typography/body.jsx';
 import { CategoryLabel } from './atoms/typography/category-label.jsx';
 import { Headline } from './atoms/typography/headline.jsx';
@@ -430,11 +431,7 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                                 >
                                     <View style={styles.articleHeader}>
                                         <View style={styles.expandedTopRow}>
-                                            <View style={styles.categoryTag}>
-                                                <Text style={styles.categoryText}>
-                                                    {item.category}
-                                                </Text>
-                                            </View>
+                                            <CategoryLabel>{item.category}</CategoryLabel>
                                         </View>
                                         <Headline style={{ marginBottom: 12 }}>
                                             {item.headline}
@@ -528,61 +525,39 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                 </View>
 
                 {currentNewsItem.answered ? (
-                    <View style={styles.buttonWrapperCentered}>
-                        <View
-                            style={[
-                                styles.button,
-                                wasCorrect ? styles.buttonCorrect : styles.buttonIncorrect,
-                            ]}
-                        >
-                            <View style={styles.buttonInner}>
-                                <Text
-                                    style={[
-                                        styles.buttonText,
-                                        wasCorrect
-                                            ? styles.buttonTextCorrect
-                                            : styles.buttonTextIncorrect,
-                                    ]}
-                                >
-                                    {currentNewsItem.isFake ? 'FAKE' : 'REAL'}
-                                </Text>
-                            </View>
-                        </View>
-                    </View>
+                    <TextButton
+                        variant={wasCorrect ? 'correct' : 'incorrect'}
+                        onPress={() => {}}
+                        disabled
+                        size="small"
+                    >
+                        {currentNewsItem.isFake ? 'FAKE' : 'REAL'}
+                    </TextButton>
                 ) : (
-                    <>
+                    <View style={styles.buttonRow}>
                         <Animated.View
                             style={[
-                                styles.buttonWrapper,
-                                !isAnswered && styles.buttonWrapperLeft,
-                                isMergeComplete &&
-                                    selectedAnswer === true &&
-                                    styles.buttonWrapperCentered,
+                                styles.buttonWrapperLeft,
                                 {
                                     opacity: animations.fade.fake,
                                     transform: [
+                                        { translateX: animations.slide.fake },
                                         {
-                                            translateX: animations.slide.fake,
-                                        },
-                                        {
-                                            scale:
-                                                selectedAnswer === true ? nextButtonAnim.scale : 1,
+                                            scale: selectedAnswer === true ? nextButtonAnim.scale : 1,
                                         },
                                     ],
                                     zIndex: selectedAnswer === true ? 2 : 1,
                                 },
                             ]}
                         >
-                            <Pressable
-                                style={({ pressed }) => [
-                                    styles.button,
-                                    selectedAnswer === true &&
-                                        answer &&
-                                        (answer.wasCorrect
-                                            ? styles.buttonCorrect
-                                            : styles.buttonIncorrect),
-                                    pressed && { transform: [{ scale: 0.98 }] },
-                                ]}
+                            <TextButton
+                                variant={
+                                    selectedAnswer === true && answer
+                                        ? answer.wasCorrect
+                                            ? 'correct'
+                                            : 'incorrect'
+                                        : 'primary'
+                                }
                                 onPress={(event) =>
                                     handleAnswerClick(true, {
                                         x: event.nativeEvent.pageX,
@@ -590,56 +565,35 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                                     })
                                 }
                                 disabled={isAnswered}
+                                size="small"
                             >
-                                <View style={styles.buttonInner}>
-                                    <Text
-                                        style={[
-                                            styles.buttonText,
-                                            selectedAnswer === true &&
-                                                answer &&
-                                                (answer.wasCorrect
-                                                    ? styles.buttonTextCorrect
-                                                    : styles.buttonTextIncorrect),
-                                        ]}
-                                    >
-                                        FAKE
-                                    </Text>
-                                </View>
-                            </Pressable>
+                                FAKE
+                            </TextButton>
                         </Animated.View>
 
                         <Animated.View
                             style={[
-                                styles.buttonWrapper,
-                                !isAnswered && styles.buttonWrapperRight,
-                                isMergeComplete &&
-                                    selectedAnswer === false &&
-                                    styles.buttonWrapperCentered,
+                                styles.buttonWrapperRight,
                                 {
                                     opacity: animations.fade.real,
                                     transform: [
+                                        { translateX: animations.slide.real },
                                         {
-                                            translateX: animations.slide.real,
-                                        },
-                                        {
-                                            scale:
-                                                selectedAnswer === false ? nextButtonAnim.scale : 1,
+                                            scale: selectedAnswer === false ? nextButtonAnim.scale : 1,
                                         },
                                     ],
                                     zIndex: selectedAnswer === false ? 2 : 1,
                                 },
                             ]}
                         >
-                            <Pressable
-                                style={({ pressed }) => [
-                                    styles.button,
-                                    selectedAnswer === false &&
-                                        answer &&
-                                        (answer.wasCorrect
-                                            ? styles.buttonCorrect
-                                            : styles.buttonIncorrect),
-                                    pressed && { transform: [{ scale: 0.98 }] },
-                                ]}
+                            <TextButton
+                                variant={
+                                    selectedAnswer === false && answer
+                                        ? answer.wasCorrect
+                                            ? 'correct'
+                                            : 'incorrect'
+                                        : 'primary'
+                                }
                                 onPress={(event) =>
                                     handleAnswerClick(false, {
                                         x: event.nativeEvent.pageX,
@@ -647,24 +601,12 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                                     })
                                 }
                                 disabled={isAnswered}
+                                size="small"
                             >
-                                <View style={styles.buttonInner}>
-                                    <Text
-                                        style={[
-                                            styles.buttonText,
-                                            selectedAnswer === false &&
-                                                answer &&
-                                                (answer.wasCorrect
-                                                    ? styles.buttonTextCorrect
-                                                    : styles.buttonTextIncorrect),
-                                        ]}
-                                    >
-                                        REAL
-                                    </Text>
-                                </View>
-                            </Pressable>
+                                REAL
+                            </TextButton>
                         </Animated.View>
-                    </>
+                    </View>
                 )}
 
                 {/* Next article button */}
@@ -1024,7 +966,8 @@ const styles = StyleSheet.create({
     },
     buttonContainer: {
         alignItems: 'center',
-        flexDirection: 'row',
+        flexDirection: 'column',
+        gap: SIZES.md,
         justifyContent: 'center',
         marginTop: SIZES.xl,
         minHeight: 56,
@@ -1081,24 +1024,12 @@ const styles = StyleSheet.create({
         width: '45%',
     },
     buttonWrapperLeft: {
-        left: '2%',
+        position: 'relative',
+        width: 'auto',
     },
     buttonWrapperRight: {
-        right: '2%',
-    },
-    categoryTag: {
-        backgroundColor: 'rgba(0, 0, 0, 0.05)',
-        borderRadius: 6,
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-    },
-    categoryText: {
-        color: '#666666',
-        fontSize: 9,
-        fontWeight: '600',
-        letterSpacing: 0.5,
-        lineHeight: 11,
-        textTransform: 'uppercase',
+        position: 'relative',
+        width: 'auto',
     },
     celebrationContainer: {
         alignItems: 'center',
@@ -1402,6 +1333,13 @@ const styles = StyleSheet.create({
         gap: 4,
         paddingHorizontal: 8,
         paddingVertical: 4,
+    },
+    buttonRow: {
+        flexDirection: 'row',
+        gap: SIZES.md,
+        justifyContent: 'center',
+        position: 'relative',
+        width: '100%',
     },
     scoreText: {
         color: '#333333',

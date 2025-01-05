@@ -28,7 +28,7 @@ export const useNewsStore = create<NewsState>()(
                     };
 
                     const newScore = {
-                        score: wasCorrect ? state.score.score + 100 : state.score.score,
+                        score: wasCorrect ? state.score.score + 1 : state.score.score,
                         streak: wasCorrect ? state.score.streak + 1 : 0,
                     };
 
