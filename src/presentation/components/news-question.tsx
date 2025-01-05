@@ -1,14 +1,9 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-    Animated,
-    Easing,
-    Image,
     LayoutAnimation,
     Platform,
-    Pressable,
     RefreshControl,
     StyleSheet,
-    Text,
     UIManager,
     View,
     ViewStyle,
@@ -22,9 +17,6 @@ import ReAnimated, {
     useSharedValue,
     withSpring,
 } from 'react-native-reanimated';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { format } from 'date-fns';
-import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { useNewsStore } from '@/application/store/news.store';
@@ -36,12 +28,10 @@ import { FONT_SIZES, SIZES } from '../constants/sizes.js';
 import { LoadingSpinner } from './atoms/indicators/loading-spinner.jsx';
 import { Container } from './atoms/layout/container.jsx';
 import { SafeArea } from './atoms/layout/safe-area.jsx';
-import { Body } from './atoms/typography/body.jsx';
-import { CategoryLabel } from './atoms/typography/category-label.jsx';
-import { Headline } from './atoms/typography/headline.jsx';
 import { CelebrationParticle } from './molecules/feedback/celebration-particle.js';
+import { NewsHeader } from './molecules/header/news-header.jsx';
 import { ArticleList } from './organisms/article/article-list.jsx';
-import { AnswerButtons } from './organisms/question/answer-buttons.jsx';
+import { ExpandedArticle } from './organisms/article/expanded-article.jsx';
 
 import { useNewsArticles } from '@/presentation/hooks/use-news-articles';
 import { useNewsQuestion } from '@/presentation/hooks/use-news-question';
@@ -211,46 +201,28 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
         };
     };
 
-    const renderExpandedContent = (
-        article: NewsEntity,
-        contentAnimatedStyle: AnimatedStyleProp<ViewStyle>,
-        scrollToArticle?: (index: number) => void
-    ) => (
-        <ReAnimated.View style={[styles.expandedContent, contentAnimatedStyle]}>
-            <View style={styles.articleHeader}>
-                <View style={styles.expandedTopRow}>
-                    <CategoryLabel>{article.category}</CategoryLabel>
-                </View>
-                <Headline style={{ marginBottom: 12 }}>{article.headline}</Headline>
-                <View style={styles.expandedPublisherContainer}>
-                    <Image
-                        source={require('../../../assets/icon.png')}
-                        style={styles.expandedPublisherIcon}
-                    />
-                    <View style={styles.expandedPublisherInfo}>
-                        <Text style={styles.expandedPublisher}>AI BREAKING NEWS</Text>
-                        <Text style={styles.articleDate}>{format(new Date(), 'MMMM d, yyyy')}</Text>
-                    </View>
-                </View>
-            </View>
-            <View style={styles.articleContent}>
-                <Body size="medium">{article.article}</Body>
-            </View>
-            <View style={styles.actionContainer}>
-                <AnswerButtons
-                    isAnswered={selectedAnswer !== null || currentNewsItem.answered !== undefined}
-                    selectedAnswer={selectedAnswer}
-                    wasCorrect={answer?.wasCorrect ?? currentNewsItem.answered?.wasCorrect}
-                    onAnswerClick={handleAnswerClick}
-                    onNextArticle={() => {
-                        handleArticleSelect(expandedIndex + 1);
-                        scrollToArticle?.(expandedIndex + 1);
-                    }}
-                    showNextButton={expandedIndex < newsItems.length - 1}
-                    currentArticleId={currentNewsItem.id}
-                />
-            </View>
-        </ReAnimated.View>
+    const renderExpandedContent = ({
+        article,
+        contentAnimatedStyle,
+        scrollToNextArticle,
+    }: {
+        article: NewsEntity;
+        contentAnimatedStyle: AnimatedStyleProp<ViewStyle>;
+        scrollToNextArticle: () => void;
+    }) => (
+        <ExpandedArticle
+            article={article}
+            contentAnimatedStyle={contentAnimatedStyle}
+            isAnswered={selectedAnswer !== null || currentNewsItem.answered !== undefined}
+            selectedAnswer={selectedAnswer}
+            wasCorrect={answer?.wasCorrect ?? currentNewsItem.answered?.wasCorrect}
+            onAnswerClick={handleAnswerClick}
+            onNextArticle={() => {
+                handleArticleSelect(expandedIndex + 1);
+                scrollToNextArticle();
+            }}
+            showNextButton={expandedIndex < newsItems.length - 1}
+        />
     );
 
     const getFilteredNewsItems = (items: NewsEntity[]) => {
@@ -266,123 +238,6 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
         return <CelebrationParticle isVisible={answer.wasCorrect} position={lastClickedPosition} />;
     };
 
-    const renderAnswerButtons = () => {
-        if (!currentNewsItem) return null;
-
-        const isAnswered = selectedAnswer !== null || currentNewsItem.answered !== undefined;
-        const wasCorrect = answer?.wasCorrect ?? currentNewsItem.answered?.wasCorrect;
-
-        return (
-            <AnswerButtons
-                isAnswered={isAnswered}
-                selectedAnswer={selectedAnswer}
-                wasCorrect={wasCorrect}
-                onAnswerClick={handleAnswerClick}
-                onNextArticle={() => handleArticleSelect(expandedIndex + 1)}
-                showNextButton={expandedIndex < newsItems.length - 1}
-                currentArticleId={currentNewsItem.id}
-            />
-        );
-    };
-
-    const [letterAnimations] = useState(() =>
-        Array.from({ length: 9 }, () => ({
-            isAnimating: false,
-            offset: new Animated.ValueXY({ x: 0, y: 0 }),
-            value: new Animated.Value(1),
-        })),
-    );
-
-    const animateLetter = useCallback(
-        (index: number) => {
-            if (letterAnimations[index].isAnimating) return;
-
-            letterAnimations[index].isAnimating = true;
-
-            // Create random glitch offsets
-            const xOffset = (Math.random() - 0.5) * GLITCH_OFFSET * 2;
-            const yOffset = (Math.random() - 0.5) * GLITCH_OFFSET * 2;
-
-            Animated.sequence([
-                // Initial scale up with glitch
-                Animated.parallel([
-                    Animated.timing(letterAnimations[index].value, {
-                        duration: LETTER_ANIMATION_DURATION / 2,
-                        easing: Easing.out(Easing.ease),
-                        toValue: 1.2,
-                        useNativeDriver: true,
-                    }),
-                    // Quick random position shifts
-                    Animated.sequence([
-                        Animated.timing(letterAnimations[index].offset, {
-                            duration: GLITCH_DURATION,
-                            easing: Easing.linear,
-                            toValue: { x: xOffset, y: yOffset },
-                            useNativeDriver: true,
-                        }),
-                        Animated.timing(letterAnimations[index].offset, {
-                            duration: GLITCH_DURATION,
-                            easing: Easing.linear,
-                            toValue: { x: -xOffset, y: -yOffset },
-                            useNativeDriver: true,
-                        }),
-                        Animated.timing(letterAnimations[index].offset, {
-                            duration: GLITCH_DURATION,
-                            easing: Easing.linear,
-                            toValue: { x: 0, y: 0 },
-                            useNativeDriver: true,
-                        }),
-                    ]),
-                ]),
-                // Scale back to normal
-                Animated.timing(letterAnimations[index].value, {
-                    duration: LETTER_ANIMATION_DURATION / 2,
-                    easing: Easing.out(Easing.ease),
-                    toValue: 1,
-                    useNativeDriver: true,
-                }),
-            ]).start(() => {
-                letterAnimations[index].isAnimating = false;
-            });
-        },
-        [letterAnimations],
-    );
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            const randomIndex = Math.floor(Math.random() * 9);
-            animateLetter(randomIndex);
-        }, LETTER_ANIMATION_INTERVAL);
-
-        return () => clearInterval(interval);
-    }, [animateLetter]);
-
-    const renderAnimatedTitle = () => {
-        const letters = 'FAKE NEWS'.split('');
-
-        return (
-            <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
-                {letters.map((letter, index) => (
-                    <Animated.Text
-                        key={`${letter}-${index}`}
-                        style={[
-                            styles.publicationTitleLetter,
-                            {
-                                transform: [
-                                    { scale: letterAnimations[index].value },
-                                    { translateX: letterAnimations[index].offset.x },
-                                    { translateY: letterAnimations[index].offset.y },
-                                ],
-                            },
-                        ]}
-                    >
-                        {letter}
-                    </Animated.Text>
-                ))}
-            </View>
-        );
-    };
-
     const handleRefresh = async () => {
         setIsRefreshing(true);
         // Assuming your useNewsArticles hook has a refetch method
@@ -395,58 +250,13 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
 
     return (
         <View style={styles.mainContainer}>
-            <BlurView
-                intensity={95}
-                tint="extraLight"
-                style={[styles.headerBlur, headerAnimatedStyle]}
-            >
-                <SafeArea style={styles.headerContent}>
-                    <ReAnimated.View style={[styles.publicationTitleContainer, titleAnimatedStyle]}>
-                        {renderAnimatedTitle()}
-                    </ReAnimated.View>
-                    <View style={styles.headerContentInner}>
-                        <View style={styles.tabContainer}>
-                            <Pressable style={[styles.tab]} onPress={() => setActiveTab('latest')}>
-                                <Text
-                                    style={[
-                                        styles.tabText,
-                                        activeTab === 'latest' && styles.tabTextActive,
-                                    ]}
-                                >
-                                    Latest
-                                </Text>
-                                {activeTab === 'latest' && <View style={styles.activeIndicator} />}
-                            </Pressable>
-                            <Pressable style={[styles.tab]} onPress={() => setActiveTab('to-read')}>
-                                <Text
-                                    style={[
-                                        styles.tabText,
-                                        activeTab === 'to-read' && styles.tabTextActive,
-                                    ]}
-                                >
-                                    To Read
-                                </Text>
-                                {activeTab === 'to-read' && <View style={styles.activeIndicator} />}
-                            </Pressable>
-                        </View>
-                        <View style={styles.scoreContainer}>
-                            <View style={styles.scoreItem}>
-                                <MaterialCommunityIcons
-                                    name="check-circle"
-                                    size={18}
-                                    color="#22C55E"
-                                    style={{ marginVertical: 1 }}
-                                />
-                                <Text style={styles.scoreText}>{score.score}</Text>
-                            </View>
-                            <View style={styles.scoreItem}>
-                                <MaterialCommunityIcons name="fire" size={20} color="#FF4500" />
-                                <Text style={styles.scoreText}>×{score.streak}</Text>
-                            </View>
-                        </View>
-                    </View>
-                </SafeArea>
-            </BlurView>
+            <NewsHeader
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                score={score}
+                headerAnimatedStyle={headerAnimatedStyle}
+                titleAnimatedStyle={titleAnimatedStyle}
+            />
             <SafeArea>
                 <View style={styles.scrollContainer}>
                     <ReAnimated.ScrollView
@@ -501,6 +311,7 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
 }
 
 const styles = StyleSheet.create({
+    // Action Container
     actionContainer: {
         backgroundColor: '#FFFFFF',
         borderTopColor: 'rgba(0, 0, 0, 0.06)',
@@ -516,15 +327,6 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.04,
         shadowRadius: 8,
         zIndex: 2,
-    },
-    activeIndicator: {
-        backgroundColor: '#000000',
-        borderRadius: 1,
-        bottom: -16,
-        height: 2,
-        left: 0,
-        position: 'absolute',
-        right: 0,
     },
     article: {
         color: '#1A1A1A',
@@ -574,6 +376,7 @@ const styles = StyleSheet.create({
         fontSize: 11,
         fontWeight: '500',
     },
+    // Article Content
     articleHeader: {
         backgroundColor: '#FFFFFF',
         borderBottomColor: 'rgba(0, 0, 0, 0.06)',
@@ -595,6 +398,7 @@ const styles = StyleSheet.create({
     articlePressable: {
         overflow: 'hidden',
     },
+    // Article Layout
     articleWrapper: {
         elevation: 2,
         shadowColor: '#000',
@@ -605,129 +409,13 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.06,
         shadowRadius: 8,
     },
-    articlesList: {
-        paddingTop: 8,
-    },
     bottomSpacer: {
         height: 100,
-    },
-    button: {
-        backgroundColor: '#FFFFFF',
-        borderBottomWidth: 3,
-        borderColor: '#000000',
-        borderRadius: 10,
-        borderWidth: 1.5,
-        elevation: 3,
-        height: 48,
-        overflow: 'hidden',
-        position: 'relative',
-        shadowColor: '#000',
-        shadowOffset: {
-            height: 2,
-            width: 0,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        width: '100%',
-    },
-    buttonContainer: {
-        alignItems: 'center',
-        flexDirection: 'column',
-        gap: SIZES.md,
-        justifyContent: 'center',
-        position: 'relative',
-        width: '100%',
-    },
-    buttonCorrect: {
-        backgroundColor: '#22C55E',
-        borderBottomColor: '#167C3D',
-        borderColor: '#1B9D4D',
-    },
-    buttonIcon: {
-        marginRight: 8,
-        opacity: 0.7,
-    },
-    buttonIncorrect: {
-        backgroundColor: '#EF4444',
-        borderBottomColor: '#B91C1C',
-        borderColor: '#DC2626',
-    },
-    buttonInner: {
-        alignItems: 'center',
-        flexDirection: 'row',
-        height: '100%',
-        justifyContent: 'center',
-    },
-    buttonRow: {
-        alignItems: 'center',
-        flexDirection: 'row',
-        gap: SIZES.md,
-        justifyContent: 'center',
-        minHeight: 48,
-        position: 'relative',
-        width: '100%',
-    },
-    buttonText: {
-        color: '#000000',
-        fontFamily: Platform.OS === 'ios' ? 'SF Pro Text' : 'System',
-        fontSize: FONT_SIZES.sm,
-        fontWeight: '700',
-        letterSpacing: 2,
-        lineHeight: 48,
-        textAlign: 'center',
-        textShadowColor: 'rgba(0, 0, 0, 0.05)',
-        textShadowOffset: { height: 1, width: 0 },
-        textShadowRadius: 1,
-    },
-    buttonTextCorrect: {
-        color: '#FFFFFF',
-    },
-    buttonTextIncorrect: {
-        color: '#FFFFFF',
-    },
-    buttonWrapper: {
-        position: 'absolute',
-        transform: [{ scale: 1 }],
-        width: '45%',
-    },
-    buttonWrapperCentered: {
-        left: '27.5%',
-        position: 'absolute',
-        width: '45%',
-    },
-    buttonWrapperLeft: {
-        position: 'relative',
-        width: 'auto',
-    },
-    buttonWrapperRight: {
-        position: 'relative',
-        width: 'auto',
-    },
-    celebrationContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        pointerEvents: 'none',
-        position: 'absolute',
-        zIndex: 99,
     },
     container: {
         paddingHorizontal: SIZES.sm,
     },
-    date: {
-        color: '#000000',
-        fontFamily: 'System',
-        fontSize: 12,
-        fontWeight: '600',
-        letterSpacing: 1.5,
-        marginBottom: SIZES.xs,
-        marginLeft: SIZES.lg + SIZES['2xs'],
-        marginTop: SIZES.xl,
-        textTransform: 'uppercase',
-    },
-    dotContainer: {
-        justifyContent: 'center',
-        paddingLeft: 12,
-    },
+    // Expanded Content
     expandedContent: {
         position: 'relative',
     },
@@ -739,6 +427,7 @@ const styles = StyleSheet.create({
         marginBottom: 1,
         textTransform: 'uppercase',
     },
+    // Publisher Info
     expandedPublisherContainer: {
         alignItems: 'center',
         flexDirection: 'row',
@@ -757,6 +446,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         marginBottom: 10,
     },
+    // Gradient and Effects
     fadeGradient: {
         bottom: 0,
         height: 100,
@@ -765,113 +455,12 @@ const styles = StyleSheet.create({
         right: 0,
         zIndex: 1,
     },
-    headerBlur: {
-        borderBottomColor: 'rgba(0, 0, 0, 0.05)',
-        borderBottomWidth: 1,
-        left: 0,
-        position: 'absolute',
-        right: 0,
-        top: 0,
-        zIndex: 10,
-    },
-    headerContent: {
-        paddingHorizontal: 16,
-        paddingTop: Platform.OS === 'ios' ? 44 : 28,
-    },
-    headerContentInner: {
-        alignItems: 'center',
-        borderBottomColor: 'rgba(0, 0, 0, 0.05)',
-        borderBottomWidth: 1,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingBottom: 12,
-        paddingHorizontal: 16,
-    },
-    headline: {
-        color: '#000000',
-        fontFamily: Platform.OS === 'ios' ? 'New York' : 'serif',
-        fontSize: 24,
-        fontWeight: '700',
-        letterSpacing: -0.5,
-        lineHeight: 30,
-        marginBottom: 12,
-        textShadowColor: 'rgba(0, 0, 0, 0.04)',
-        textShadowOffset: { height: 1, width: 0 },
-        textShadowRadius: 1,
-    },
-    hintContainer: {
-        alignItems: 'center',
-        position: 'relative',
-        width: '100%',
-    },
-    hintText: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 4,
-        color: '#666666',
-        elevation: 1,
-        fontFamily: Platform.OS === 'ios' ? 'SF Pro Text' : 'System',
-        fontSize: 13,
-        fontWeight: '500',
-        letterSpacing: 0.3,
-        opacity: 0.8,
-        overflow: 'hidden',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        shadowColor: '#000',
-        shadowOffset: {
-            height: 1,
-            width: 0,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-    },
-    iconContainer: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 12,
-        elevation: 4,
-        padding: 2,
-        position: 'absolute',
-        right: -16,
-        shadowColor: '#000',
-        shadowOffset: {
-            height: 2,
-            width: 0,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        top: -16,
-    },
+    // Layout
     mainContainer: {
         backgroundColor: '#FFFFFF',
         flex: 1,
     },
-    nextButton: {
-        alignItems: 'center',
-        backgroundColor: '#000000',
-        borderRadius: 8,
-        height: 36,
-        justifyContent: 'center',
-        width: 36,
-    },
-    nextButtonContainer: {
-        position: 'relative',
-    },
-    nextButtonText: {
-        color: '#FFFFFF',
-        fontFamily: Platform.OS === 'ios' ? 'SF Pro Text' : 'System',
-        fontSize: 14,
-        fontWeight: '800',
-        letterSpacing: 1.5,
-        textTransform: 'uppercase',
-    },
-    particle: {
-        position: 'absolute',
-    },
-    pressable: {
-        alignItems: 'center',
-        padding: 16,
-        width: '100%',
-    },
+    // Preview Content
     previewContent: {
         position: 'relative',
     },
@@ -881,77 +470,11 @@ const styles = StyleSheet.create({
         right: 0,
         top: 0,
     },
-    publicationTitleContainer: {
-        marginBottom: 16,
-        width: '100%',
-    },
-    publicationTitleLetter: {
-        color: '#000000',
-        fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'Roboto-Black',
-        fontSize: 42,
-        fontWeight: '900',
-        letterSpacing: 4,
-        textAlign: 'center',
-        textShadowColor: 'rgba(0, 0, 0, 0.12)',
-        textShadowOffset: { height: 2, width: 0 },
-        textShadowRadius: 3,
-    },
-    resultIndicator: {
-        backgroundColor: '#FFFFFF',
-        borderColor: '#22C55E',
-        borderRadius: 8,
-        borderWidth: 1.5,
-        padding: 4,
-        position: 'absolute',
-        right: -8,
-        top: -8,
-    },
-    resultIndicatorError: {
-        borderColor: '#EF4444',
-    },
-    scoreContainer: {
-        alignItems: 'center',
-        flexDirection: 'row',
-        gap: 12,
-    },
-    scoreItem: {
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.03)',
-        borderRadius: 8,
-        flexDirection: 'row',
-        gap: 4,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-    },
-    scoreText: {
-        color: '#333333',
-        fontSize: 14,
-        fontWeight: '600',
-    },
     scrollContainer: {
         flex: 1,
         position: 'relative',
     },
     scrollView: {
         flex: 1,
-    },
-    tab: {
-        paddingHorizontal: 4,
-        paddingVertical: 5,
-        position: 'relative',
-    },
-    tabContainer: {
-        flexDirection: 'row',
-        gap: SIZES.lg,
-    },
-    tabText: {
-        color: '#666666',
-        fontSize: 13,
-        fontWeight: '600',
-        letterSpacing: 1,
-        textTransform: 'uppercase',
-    },
-    tabTextActive: {
-        color: '#000000',
     },
 });

@@ -28,11 +28,11 @@ interface ArticleListProps {
         previewAnimatedStyle: AnimatedStyleProp<ViewStyle>;
         contentAnimatedStyle: AnimatedStyleProp<ViewStyle>;
     };
-    renderExpandedContent: (
-        article: Article,
-        contentAnimatedStyle: AnimatedStyleProp<ViewStyle>,
-        scrollToArticle: (index: number) => void,
-    ) => React.ReactNode;
+    renderExpandedContent: (params: {
+        article: Article;
+        contentAnimatedStyle: AnimatedStyleProp<ViewStyle>;
+        scrollToNextArticle: () => void;
+    }) => React.ReactNode;
     isRefreshing?: boolean;
     scrollViewRef: React.RefObject<ReAnimated.ScrollView>;
 }
@@ -84,7 +84,18 @@ export function ArticleList({
         article: Article,
         contentAnimatedStyle: AnimatedStyleProp<ViewStyle>,
     ) => {
-        return renderExpandedContent(article, contentAnimatedStyle, scrollToArticle);
+        const scrollToNextArticle = () => {
+            const nextIndex = expandedIndex + 1;
+            if (nextIndex < articles.length) {
+                scrollToArticle(nextIndex);
+            }
+        };
+
+        return renderExpandedContent({
+            article,
+            contentAnimatedStyle,
+            scrollToNextArticle,
+        });
     };
 
     if (isRefreshing) return null;
