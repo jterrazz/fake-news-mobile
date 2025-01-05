@@ -8,7 +8,7 @@ import { AnimatedTitle } from '../../atoms/typography/animated-title.jsx';
 
 import { HeaderTabs } from './header-tabs.jsx';
 import { ScoreDisplay } from './score-display.jsx';
-import { SIZES } from '@/presentation/constants/sizes.js';
+import { SIZES } from '@/presentation/components/sizes.js';
 
 interface NewsHeaderProps {
     activeTab: 'latest' | 'to-read';

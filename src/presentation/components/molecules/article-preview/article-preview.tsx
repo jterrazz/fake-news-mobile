@@ -5,7 +5,7 @@ import { Platform } from 'react-native';
 import { StatusIndicator } from '../../atoms/indicators/status-indicator.jsx';
 
 import { ArticleMeta } from './article-meta.jsx';
-import { SIZES } from '@/presentation/constants/sizes';
+import { SIZES } from '@/presentation/components/sizes.js';
 
 interface ArticlePreviewProps {
   headline: string;

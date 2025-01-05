@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { CategoryLabel } from '@/presentation/components/atoms/typography/category-label';
-import { SIZES } from '@/presentation/constants/sizes';
+import { SIZES } from '@/presentation/components/sizes';
 
 interface ArticleMetaProps {
   publisher?: string;

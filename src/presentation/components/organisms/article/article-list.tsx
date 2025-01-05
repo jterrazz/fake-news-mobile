@@ -6,7 +6,7 @@ import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns';
 import { NewsEntity } from '@/domain/news/news.entity';
 
 import { ArticleCard } from './article-card.jsx';
-import { SIZES } from '@/presentation/constants/sizes';
+import { SIZES } from '@/presentation/components/sizes.js';
 
 interface ArticleListProps {
     articles: NewsEntity[];

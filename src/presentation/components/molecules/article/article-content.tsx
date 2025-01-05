@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { SIZES } from '../../../constants/sizes.js';
+import { SIZES } from '../../sizes.js';
 import { Body } from '../../atoms/typography/body.jsx';
 
 interface ArticleContentProps {

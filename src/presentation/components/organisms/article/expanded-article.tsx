@@ -4,7 +4,7 @@ import ReAnimated, { AnimatedStyleProp } from 'react-native-reanimated';
 
 import { NewsEntity } from '@/domain/news/news.entity';
 
-import { SIZES } from '../../../constants/sizes.js';
+import { SIZES } from '../../sizes.js';
 import { ArticleContent } from '../../molecules/article/article-content.jsx';
 import { ArticleHeader } from '../../molecules/article/article-header.jsx';
 import { AnswerButtons } from '../question/answer-buttons.jsx';

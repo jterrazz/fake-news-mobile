@@ -4,7 +4,7 @@ import { Animated, Easing, Platform, StyleSheet, Text, View } from 'react-native
 import { IconButton } from '../../atoms/buttons/icon-button.jsx';
 import { TextButton } from '../../atoms/buttons/text-button.jsx';
 
-import { SIZES } from '@/presentation/constants/sizes';
+import { SIZES } from '@/presentation/components/sizes.js';
 
 interface ButtonPosition {
     x: number;

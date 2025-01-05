@@ -12,7 +12,7 @@ import { CelebrationParticle } from '@/presentation/components/molecules/feedbac
 import { NewsHeader } from '@/presentation/components/molecules/header/news-header';
 import { ArticleList } from '@/presentation/components/organisms/article/article-list';
 import { ExpandedArticle } from '@/presentation/components/organisms/article/expanded-article';
-import { SIZES } from '@/presentation/constants/sizes';
+import { SIZES } from '@/presentation/components/sizes';
 
 interface NewsFeedTemplateProps {
     newsItems: NewsEntity[];

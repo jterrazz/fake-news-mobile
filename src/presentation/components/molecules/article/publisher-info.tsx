@@ -2,7 +2,7 @@ import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { format } from 'date-fns';
 
-import { SIZES } from '../../../constants/sizes.js';
+import { SIZES } from '../../sizes.js';
 
 export function PublisherInfo() {
     return (

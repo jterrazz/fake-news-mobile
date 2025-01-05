@@ -1,7 +1,7 @@
 import React from 'react';
 import { Animated, Platform, Pressable, StyleSheet, View } from 'react-native';
 
-import { FONT_SIZES } from '@/presentation/constants/sizes';
+import { FONT_SIZES } from '@/presentation/components/sizes';
 
 interface TextButtonProps {
     children: React.ReactNode;

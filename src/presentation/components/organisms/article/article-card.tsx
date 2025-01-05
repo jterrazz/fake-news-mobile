@@ -4,7 +4,7 @@ import ReAnimated from 'react-native-reanimated';
 
 import { ArticlePreview } from '../../molecules/article-preview/article-preview.jsx';
 
-import { SIZES } from '@/presentation/constants/sizes';
+import { SIZES } from '@/presentation/components/sizes.js';
 import { useArticleAnimation } from '@/presentation/hooks/animations/use-article-animation';
 
 interface ArticleCardProps {
