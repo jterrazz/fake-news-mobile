@@ -9,13 +9,7 @@ interface StatusIndicatorProps {
 
 export function StatusIndicator({ isCorrect, isFake, style }: StatusIndicatorProps) {
     return (
-        <View
-            style={[
-                styles.container,
-                isCorrect ? styles.correct : styles.incorrect,
-                style,
-            ]}
-        >
+        <View style={[styles.container, isCorrect ? styles.correct : styles.incorrect, style]}>
             <Text style={styles.text}>{isFake ? 'F' : 'R'}</Text>
         </View>
     );
@@ -46,4 +40,4 @@ const styles = StyleSheet.create({
         fontWeight: '800',
         textAlign: 'center',
     },
-}); 
+});

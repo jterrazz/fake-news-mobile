@@ -6,7 +6,7 @@ import {
     LayoutAnimation,
     Platform,
     Pressable,
-    SafeAreaView,
+    RefreshControl,
     StyleSheet,
     Text,
     UIManager,
@@ -31,13 +31,15 @@ import { NewsEntity } from '@/domain/news/news.entity';
 
 import { FONT_SIZES, SIZES } from '../constants/sizes.js';
 
-import { IconButton } from './atoms/buttons/icon-button.jsx';
-import { TextButton } from './atoms/buttons/text-button.jsx';
-import { StatusIndicator } from './atoms/indicators/status-indicator.jsx';
+import { LoadingSpinner } from './atoms/indicators/loading-spinner.jsx';
+import { Container } from './atoms/layout/container.jsx';
+import { SafeArea } from './atoms/layout/safe-area.jsx';
 import { Body } from './atoms/typography/body.jsx';
 import { CategoryLabel } from './atoms/typography/category-label.jsx';
 import { Headline } from './atoms/typography/headline.jsx';
 import { CelebrationParticle } from './molecules/feedback/celebration-particle.js';
+import { ArticleList } from './organisms/article/article-list.jsx';
+import { AnswerButtons } from './organisms/question/answer-buttons.jsx';
 
 import { useNewsArticles } from '@/presentation/hooks/use-news-articles';
 import { useNewsQuestion } from '@/presentation/hooks/use-news-question';
@@ -64,7 +66,7 @@ const GLITCH_OFFSET = 2; // Maximum pixel offset for glitch
 const GLITCH_DURATION = 50; // Duration of each glitch movement
 
 export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
-    const { data: newsItems } = useNewsArticles();
+    const { data: newsItems, refetch } = useNewsArticles();
 
     const { answers } = useNewsStore();
 
@@ -83,16 +85,7 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
     const [selectedAnswer, setSelectedAnswer] = useState<boolean | null>(null);
     const [activeTab, setActiveTab] = useState<TabType>('latest');
     const [lastClickedPosition, setLastClickedPosition] = useState<ButtonPosition>({ x: 0, y: 0 });
-    const [animationStates] = useState(
-        () =>
-            new Map<
-                string,
-                {
-                    fade: { fake: Animated.Value; real: Animated.Value };
-                    slide: { fake: Animated.Value; real: Animated.Value };
-                }
-            >(),
-    );
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     const currentNewsItem = newsItemsWithAnswers[expandedIndex];
     const { answer, handleAnswer, score } = useNewsQuestion({
@@ -163,23 +156,6 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
         );
 
         const newArticleId = newsItems[index].id;
-        if (!animationStates.has(newArticleId)) {
-            animationStates.set(newArticleId, {
-                fade: {
-                    fake: new Animated.Value(1),
-                    real: new Animated.Value(1),
-                },
-                slide: {
-                    fake: new Animated.Value(0),
-                    real: new Animated.Value(0),
-                },
-            });
-        }
-
-        // Reset with new initial values
-        nextButtonAnim.opacity.setValue(0);
-        nextButtonAnim.scale.setValue(0.95);
-
         setExpandedIndex(index);
         setSelectedAnswer(null);
         setLastClickedPosition({ x: 0, y: 0 });
@@ -196,108 +172,14 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
         }, 100);
     };
 
-    const [isMergeComplete, setIsMergeComplete] = useState(false);
-
-    const [nextButtonAnim] = useState(() => ({
-        opacity: new Animated.Value(1),
-        scale: new Animated.Value(0.95),
-    }));
-
     const handleAnswerClick = async (selectedFake: boolean, buttonPosition: ButtonPosition) => {
-        const currentArticleId = currentNewsItem.id;
-        const animations = animationStates.get(currentArticleId);
-
-        if (!animations) return;
-
         setSelectedAnswer(selectedFake);
         setLastClickedPosition(buttonPosition);
-        setIsMergeComplete(false);
-
-        // Calculate positions for merging animation
-        const centerX = 27.5; // Center position
-        const leftStartX = 2; // Left button starting position
-        const rightStartX = 98 - 45; // Right button starting position
-
-        // Reset animation values
-        animations.slide.fake.setValue(selectedFake ? leftStartX : rightStartX);
-        animations.slide.real.setValue(selectedFake ? rightStartX : leftStartX);
-        animations.fade.fake.setValue(1);
-        animations.fade.real.setValue(1);
-
-        // Create smooth merging animation
-        Animated.parallel([
-            // Fade out unselected button with smoother easing
-            Animated.timing(animations.fade[selectedFake ? 'real' : 'fake'], {
-                duration: 400, // Increased from 300 for smoother fade
-                easing: Easing.bezier(0.4, 0.0, 0.2, 1), // Material Design easing
-                toValue: 0,
-                useNativeDriver: true,
-            }),
-
-            // Move selected button to center with refined spring physics
-            Animated.spring(animations.slide[selectedFake ? 'fake' : 'real'], {
-                damping: 28, // Increased from 20 for less bounce
-                mass: 1, // Increased from 0.8 for more natural feel
-                restDisplacementThreshold: 0.01,
-                restSpeedThreshold: 0.01,
-                stiffness: 300, // Increased from 250 for faster initial movement
-                toValue: centerX,
-                useNativeDriver: true,
-            }),
-
-            // Move unselected button with smoother timing
-            Animated.timing(animations.slide[selectedFake ? 'real' : 'fake'], {
-                duration: 400, // Increased from 300 to match fade duration
-                easing: Easing.bezier(0.4, 0.0, 0.2, 1), // Material Design easing
-                toValue: centerX,
-                useNativeDriver: true,
-            }),
-
-            // Scale animation for selected button with refined timing
-            Animated.sequence([
-                Animated.timing(nextButtonAnim.scale, {
-                    duration: 200, // Increased from 150 for smoother scale
-                    easing: Easing.bezier(0.4, 0.0, 0.2, 1),
-                    toValue: 1.05,
-                    useNativeDriver: true,
-                }),
-                Animated.spring(nextButtonAnim.scale, {
-                    damping: 15, // Adjusted for subtle bounce
-                    mass: 0.8,
-                    restDisplacementThreshold: 0.01,
-                    restSpeedThreshold: 0.01,
-                    stiffness: 250,
-                    toValue: 1,
-                    useNativeDriver: true,
-                }),
-            ]),
-
-            // Fade in scale animation with smoother timing
-            Animated.timing(nextButtonAnim.opacity, {
-                delay: 200, // Increased from 150 to better match movement
-                duration: 300, // Increased from 200 for smoother fade
-                easing: Easing.bezier(0.4, 0.0, 0.2, 1),
-                toValue: 1,
-                useNativeDriver: true,
-            }),
-        ]).start(() => {
-            setIsMergeComplete(true);
-        });
-
-        Animated.spring(nextButtonAnim.scale, {
-            damping: 15,
-            mass: 0.8,
-            stiffness: 250,
-            toValue: 1,
-            useNativeDriver: true,
-        }).start();
-
         await handleAnswer(selectedFake);
     };
 
-    const renderArticle = (item: NewsEntity, index: number) => {
+    const getAnimationStyles = (index: number) => {
         const isExpanded = index === expandedIndex;
-
         const expandAnimation = useSharedValue(0);
 
         useEffect(() => {
@@ -309,17 +191,24 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
             });
         }, [isExpanded]);
 
-        const containerAnimatedStyle = useAnimatedStyle(() => {
-            const borderRadius = interpolate(expandAnimation.value, [0, 1], [12, 16]);
-
-            return {
-                borderRadius,
+        return {
+            containerAnimatedStyle: useAnimatedStyle(() => ({
+                borderRadius: interpolate(expandAnimation.value, [0, 1], [12, 16]),
                 borderWidth: 1,
-            };
-        });
-
-        const previewAnimatedStyle = useAnimatedStyle(() => {
-            return {
+            })),
+            contentAnimatedStyle: useAnimatedStyle(() => ({
+                opacity: interpolate(expandAnimation.value, [0.3, 0.7], [0, 1], {
+                    extrapolateRight: Extrapolate.CLAMP,
+                }),
+                transform: [
+                    {
+                        translateY: interpolate(expandAnimation.value, [0, 1], [40, 0], {
+                            extrapolateRight: Extrapolate.CLAMP,
+                        }),
+                    },
+                ],
+            })),
+            previewAnimatedStyle: useAnimatedStyle(() => ({
                 opacity: interpolate(expandAnimation.value, [0, 0.3], [1, 0], {
                     extrapolateRight: Extrapolate.CLAMP,
                 }),
@@ -330,123 +219,37 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                         }),
                     },
                 ],
-            };
-        });
+            })),
+        };
+    };
 
-        const contentAnimatedStyle = useAnimatedStyle(() => {
-            return {
-                opacity: interpolate(
-                    expandAnimation.value,
-                    [0.3, 0.7], // Adjusted timing for content fade
-                    [0, 1],
-                    { extrapolateRight: Extrapolate.CLAMP },
-                ),
-                transform: [
-                    {
-                        translateY: interpolate(
-                            expandAnimation.value,
-                            [0, 1],
-                            [40, 0], // Increased initial offset
-                            { extrapolateRight: Extrapolate.CLAMP },
-                        ),
-                    },
-                ],
-            };
-        });
-
-        return (
-            <View key={item.id}>
-                <View style={styles.articleWrapper}>
-                    <ReAnimated.View
-                        style={[
-                            styles.articleContainer,
-                            item.answered && styles.articleContainerAnswered,
-                            containerAnimatedStyle,
-                        ]}
-                    >
-                        <Pressable
-                            onPress={() => handleArticleSelect(index)}
-                            style={styles.articlePressable}
-                        >
-                            <ReAnimated.View
-                                style={[
-                                    styles.previewContent,
-                                    previewAnimatedStyle,
-                                    isExpanded && styles.previewContentHidden,
-                                ]}
-                            >
-                                <View style={styles.previewLeftColumn}>
-                                    <View style={styles.previewIconContainer}>
-                                        <Image
-                                            source={require('../../../assets/icon.png')}
-                                            style={styles.previewIcon}
-                                            resizeMode="cover"
-                                        />
-                                        {item.answered && (
-                                            <StatusIndicator
-                                                isCorrect={item.answered.wasCorrect}
-                                                isFake={item.isFake}
-                                            />
-                                        )}
-                                    </View>
-                                </View>
-
-                                <View style={styles.previewTextContainer}>
-                                    <Text style={styles.previewHeadline} numberOfLines={2}>
-                                        {item.headline}
-                                    </Text>
-                                    <View style={styles.previewMetaContainer}>
-                                        <Text style={styles.previewPublisher}>
-                                            AI BREAKING NEWS
-                                        </Text>
-                                        <Text style={styles.previewDot}>•</Text>
-                                        <CategoryLabel>{item.category}</CategoryLabel>
-                                        <Text style={styles.previewDot}>•</Text>
-                                        <Text style={styles.previewTime}>2h ago</Text>
-                                    </View>
-                                </View>
-                            </ReAnimated.View>
-
-                            {isExpanded && (
-                                <ReAnimated.View
-                                    style={[styles.expandedContent, contentAnimatedStyle]}
-                                >
-                                    <View style={styles.articleHeader}>
-                                        <View style={styles.expandedTopRow}>
-                                            <CategoryLabel>{item.category}</CategoryLabel>
-                                        </View>
-                                        <Headline style={{ marginBottom: 12 }}>
-                                            {item.headline}
-                                        </Headline>
-                                        <View style={styles.expandedPublisherContainer}>
-                                            <Image
-                                                source={require('../../../assets/icon.png')}
-                                                style={styles.expandedPublisherIcon}
-                                            />
-                                            <View style={styles.expandedPublisherInfo}>
-                                                <Text style={styles.expandedPublisher}>
-                                                    AI BREAKING NEWS
-                                                </Text>
-                                                <Text style={styles.articleDate}>
-                                                    {format(new Date(), 'MMMM d, yyyy')}
-                                                </Text>
-                                            </View>
-                                        </View>
-                                    </View>
-                                    <View style={styles.articleContent}>
-                                        <Body size="medium">{item.article}</Body>
-                                    </View>
-                                    <View style={styles.actionContainer}>
-                                        {renderAnswerButtons()}
-                                    </View>
-                                </ReAnimated.View>
-                            )}
-                        </Pressable>
-                    </ReAnimated.View>
+    const renderExpandedContent = (
+        article: NewsEntity,
+        contentAnimatedStyle: AnimatedStyleProp<ViewStyle>,
+    ) => (
+        <ReAnimated.View style={[styles.expandedContent, contentAnimatedStyle]}>
+            <View style={styles.articleHeader}>
+                <View style={styles.expandedTopRow}>
+                    <CategoryLabel>{article.category}</CategoryLabel>
+                </View>
+                <Headline style={{ marginBottom: 12 }}>{article.headline}</Headline>
+                <View style={styles.expandedPublisherContainer}>
+                    <Image
+                        source={require('../../../assets/icon.png')}
+                        style={styles.expandedPublisherIcon}
+                    />
+                    <View style={styles.expandedPublisherInfo}>
+                        <Text style={styles.expandedPublisher}>AI BREAKING NEWS</Text>
+                        <Text style={styles.articleDate}>{format(new Date(), 'MMMM d, yyyy')}</Text>
+                    </View>
                 </View>
             </View>
-        );
-    };
+            <View style={styles.articleContent}>
+                <Body size="medium">{article.article}</Body>
+            </View>
+            <View style={styles.actionContainer}>{renderAnswerButtons()}</View>
+        </ReAnimated.View>
+    );
 
     const getFilteredNewsItems = (items: NewsEntity[]) => {
         if (activeTab === 'to-read') {
@@ -461,172 +264,24 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
         return <CelebrationParticle isVisible={answer.wasCorrect} position={lastClickedPosition} />;
     };
 
-    const initializeAnimationState = (itemId: string) => {
-        if (animationStates.has(itemId)) return;
-
-        const newAnimations = {
-            fade: {
-                fake: new Animated.Value(1),
-                real: new Animated.Value(1),
-            },
-            slide: {
-                fake: new Animated.Value(0),
-                real: new Animated.Value(0),
-            },
-        };
-
-        animationStates.set(itemId, newAnimations);
-    };
-
     const renderAnswerButtons = () => {
         if (!currentNewsItem) return null;
 
         const isAnswered = selectedAnswer !== null || currentNewsItem.answered !== undefined;
         const wasCorrect = answer?.wasCorrect ?? currentNewsItem.answered?.wasCorrect;
 
-        if (!animationStates.has(currentNewsItem.id)) {
-            initializeAnimationState(currentNewsItem.id);
-        }
-
-        const animations = animationStates.get(currentNewsItem.id);
-        if (!animations) return null;
-
         return (
-            <View style={styles.buttonContainer}>
-                <View style={styles.hintContainer}>
-                    <Text
-                        style={[
-                            styles.hintText,
-                            { textTransform: isAnswered ? 'uppercase' : 'none' },
-                        ]}
-                    >
-                        {isAnswered
-                            ? `This article was ${currentNewsItem.isFake ? 'FAKE' : 'REAL'}`
-                            : 'Is this article fake or real?'}
-                    </Text>
-                </View>
-
-                {currentNewsItem.answered ? (
-                    <View style={styles.buttonRow}>
-                        <TextButton
-                            variant={wasCorrect ? 'correct' : 'incorrect'}
-                            onPress={() => {}}
-                            disabled
-                            size="small"
-                        >
-                            {selectedAnswer === true || currentNewsItem.answered?.selectedFake
-                                ? 'FAKE'
-                                : 'REAL'}
-                        </TextButton>
-
-                        {selectedAnswer !== null && expandedIndex < newsItems.length - 1 && (
-                            <Animated.View
-                                style={[
-                                    styles.nextButtonContainer,
-                                    {
-                                        transform: [{ scale: nextButtonAnim.scale }],
-                                    },
-                                ]}
-                            >
-                                <IconButton
-                                    icon="arrow-down"
-                                    onPress={() => handleArticleSelect(expandedIndex + 1)}
-                                    size="medium"
-                                    variant="primary"
-                                />
-                            </Animated.View>
-                        )}
-                    </View>
-                ) : (
-                    <View style={styles.buttonRow}>
-                        <Animated.View
-                            style={[
-                                styles.buttonWrapperLeft,
-                                {
-                                    opacity: animations.fade.fake,
-                                    transform: [
-                                        { translateX: animations.slide.fake },
-                                        {
-                                            scale:
-                                                selectedAnswer === true ? nextButtonAnim.scale : 1,
-                                        },
-                                    ],
-                                    zIndex: selectedAnswer === true ? 2 : 1,
-                                },
-                            ]}
-                        >
-                            <TextButton
-                                variant={
-                                    selectedAnswer === true && answer
-                                        ? answer.wasCorrect
-                                            ? 'correct'
-                                            : 'incorrect'
-                                        : 'primary'
-                                }
-                                onPress={(event) =>
-                                    handleAnswerClick(true, {
-                                        x: event.nativeEvent.pageX,
-                                        y: event.nativeEvent.pageY,
-                                    })
-                                }
-                                disabled={isAnswered}
-                                size="small"
-                            >
-                                FAKE
-                            </TextButton>
-                        </Animated.View>
-
-                        <Animated.View
-                            style={[
-                                styles.buttonWrapperRight,
-                                {
-                                    opacity: animations.fade.real,
-                                    transform: [
-                                        { translateX: animations.slide.real },
-                                        {
-                                            scale:
-                                                selectedAnswer === false ? nextButtonAnim.scale : 1,
-                                        },
-                                    ],
-                                    zIndex: selectedAnswer === false ? 2 : 1,
-                                },
-                            ]}
-                        >
-                            <TextButton
-                                variant={
-                                    selectedAnswer === false && answer
-                                        ? answer.wasCorrect
-                                            ? 'correct'
-                                            : 'incorrect'
-                                        : 'primary'
-                                }
-                                onPress={(event) =>
-                                    handleAnswerClick(false, {
-                                        x: event.nativeEvent.pageX,
-                                        y: event.nativeEvent.pageY,
-                                    })
-                                }
-                                disabled={isAnswered}
-                                size="small"
-                            >
-                                REAL
-                            </TextButton>
-                        </Animated.View>
-                    </View>
-                )}
-            </View>
+            <AnswerButtons
+                isAnswered={isAnswered}
+                selectedAnswer={selectedAnswer}
+                wasCorrect={wasCorrect}
+                onAnswerClick={handleAnswerClick}
+                onNextArticle={() => handleArticleSelect(expandedIndex + 1)}
+                showNextButton={expandedIndex < newsItems.length - 1}
+                currentArticleId={currentNewsItem.id}
+            />
         );
     };
-
-    useEffect(() => {
-        // Initialize animation states for the default expanded article
-        if (expandedIndex === 0 && newsItems.length > 0) {
-            const defaultItem = newsItems[0];
-            if (!animationStates.has(defaultItem.id)) {
-                initializeAnimationState(defaultItem.id);
-            }
-        }
-    }, []);
 
     const [letterAnimations] = useState(() =>
         Array.from({ length: 9 }, () => ({
@@ -651,7 +306,7 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                 Animated.parallel([
                     Animated.timing(letterAnimations[index].value, {
                         duration: LETTER_ANIMATION_DURATION / 2,
-                        easing: Easing.easeOut,
+                        easing: Easing.out(Easing.ease),
                         toValue: 1.2,
                         useNativeDriver: true,
                     }),
@@ -680,7 +335,7 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                 // Scale back to normal
                 Animated.timing(letterAnimations[index].value, {
                     duration: LETTER_ANIMATION_DURATION / 2,
-                    easing: Easing.easeIn,
+                    easing: Easing.out(Easing.ease),
                     toValue: 1,
                     useNativeDriver: true,
                 }),
@@ -726,6 +381,14 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
         );
     };
 
+    const handleRefresh = async () => {
+        setIsRefreshing(true);
+        // Assuming your useNewsArticles hook has a refetch method
+        // If not, you'll need to implement the refresh logic
+        await refetch();
+        setIsRefreshing(false);
+    };
+
     return (
         <View style={styles.mainContainer}>
             <BlurView
@@ -733,7 +396,7 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                 tint="extraLight"
                 style={[styles.headerBlur, headerAnimatedStyle]}
             >
-                <SafeAreaView style={styles.headerContent}>
+                <SafeArea style={styles.headerContent}>
                     <ReAnimated.View style={[styles.publicationTitleContainer, titleAnimatedStyle]}>
                         {renderAnimatedTitle()}
                     </ReAnimated.View>
@@ -778,26 +441,47 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                             </View>
                         </View>
                     </View>
-                </SafeAreaView>
+                </SafeArea>
             </BlurView>
-            <SafeAreaView style={styles.safeArea}>
+            <SafeArea>
                 <View style={styles.scrollContainer}>
                     <ReAnimated.ScrollView
                         ref={scrollViewRef}
-                        style={styles.container}
+                        style={styles.scrollView}
                         onScroll={scrollHandler}
                         scrollEventThrottle={16}
-                        bounces={false}
+                        bounces={true}
                         showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ paddingTop: 24 }}
+                        contentContainerStyle={{
+                            flexGrow: 1,
+                        }}
+                        onRefresh={handleRefresh}
+                        refreshing={isRefreshing}
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={isRefreshing}
+                                onRefresh={handleRefresh}
+                                tintColor="#000000"
+                                title="Pull to refresh"
+                                titleColor="#999999"
+                                progressViewOffset={128}
+                            />
+                        }
                     >
-                        <Text style={styles.date}>{format(new Date(), 'MMMM d, yyyy')}</Text>
-                        <View style={styles.articlesList}>
-                            {getFilteredNewsItems(newsItemsWithAnswers).map((item, index) =>
-                                renderArticle(item, index),
+                        <Container style={styles.container} withHeaderOffset>
+                            {isRefreshing ? (
+                                <LoadingSpinner size="large" />
+                            ) : (
+                                <ArticleList
+                                    articles={getFilteredNewsItems(newsItemsWithAnswers)}
+                                    expandedIndex={expandedIndex}
+                                    onArticlePress={handleArticleSelect}
+                                    getAnimationStyles={getAnimationStyles}
+                                    renderExpandedContent={renderExpandedContent}
+                                    isRefreshing={isRefreshing}
+                                />
                             )}
-                        </View>
-                        <View style={styles.bottomSpacer} />
+                        </Container>
                     </ReAnimated.ScrollView>
                     <LinearGradient
                         colors={['rgba(255,255,255,0)', 'rgba(255,255,255,1)']}
@@ -806,7 +490,7 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                     />
                 </View>
                 {renderCelebrationEffect()}
-            </SafeAreaView>
+            </SafeArea>
         </View>
     );
 }
@@ -1022,10 +706,7 @@ const styles = StyleSheet.create({
         zIndex: 99,
     },
     container: {
-        backgroundColor: '#F8F9FA',
-        flex: 1,
         paddingHorizontal: SIZES.sm,
-        paddingTop: 128,
     },
     date: {
         color: '#000000',
@@ -1187,78 +868,13 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     previewContent: {
-        alignItems: 'center',
-        flexDirection: 'row',
-        gap: SIZES.xs * 3,
-        padding: SIZES.md,
-        paddingVertical: SIZES.sm + SIZES['2xs'],
+        position: 'relative',
     },
     previewContentHidden: {
         left: 0,
         position: 'absolute',
         right: 0,
         top: 0,
-    },
-    previewDot: {
-        color: '#999999',
-        fontSize: 10,
-        lineHeight: 10,
-    },
-    previewHeadline: {
-        color: '#1A1A1A',
-        fontFamily: Platform.OS === 'ios' ? 'New York' : 'serif',
-        fontSize: 15,
-        fontWeight: '600',
-        letterSpacing: 0.2,
-        lineHeight: 19,
-    },
-    previewIcon: {
-        borderRadius: 8,
-        height: '100%',
-        width: '100%',
-    },
-    previewIconContainer: {
-        alignItems: 'center',
-        backgroundColor: '#F9F9F9',
-        borderColor: 'rgba(0, 0, 0, 0.06)',
-        borderRadius: 12,
-        borderWidth: 1,
-        height: 36,
-        justifyContent: 'center',
-        overflow: 'visible',
-        position: 'relative',
-        width: 36,
-    },
-    previewLeftColumn: {
-        alignItems: 'center',
-        position: 'relative',
-        width: 40,
-    },
-    previewMetaContainer: {
-        alignItems: 'center',
-        flexDirection: 'row',
-        gap: SIZES.xs,
-    },
-    previewPublisher: {
-        color: '#666666',
-        fontSize: 11,
-        fontWeight: '600',
-        letterSpacing: 0.5,
-        textTransform: 'uppercase',
-    },
-    previewRightColumn: {
-        display: 'none',
-    },
-    previewTextContainer: {
-        flex: 1,
-        gap: 6,
-        justifyContent: 'center',
-        paddingRight: 8,
-    },
-    previewTime: {
-        color: '#999999',
-        fontSize: 11,
-        fontWeight: '500',
     },
     publicationTitleContainer: {
         marginBottom: 16,
@@ -1288,10 +904,6 @@ const styles = StyleSheet.create({
     resultIndicatorError: {
         borderColor: '#EF4444',
     },
-    safeArea: {
-        backgroundColor: 'transparent',
-        flex: 1,
-    },
     scoreContainer: {
         alignItems: 'center',
         flexDirection: 'row',
@@ -1314,6 +926,9 @@ const styles = StyleSheet.create({
     scrollContainer: {
         flex: 1,
         position: 'relative',
+    },
+    scrollView: {
+        flex: 1,
     },
     tab: {
         paddingHorizontal: 4,
