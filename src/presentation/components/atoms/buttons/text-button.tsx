@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { FONT_SIZES } from '@/presentation/constants/sizes';
 
@@ -9,7 +9,7 @@ interface TextButtonProps {
     variant?: 'primary' | 'correct' | 'incorrect';
     disabled?: boolean;
     size?: 'small' | 'full';
-    style?: any;
+    style?: React.CSSProperties;
 }
 
 export function TextButton({
@@ -20,30 +20,79 @@ export function TextButton({
     size = 'full',
     style,
 }: TextButtonProps) {
+    // Create animated values for background color and border color
+    const [animation] = React.useState(() => new Animated.Value(0));
+
+    React.useEffect(() => {
+        Animated.timing(animation, {
+            duration: 400,
+            toValue: variant === 'primary' ? 0 : 1,
+            useNativeDriver: false,
+        }).start();
+    }, [variant]);
+
+    const backgroundColor = animation.interpolate({
+        inputRange: [0, 1],
+        outputRange: [
+            '#FFFFFF',
+            variant === 'correct' ? '#22C55E' : variant === 'incorrect' ? '#EF4444' : '#FFFFFF',
+        ],
+    });
+
+    const borderColor = animation.interpolate({
+        inputRange: [0, 1],
+        outputRange: [
+            '#000000',
+            variant === 'correct' ? '#1B9D4D' : variant === 'incorrect' ? '#DC2626' : '#000000',
+        ],
+    });
+
+    const borderBottomColor = animation.interpolate({
+        inputRange: [0, 1],
+        outputRange: [
+            '#000000',
+            variant === 'correct' ? '#167C3D' : variant === 'incorrect' ? '#B91C1C' : '#000000',
+        ],
+    });
+
     return (
         <View style={[styles.buttonWrapper, size === 'small' && styles.smallWrapper, style]}>
             <Pressable
+                onPress={onPress}
+                disabled={disabled}
                 style={({ pressed }) => [
-                    styles.button,
-                    styles[variant],
                     size === 'small' && styles.smallButton,
                     pressed && styles.buttonPressed,
                     disabled && styles.buttonDisabled,
                 ]}
-                onPress={onPress}
-                disabled={disabled}
             >
-                <View style={styles.buttonInner}>
-                    <Text
-                        style={[
-                            styles.buttonText,
-                            size === 'small' && styles.smallButtonText,
-                            variant !== 'primary' && styles.buttonTextLight,
-                        ]}
-                    >
-                        {children}
-                    </Text>
-                </View>
+                <Animated.View
+                    style={[
+                        styles.button,
+                        {
+                            backgroundColor,
+                            borderBottomColor,
+                            borderColor,
+                        },
+                    ]}
+                >
+                    <View style={styles.buttonInner}>
+                        <Animated.Text
+                            style={[
+                                styles.buttonText,
+                                size === 'small' && styles.smallButtonText,
+                                {
+                                    color: animation.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: ['#000000', '#FFFFFF'],
+                                    }),
+                                },
+                            ]}
+                        >
+                            {children}
+                        </Animated.Text>
+                    </View>
+                </Animated.View>
             </Pressable>
         </View>
     );
@@ -51,9 +100,7 @@ export function TextButton({
 
 const styles = StyleSheet.create({
     button: {
-        backgroundColor: '#FFFFFF',
         borderBottomWidth: 3,
-        borderColor: '#000000',
         borderRadius: 10,
         borderWidth: 1.5,
         elevation: 3,
@@ -100,21 +147,6 @@ const styles = StyleSheet.create({
     buttonWrapper: {
         position: 'relative',
         width: '100%',
-    },
-    correct: {
-        backgroundColor: '#22C55E',
-        borderBottomColor: '#167C3D',
-        borderColor: '#1B9D4D',
-    },
-    incorrect: {
-        backgroundColor: '#EF4444',
-        borderBottomColor: '#B91C1C',
-        borderColor: '#DC2626',
-    },
-    primary: {
-        backgroundColor: '#FFFFFF',
-        borderBottomColor: '#000000',
-        borderColor: '#000000',
     },
     smallButton: {
         minWidth: 120,

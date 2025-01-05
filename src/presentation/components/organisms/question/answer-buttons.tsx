@@ -117,10 +117,13 @@ export function AnswerButtons({
         ]).start();
     };
 
-    const handleAnswerClick = (selectedFake: boolean, event: any) => {
+    const handleAnswerClick = (
+        selectedFake: boolean,
+        event: React.MouseEvent | React.TouchEvent,
+    ) => {
         const position = {
-            x: event.nativeEvent.pageX,
-            y: event.nativeEvent.pageY,
+            x: 'pageX' in event ? event.pageX : event.nativeEvent.pageX,
+            y: 'pageY' in event ? event.pageY : event.nativeEvent.pageY,
         };
         animateSelection(selectedFake);
         onAnswerClick(selectedFake, position);
