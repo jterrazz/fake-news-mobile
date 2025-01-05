@@ -25,6 +25,16 @@ export const useNewsQuestion = ({ newsItem, onAnswer }: UseNewsQuestionProps) =>
 
             addAnswer(newsItem.id, isCorrect);
             onAnswer?.(isCorrect);
+
+            setAnswers((prev) => ({
+                ...prev,
+                [newsItem.id]: {
+                    answeredAt: Date.now(),
+                    id: newsItem.id,
+                    selectedFake,
+                    wasCorrect: selectedFake === newsItem.isFake,
+                },
+            }));
         },
         [newsItem.id, newsItem.isFake, addAnswer, onAnswer],
     );

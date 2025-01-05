@@ -20,7 +20,6 @@ import ReAnimated, {
     useSharedValue,
     withSpring,
 } from 'react-native-reanimated';
-import { Feather } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import { BlurView } from 'expo-blur';
@@ -32,7 +31,9 @@ import { NewsEntity } from '@/domain/news/news.entity';
 
 import { FONT_SIZES, SIZES } from '../constants/sizes.js';
 
+import { IconButton } from './atoms/buttons/icon-button.jsx';
 import { TextButton } from './atoms/buttons/text-button.jsx';
+import { StatusIndicator } from './atoms/indicators/status-indicator.jsx';
 import { Body } from './atoms/typography/body.jsx';
 import { CategoryLabel } from './atoms/typography/category-label.jsx';
 import { Headline } from './atoms/typography/headline.jsx';
@@ -198,8 +199,8 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
     const [isMergeComplete, setIsMergeComplete] = useState(false);
 
     const [nextButtonAnim] = useState(() => ({
-        opacity: new Animated.Value(0),
-        scale: new Animated.Value(0.95), // Slightly larger initial scale
+        opacity: new Animated.Value(1),
+        scale: new Animated.Value(0.95),
     }));
 
     const handleAnswerClick = async (selectedFake: boolean, buttonPosition: ButtonPosition) => {
@@ -282,6 +283,14 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
         ]).start(() => {
             setIsMergeComplete(true);
         });
+
+        Animated.spring(nextButtonAnim.scale, {
+            damping: 15,
+            mass: 0.8,
+            stiffness: 250,
+            toValue: 1,
+            useNativeDriver: true,
+        }).start();
 
         await handleAnswer(selectedFake);
     };
@@ -374,19 +383,10 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                                             resizeMode="cover"
                                         />
                                         {item.answered && (
-                                            <View
-                                                style={[
-                                                    styles.statusIcon,
-                                                    !item.answered.wasCorrect &&
-                                                        styles.statusIconIncorrect,
-                                                    item.answered.wasCorrect &&
-                                                        styles.statusIconCorrect,
-                                                ]}
-                                            >
-                                                <Text style={styles.statusIconText}>
-                                                    {item.isFake ? 'F' : 'R'}
-                                                </Text>
-                                            </View>
+                                            <StatusIndicator
+                                                isCorrect={item.answered.wasCorrect}
+                                                isFake={item.isFake}
+                                            />
                                         )}
                                     </View>
                                 </View>
@@ -404,24 +404,6 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                                         <Text style={styles.previewDot}>•</Text>
                                         <Text style={styles.previewTime}>2h ago</Text>
                                     </View>
-                                </View>
-
-                                <View style={styles.previewRightColumn}>
-                                    {item.answered && (
-                                        <View
-                                            style={[
-                                                styles.statusIcon,
-                                                !item.answered.wasCorrect &&
-                                                    styles.statusIconIncorrect,
-                                                item.answered.wasCorrect &&
-                                                    styles.statusIconCorrect,
-                                            ]}
-                                        >
-                                            <Text style={styles.statusIconText}>
-                                                {item.isFake ? 'F' : 'R'}
-                                            </Text>
-                                        </View>
-                                    )}
                                 </View>
                             </ReAnimated.View>
 
@@ -525,14 +507,36 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                 </View>
 
                 {currentNewsItem.answered ? (
-                    <TextButton
-                        variant={wasCorrect ? 'correct' : 'incorrect'}
-                        onPress={() => {}}
-                        disabled
-                        size="small"
-                    >
-                        {currentNewsItem.isFake ? 'FAKE' : 'REAL'}
-                    </TextButton>
+                    <View style={styles.buttonRow}>
+                        <TextButton
+                            variant={wasCorrect ? 'correct' : 'incorrect'}
+                            onPress={() => {}}
+                            disabled
+                            size="small"
+                        >
+                            {selectedAnswer === true || currentNewsItem.answered?.selectedFake
+                                ? 'FAKE'
+                                : 'REAL'}
+                        </TextButton>
+
+                        {selectedAnswer !== null && expandedIndex < newsItems.length - 1 && (
+                            <Animated.View
+                                style={[
+                                    styles.nextButtonContainer,
+                                    {
+                                        transform: [{ scale: nextButtonAnim.scale }],
+                                    },
+                                ]}
+                            >
+                                <IconButton
+                                    icon="arrow-down"
+                                    onPress={() => handleArticleSelect(expandedIndex + 1)}
+                                    size="medium"
+                                    variant="primary"
+                                />
+                            </Animated.View>
+                        )}
+                    </View>
                 ) : (
                     <View style={styles.buttonRow}>
                         <Animated.View
@@ -543,7 +547,8 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                                     transform: [
                                         { translateX: animations.slide.fake },
                                         {
-                                            scale: selectedAnswer === true ? nextButtonAnim.scale : 1,
+                                            scale:
+                                                selectedAnswer === true ? nextButtonAnim.scale : 1,
                                         },
                                     ],
                                     zIndex: selectedAnswer === true ? 2 : 1,
@@ -579,7 +584,8 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                                     transform: [
                                         { translateX: animations.slide.real },
                                         {
-                                            scale: selectedAnswer === false ? nextButtonAnim.scale : 1,
+                                            scale:
+                                                selectedAnswer === false ? nextButtonAnim.scale : 1,
                                         },
                                     ],
                                     zIndex: selectedAnswer === false ? 2 : 1,
@@ -607,33 +613,6 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                             </TextButton>
                         </Animated.View>
                     </View>
-                )}
-
-                {/* Next article button */}
-                {isAnswered && expandedIndex < newsItems.length - 1 && (
-                    <Animated.View
-                        style={{
-                            opacity: nextButtonAnim.opacity,
-                            position: 'absolute',
-                            right: '2%',
-                            transform: [
-                                { scale: nextButtonAnim.scale },
-                                {
-                                    translateX: nextButtonAnim.opacity.interpolate({
-                                        inputRange: [0, 1],
-                                        outputRange: [20, 0],
-                                    }),
-                                },
-                            ],
-                        }}
-                    >
-                        <Pressable
-                            style={styles.nextButton}
-                            onPress={() => handleArticleSelect(expandedIndex + 1)}
-                        >
-                            <Feather name="arrow-down" size={18} color="#FFFFFF" />
-                        </Pressable>
-                    </Animated.View>
                 )}
             </View>
         );
@@ -838,9 +817,7 @@ const styles = StyleSheet.create({
         borderTopColor: 'rgba(0, 0, 0, 0.06)',
         borderTopWidth: 1,
         elevation: 4,
-        marginTop: 6,
-        paddingHorizontal: SIZES.md,
-        paddingVertical: SIZES.sm,
+        padding: SIZES.md,
         position: 'relative',
         shadowColor: '#000',
         shadowOffset: {
@@ -969,9 +946,6 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
         gap: SIZES.md,
         justifyContent: 'center',
-        marginTop: SIZES.xl,
-        minHeight: 56,
-        overflow: 'visible',
         position: 'relative',
         width: '100%',
     },
@@ -994,6 +968,15 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         height: '100%',
         justifyContent: 'center',
+    },
+    buttonRow: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        gap: SIZES.md,
+        justifyContent: 'center',
+        minHeight: 48,
+        position: 'relative',
+        width: '100%',
     },
     buttonText: {
         color: '#000000',
@@ -1132,11 +1115,8 @@ const styles = StyleSheet.create({
     },
     hintContainer: {
         alignItems: 'center',
-        left: 0,
-        position: 'absolute',
-        right: 0,
-        top: -28,
-        zIndex: 10,
+        position: 'relative',
+        width: '100%',
     },
     hintText: {
         backgroundColor: '#FFFFFF',
@@ -1183,20 +1163,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#000000',
         borderRadius: 8,
-        elevation: 1,
         height: 36,
         justifyContent: 'center',
-        shadowColor: '#000',
-        shadowOffset: {
-            height: 2,
-            width: 0,
-        },
-        shadowOpacity: 0.08,
-        shadowRadius: 3,
         width: 36,
     },
     nextButtonContainer: {
-        marginTop: 24,
+        position: 'relative',
     },
     nextButtonText: {
         color: '#FFFFFF',
@@ -1334,13 +1306,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 8,
         paddingVertical: 4,
     },
-    buttonRow: {
-        flexDirection: 'row',
-        gap: SIZES.md,
-        justifyContent: 'center',
-        position: 'relative',
-        width: '100%',
-    },
     scoreText: {
         color: '#333333',
         fontSize: 14,
@@ -1349,30 +1314,6 @@ const styles = StyleSheet.create({
     scrollContainer: {
         flex: 1,
         position: 'relative',
-    },
-    statusIcon: {
-        alignItems: 'center',
-        backgroundColor: '#242424',
-        borderRadius: 8,
-        height: 16,
-        justifyContent: 'center',
-        position: 'absolute',
-        right: -4,
-        top: -4,
-        width: 16,
-        zIndex: 1,
-    },
-    statusIconCorrect: {
-        backgroundColor: '#03A678',
-    },
-    statusIconIncorrect: {
-        backgroundColor: '#E15554',
-    },
-    statusIconText: {
-        color: '#FFFFFF',
-        fontSize: 10,
-        fontWeight: '800',
-        textAlign: 'center',
     },
     tab: {
         paddingHorizontal: 4,

@@ -23,3 +23,10 @@ export class NewsError extends Error {
         this.name = 'NewsError';
     }
 }
+
+interface NewsAnswered {
+    answeredAt: number;
+    id: string;
+    wasCorrect: boolean;
+    selectedFake: boolean;
+}
