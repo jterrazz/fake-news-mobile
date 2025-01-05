@@ -11,8 +11,10 @@ import {
     Text,
     UIManager,
     View,
+    ViewStyle,
 } from 'react-native';
 import ReAnimated, {
+    AnimatedStyleProp,
     Extrapolate,
     interpolate,
     useAnimatedScrollHandler,
@@ -143,8 +145,6 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
         };
     });
 
-    const scrollViewRef = useRef<ReAnimated.ScrollView>(null);
-
     const handleArticleSelect = (index: number) => {
         // Configure the animation
         LayoutAnimation.configureNext(
@@ -155,21 +155,9 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
             ),
         );
 
-        const newArticleId = newsItems[index].id;
         setExpandedIndex(index);
         setSelectedAnswer(null);
         setLastClickedPosition({ x: 0, y: 0 });
-
-        // Add a small delay to ensure the layout has updated
-        setTimeout(() => {
-            // Calculate the scroll position (height of each collapsed article * index)
-            const scrollPosition = index * 100; // Adjust this value based on your collapsed article height
-
-            scrollViewRef.current?.scrollTo({
-                animated: true,
-                y: scrollPosition,
-            });
-        }, 100);
     };
 
     const handleAnswerClick = async (selectedFake: boolean, buttonPosition: ButtonPosition) => {
@@ -226,6 +214,7 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
     const renderExpandedContent = (
         article: NewsEntity,
         contentAnimatedStyle: AnimatedStyleProp<ViewStyle>,
+        scrollToArticle?: (index: number) => void
     ) => (
         <ReAnimated.View style={[styles.expandedContent, contentAnimatedStyle]}>
             <View style={styles.articleHeader}>
@@ -247,7 +236,20 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
             <View style={styles.articleContent}>
                 <Body size="medium">{article.article}</Body>
             </View>
-            <View style={styles.actionContainer}>{renderAnswerButtons()}</View>
+            <View style={styles.actionContainer}>
+                <AnswerButtons
+                    isAnswered={selectedAnswer !== null || currentNewsItem.answered !== undefined}
+                    selectedAnswer={selectedAnswer}
+                    wasCorrect={answer?.wasCorrect ?? currentNewsItem.answered?.wasCorrect}
+                    onAnswerClick={handleAnswerClick}
+                    onNextArticle={() => {
+                        handleArticleSelect(expandedIndex + 1);
+                        scrollToArticle?.(expandedIndex + 1);
+                    }}
+                    showNextButton={expandedIndex < newsItems.length - 1}
+                    currentArticleId={currentNewsItem.id}
+                />
+            </View>
         </ReAnimated.View>
     );
 
@@ -389,6 +391,8 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
         setIsRefreshing(false);
     };
 
+    const scrollViewRef = useRef<ReAnimated.ScrollView>(null);
+
     return (
         <View style={styles.mainContainer}>
             <BlurView
@@ -479,6 +483,7 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                                     getAnimationStyles={getAnimationStyles}
                                     renderExpandedContent={renderExpandedContent}
                                     isRefreshing={isRefreshing}
+                                    scrollViewRef={scrollViewRef}
                                 />
                             )}
                         </Container>
