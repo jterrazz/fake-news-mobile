@@ -10,6 +10,7 @@ export interface NewsEntity {
     article: string;
     isFake: boolean;
     category: string;
+    createdAt: string;
     answered?: NewsAnswer;
 }
 

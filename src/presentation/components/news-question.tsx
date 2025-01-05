@@ -1,22 +1,15 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
     LayoutAnimation,
     Platform,
     RefreshControl,
     StyleSheet,
+    Text,
     UIManager,
     View,
     ViewStyle,
 } from 'react-native';
-import ReAnimated, {
-    AnimatedStyleProp,
-    Extrapolate,
-    interpolate,
-    useAnimatedScrollHandler,
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring,
-} from 'react-native-reanimated';
+import ReAnimated, { AnimatedStyleProp } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { useNewsStore } from '@/application/store/news.store';
@@ -33,6 +26,8 @@ import { NewsHeader } from './molecules/header/news-header.jsx';
 import { ArticleList } from './organisms/article/article-list.jsx';
 import { ExpandedArticle } from './organisms/article/expanded-article.jsx';
 
+import { useArticleAnimation } from '@/presentation/hooks/animations/use-article-animation';
+import { useHeaderAnimation } from '@/presentation/hooks/animations/use-header-animation';
 import { useNewsArticles } from '@/presentation/hooks/use-news-articles';
 import { useNewsQuestion } from '@/presentation/hooks/use-news-question';
 
@@ -52,26 +47,22 @@ interface ButtonPosition {
     y: number;
 }
 
-const LETTER_ANIMATION_INTERVAL = 3000; // 3 seconds between animations
-const LETTER_ANIMATION_DURATION = 300; // 300ms for each animation
-const GLITCH_OFFSET = 2; // Maximum pixel offset for glitch
-const GLITCH_DURATION = 50; // Duration of each glitch movement
-
 export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
-    const { data: newsItems, refetch } = useNewsArticles();
+    const { data: newsItems = [], refetch } = useNewsArticles();
 
     const { answers } = useNewsStore();
 
-    const newsItemsWithAnswers = newsItems.map((item) => ({
-        ...item,
-        answered: answers[item.id]
-            ? {
-                  answeredAt: answers[item.id].answeredAt,
-                  id: answers[item.id].id,
-                  wasCorrect: answers[item.id].wasCorrect,
-              }
-            : undefined,
-    }));
+    const newsItemsWithAnswers =
+        newsItems?.map((item) => ({
+            ...item,
+            answered: answers[item.id]
+                ? {
+                      answeredAt: answers[item.id].answeredAt,
+                      id: answers[item.id].id,
+                      wasCorrect: answers[item.id].wasCorrect,
+                  }
+                : undefined,
+        })) ?? [];
 
     const [expandedIndex, setExpandedIndex] = useState(0);
     const [selectedAnswer, setSelectedAnswer] = useState<boolean | null>(null);
@@ -79,61 +70,18 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
     const [lastClickedPosition, setLastClickedPosition] = useState<ButtonPosition>({ x: 0, y: 0 });
     const [isRefreshing, setIsRefreshing] = useState(false);
 
-    const currentNewsItem = newsItemsWithAnswers[expandedIndex];
+    const currentNewsItem = newsItemsWithAnswers[expandedIndex] ?? null;
     const { answer, handleAnswer, score } = useNewsQuestion({
         newsItem: currentNewsItem,
         onAnswer,
     });
 
-    const scrollY = useSharedValue(0);
-    const lastScrollY = useSharedValue(0);
-    const headerHeight = useSharedValue(180); // Adjust this value based on your full header height
+    const { headerAnimatedStyle, titleAnimatedStyle, scrollHandler } = useHeaderAnimation();
 
-    const scrollHandler = useAnimatedScrollHandler({
-        onScroll: (event) => {
-            // Don't compress when scrolling past the top
-            if (event.contentOffset.y < 0) {
-                headerHeight.value = 180; // Maximum height
-                lastScrollY.value = 0;
-                scrollY.value = 0;
-                return;
-            }
-
-            const delta = event.contentOffset.y - lastScrollY.value;
-            headerHeight.value = Math.max(
-                70, // Minimum header height
-                Math.min(180, headerHeight.value - delta), // Maximum header height
-            );
-            lastScrollY.value = event.contentOffset.y;
-            scrollY.value = event.contentOffset.y;
-        },
-    });
-
-    const headerAnimatedStyle = useAnimatedStyle(() => {
-        return {
-            paddingBottom: 0,
-            paddingTop: interpolate(headerHeight.value, [70, 180], [12, 64], Extrapolate.CLAMP),
-        };
-    });
-
-    const titleAnimatedStyle = useAnimatedStyle(() => {
-        const fontSize = interpolate(headerHeight.value, [70, 180], [32, 42], Extrapolate.CLAMP);
-        const marginBottom = interpolate(
-            headerHeight.value,
-            [70, 180],
-            [16, 40],
-            Extrapolate.CLAMP,
-        );
-        const marginTop = interpolate(headerHeight.value, [70, 180], [8, 24], Extrapolate.CLAMP);
-        const scale = interpolate(headerHeight.value, [70, 180], [0.8, 1], Extrapolate.CLAMP);
-
-        return {
-            fontSize,
-            marginBottom,
-            marginTop,
-            transform: [{ scale }],
-        };
-    });
+    const getAnimationStyles = (index: number) => {
+        const isExpanded = index === expandedIndex;
+        return useArticleAnimation(isExpanded);
+    };
 
     const handleArticleSelect = (index: number) => {
         // Configure the animation
@@ -156,60 +104,11 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
         await handleAnswer(selectedFake);
     };
 
-    const getAnimationStyles = (index: number) => {
-        const isExpanded = index === expandedIndex;
-        const expandAnimation = useSharedValue(0);
-
-        useEffect(() => {
-            expandAnimation.value = withSpring(isExpanded ? 1 : 0, {
-                damping: isExpanded ? 15 : 20,
-                mass: isExpanded ? 0.8 : 1,
-                stiffness: isExpanded ? 100 : 120,
-                velocity: isExpanded ? 0 : -1,
-            });
-        }, [isExpanded]);
-
-        return {
-            containerAnimatedStyle: useAnimatedStyle(() => ({
-                borderRadius: interpolate(expandAnimation.value, [0, 1], [12, 16]),
-                borderWidth: 1,
-            })),
-            contentAnimatedStyle: useAnimatedStyle(() => ({
-                opacity: interpolate(expandAnimation.value, [0.3, 0.7], [0, 1], {
-                    extrapolateRight: Extrapolate.CLAMP,
-                }),
-                transform: [
-                    {
-                        translateY: interpolate(expandAnimation.value, [0, 1], [40, 0], {
-                            extrapolateRight: Extrapolate.CLAMP,
-                        }),
-                    },
-                ],
-            })),
-            previewAnimatedStyle: useAnimatedStyle(() => ({
-                opacity: interpolate(expandAnimation.value, [0, 0.3], [1, 0], {
-                    extrapolateRight: Extrapolate.CLAMP,
-                }),
-                transform: [
-                    {
-                        translateY: interpolate(expandAnimation.value, [0, 1], [0, -10], {
-                            extrapolateRight: Extrapolate.CLAMP,
-                        }),
-                    },
-                ],
-            })),
-        };
-    };
-
-    const renderExpandedContent = ({
-        article,
-        contentAnimatedStyle,
-        scrollToNextArticle,
-    }: {
-        article: NewsEntity;
-        contentAnimatedStyle: AnimatedStyleProp<ViewStyle>;
-        scrollToNextArticle: () => void;
-    }) => (
+    const renderExpandedContent = (
+        article: NewsEntity,
+        contentAnimatedStyle: AnimatedStyleProp<ViewStyle>,
+        scrollToArticle?: (index: number) => void,
+    ) => (
         <ExpandedArticle
             article={article}
             contentAnimatedStyle={contentAnimatedStyle}
@@ -219,7 +118,7 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
             onAnswerClick={handleAnswerClick}
             onNextArticle={() => {
                 handleArticleSelect(expandedIndex + 1);
-                scrollToNextArticle();
+                scrollToArticle?.(expandedIndex + 1);
             }}
             showNextButton={expandedIndex < newsItems.length - 1}
         />
@@ -269,8 +168,6 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                         contentContainerStyle={{
                             flexGrow: 1,
                         }}
-                        onRefresh={handleRefresh}
-                        refreshing={isRefreshing}
                         refreshControl={
                             <RefreshControl
                                 refreshing={isRefreshing}
@@ -285,6 +182,10 @@ export function NewsQuestion({ onAnswer }: NewsQuestionProps) {
                         <Container style={styles.container} withHeaderOffset>
                             {isRefreshing ? (
                                 <LoadingSpinner size="large" />
+                            ) : newsItemsWithAnswers.length === 0 ? (
+                                <View style={styles.emptyState}>
+                                    <Text style={styles.emptyStateText}>No articles available</Text>
+                                </View>
                             ) : (
                                 <ArticleList
                                     articles={getFilteredNewsItems(newsItemsWithAnswers)}
@@ -415,10 +316,25 @@ const styles = StyleSheet.create({
     container: {
         paddingHorizontal: SIZES.sm,
     },
+    
+    emptyState: {
+        alignItems: 'center',
+        flex: 1,
+        justifyContent: 'center',
+        paddingTop: 100,
+    },
+    
+emptyStateText: {
+        color: '#666666',
+        fontSize: 16,
+        textAlign: 'center',
+    },
+
     // Expanded Content
-    expandedContent: {
+expandedContent: {
         position: 'relative',
     },
+    
     expandedPublisher: {
         color: '#454545',
         fontSize: 12,
@@ -428,7 +344,7 @@ const styles = StyleSheet.create({
         textTransform: 'uppercase',
     },
     // Publisher Info
-    expandedPublisherContainer: {
+expandedPublisherContainer: {
         alignItems: 'center',
         flexDirection: 'row',
     },
@@ -437,15 +353,18 @@ const styles = StyleSheet.create({
         height: 28,
         width: 28,
     },
+
     expandedPublisherInfo: {
         marginLeft: SIZES.md + SIZES['2xs'],
     },
+
     expandedTopRow: {
         alignItems: 'center',
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginBottom: 10,
     },
+
     // Gradient and Effects
     fadeGradient: {
         bottom: 0,
@@ -455,6 +374,7 @@ const styles = StyleSheet.create({
         right: 0,
         zIndex: 1,
     },
+
     // Layout
     mainContainer: {
         backgroundColor: '#FFFFFF',

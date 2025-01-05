@@ -1,44 +1,52 @@
-import React, { useState } from 'react';
-import { LayoutChangeEvent, StyleSheet, Text, View, ViewStyle } from 'react-native';
-import ReAnimated, { AnimatedStyleProp } from 'react-native-reanimated';
-import { format } from 'date-fns';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import type { AnimatedStyleProp, ViewStyle } from 'react-native-reanimated';
+import { format, isToday, isYesterday } from 'date-fns';
+
+import { NewsEntity } from '@/domain/news/news.entity';
+
+import { formatTimeAgo } from '@/presentation/utils/date';
 
 import { ArticleCard } from './article-card.jsx';
 import { SIZES } from '@/presentation/constants/sizes';
 
-interface Article {
-    id: string;
-    headline: string;
-    category: string;
-    article: string;
-    isFake: boolean;
-    answered?: {
-        answeredAt: Date;
-        id: string;
-        wasCorrect: boolean;
-    };
-}
-
 interface ArticleListProps {
-    articles: Article[];
+    articles: NewsEntity[];
     expandedIndex: number;
     onArticlePress: (index: number) => void;
-    getAnimationStyles: (index: number) => {
-        containerAnimatedStyle: AnimatedStyleProp<ViewStyle>;
-        previewAnimatedStyle: AnimatedStyleProp<ViewStyle>;
-        contentAnimatedStyle: AnimatedStyleProp<ViewStyle>;
-    };
-    renderExpandedContent: (params: {
-        article: Article;
-        contentAnimatedStyle: AnimatedStyleProp<ViewStyle>;
-        scrollToNextArticle: () => void;
-    }) => React.ReactNode;
-    isRefreshing?: boolean;
-    scrollViewRef: React.RefObject<ReAnimated.ScrollView>;
+    getAnimationStyles: (index: number) => any;
+    renderExpandedContent: (
+        article: NewsEntity,
+        contentAnimatedStyle: AnimatedStyleProp<ViewStyle>,
+        scrollToArticle?: (index: number) => void,
+    ) => React.ReactNode;
+    isRefreshing: boolean;
+    scrollViewRef: any;
 }
 
-interface ArticleHeights {
-    [key: string]: number;
+interface GroupedArticles {
+    [key: string]: NewsEntity[];
+}
+
+function getDateLabel(date: Date): string {
+    if (isToday(date)) return 'Today';
+    if (isYesterday(date)) return 'Yesterday';
+    return format(date, 'MMMM d, yyyy');
+}
+
+function groupArticlesByDate(articles: NewsEntity[]): GroupedArticles {
+    return articles.reduce((groups, article) => {
+        const date = new Date(article.createdAt);
+        date.setHours(0, 0, 0, 0);
+        const dateKey = format(date, 'yyyy-MM-dd');
+
+        if (!groups[dateKey]) {
+            groups[dateKey] = [];
+        }
+
+        groups[dateKey].push(article);
+        return groups;
+    }, {} as GroupedArticles);
 }
 
 export function ArticleList({
@@ -47,114 +55,91 @@ export function ArticleList({
     onArticlePress,
     getAnimationStyles,
     renderExpandedContent,
-    isRefreshing,
     scrollViewRef,
 }: ArticleListProps) {
-    const [articleHeights] = useState<ArticleHeights>({});
-    const [expandedHeights] = useState<ArticleHeights>({});
-
-    const handleArticleLayout = (event: LayoutChangeEvent, index: number, isExpanded: boolean) => {
-        if (isExpanded) {
-            expandedHeights[index] = event.nativeEvent.layout.height;
-        } else {
-            articleHeights[index] = event.nativeEvent.layout.height;
-        }
-    };
-
     const scrollToArticle = (index: number) => {
-        setTimeout(() => {
-            const scrollPosition = articles.slice(0, index).reduce((total, _, i) => {
-                const height = articleHeights[i] || 100;
-                return total + height;
-            }, 0);
-
-            scrollViewRef.current?.scrollTo({
-                animated: true,
-                y: scrollPosition,
-            });
-        }, 100);
-    };
-
-    const handleArticlePress = (index: number) => {
-        onArticlePress(index);
-        scrollToArticle(index);
-    };
-
-    const renderExpandedContentWithScroll = (
-        article: Article,
-        contentAnimatedStyle: AnimatedStyleProp<ViewStyle>,
-    ) => {
-        const scrollToNextArticle = () => {
-            const nextIndex = expandedIndex + 1;
-            if (nextIndex < articles.length) {
-                scrollToArticle(nextIndex);
-            }
-        };
-
-        return renderExpandedContent({
-            article,
-            contentAnimatedStyle,
-            scrollToNextArticle,
+        scrollViewRef.current?.scrollTo({
+            animated: true,
+            y: index * 150,
         });
     };
 
-    if (isRefreshing) return null;
+    const groupedArticles = groupArticlesByDate(articles);
+
+    let globalIndex = 0;
 
     return (
-        <>
-            <Text style={styles.date}>{format(new Date(), 'MMMM d, yyyy')}</Text>
-            <View style={styles.articlesList}>
-                {articles.map((article, index) => {
-                    const { containerAnimatedStyle, previewAnimatedStyle, contentAnimatedStyle } =
-                        getAnimationStyles(index);
-                    const isExpanded = index === expandedIndex;
+        <View style={styles.container}>
+            {Object.entries(groupedArticles)
+                .sort(([dateA], [dateB]) => dateB.localeCompare(dateA))
+                .map(([dateKey, dateArticles]) => (
+                    <View key={dateKey}>
+                        <Text style={styles.dateHeader}>{getDateLabel(new Date(dateKey))}</Text>
+                        <View style={styles.articleGroup}>
+                            {dateArticles
+                                .sort(
+                                    (a, b) =>
+                                        new Date(b.createdAt).getTime() -
+                                        new Date(a.createdAt).getTime(),
+                                )
+                                .map((article) => {
+                                    const currentIndex = globalIndex++;
+                                    const isExpanded = currentIndex === expandedIndex;
+                                    const {
+                                        containerAnimatedStyle,
+                                        contentAnimatedStyle,
+                                        previewAnimatedStyle,
+                                    } = getAnimationStyles(currentIndex);
 
-                    return (
-                        <View
-                            key={article.id}
-                            onLayout={(event) => handleArticleLayout(event, index, isExpanded)}
-                        >
-                            <ArticleCard
-                                headline={article.headline}
-                                category={article.category}
-                                timeAgo="2h ago"
-                                isAnswered={!!article.answered}
-                                isCorrect={article.answered?.wasCorrect}
-                                isFake={article.isFake}
-                                isExpanded={isExpanded}
-                                onPress={() => handleArticlePress(index)}
-                                previewAnimatedStyle={previewAnimatedStyle}
-                                containerAnimatedStyle={containerAnimatedStyle}
-                                expandedContent={renderExpandedContentWithScroll(
-                                    article,
-                                    contentAnimatedStyle,
-                                )}
-                            />
+                                    return (
+                                        <ArticleCard
+                                            key={article.id}
+                                            headline={article.headline}
+                                            category={article.category}
+                                            timeAgo={formatTimeAgo(article.answered?.answeredAt)}
+                                            isAnswered={!!article.answered}
+                                            isCorrect={article.answered?.wasCorrect}
+                                            isFake={article.isFake}
+                                            isExpanded={isExpanded}
+                                            onPress={() => onArticlePress(currentIndex)}
+                                            containerAnimatedStyle={containerAnimatedStyle}
+                                            previewAnimatedStyle={previewAnimatedStyle}
+                                            expandedContent={
+                                                isExpanded
+                                                    ? renderExpandedContent(
+                                                          article,
+                                                          contentAnimatedStyle,
+                                                          scrollToArticle,
+                                                      )
+                                                    : undefined
+                                            }
+                                        />
+                                    );
+                                })}
                         </View>
-                    );
-                })}
-            </View>
-            <View style={styles.bottomSpacer} />
-        </>
+                    </View>
+                ))}
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
-    articlesList: {
-        paddingTop: 8,
+    articleGroup: {
+        gap: SIZES.xs,
+        marginBottom: SIZES.lg,
     },
-    bottomSpacer: {
-        height: 100,
+    container: {
+        flex: 1,
+        paddingBottom: 100,
     },
-    date: {
+    dateHeader: {
         color: '#000000',
         fontFamily: 'System',
         fontSize: 12,
         fontWeight: '600',
         letterSpacing: 1.5,
-        marginBottom: SIZES.xs,
-        marginLeft: SIZES.lg + SIZES['2xs'],
-        marginTop: SIZES.xl,
+        marginBottom: SIZES.sm,
+        marginTop: SIZES.md,
         textTransform: 'uppercase',
     },
 });

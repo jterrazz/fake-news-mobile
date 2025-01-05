@@ -9,41 +9,40 @@ config.resolver = {
         '@': './src',
     },
     resolveRequest: (context, moduleName, platform) => {
-        // Handle @ alias
+        // First handle @ alias if present
+        let resolvedName = moduleName;
         if (moduleName.startsWith('@/')) {
-            const newModuleName = moduleName.replace('@/', `${__dirname}/src/`);
-            return context.resolveRequest(context, newModuleName, platform);
+            resolvedName = moduleName.replace('@/', `${__dirname}/src/`);
         }
 
-        // Handle .jsx -> .tsx
-        if (moduleName.endsWith('.jsx')) {
-            const tsxName = moduleName.replace(/\.jsx$/, '.tsx');
+        // Then handle extension transformations
+        if (resolvedName.endsWith('.jsx')) {
+            const tsxName = resolvedName.replace(/\.jsx$/, '.tsx');
             try {
                 return context.resolveRequest(context, tsxName, platform);
             } catch (e) {
-                return context.resolveRequest(context, moduleName, platform);
+                return context.resolveRequest(context, resolvedName, platform);
             }
         }
 
-        // Handle .js -> .ts or .tsx
-        if (moduleName.endsWith('.js')) {
+        if (resolvedName.endsWith('.js')) {
             // First try .ts
-            const tsName = moduleName.replace(/\.js$/, '.ts');
+            const tsName = resolvedName.replace(/\.js$/, '.ts');
             try {
                 return context.resolveRequest(context, tsName, platform);
             } catch (e) {
                 // If .ts fails, try .tsx
-                const tsxName = moduleName.replace(/\.js$/, '.tsx');
+                const tsxName = resolvedName.replace(/\.js$/, '.tsx');
                 try {
                     return context.resolveRequest(context, tsxName, platform);
                 } catch (tsxError) {
-                    // If both fail, fallback to original .js
-                    return context.resolveRequest(context, moduleName, platform);
+                    // If both fail, fallback to original
+                    return context.resolveRequest(context, resolvedName, platform);
                 }
             }
         }
 
-        return context.resolveRequest(context, moduleName, platform);
+        return context.resolveRequest(context, resolvedName, platform);
     },
     sourceExts: [
         'expo.tsx',
