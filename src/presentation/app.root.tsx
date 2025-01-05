@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
-import { StatusBar, View } from 'react-native';
+import { Platform, StatusBar, UIManager, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 
-import { NewsQuestion } from './components/news-question.jsx';
-import { SettingsScreen } from './components/settings.jsx';
 import { TabBar } from './components/tab-bar.jsx';
 import { ContainerProvider } from './providers/container-provider.jsx';
 import { QueryClientProvider } from './providers/query-client-provider.jsx';
+import { NewsFeedScreen } from './screens/news-feed-screen.js';
+import { SettingsScreen } from './screens/settings-screen.js';
+
+// Enable LayoutAnimation for Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 function HomeScreen() {
     const [score, setScore] = useState(0);
@@ -18,7 +23,7 @@ function HomeScreen() {
 
     return (
         <View style={{ backgroundColor: '#FFFFFF', flex: 1 }}>
-            <NewsQuestion onAnswer={handleAnswer} />
+            <NewsFeedScreen onAnswer={handleAnswer} />
         </View>
     );
 }
@@ -51,4 +56,4 @@ export const AppRoot = () => {
             </NavigationContainer>
         </Providers>
     );
-}; 
+};

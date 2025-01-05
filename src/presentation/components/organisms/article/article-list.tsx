@@ -1,11 +1,9 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import type { AnimatedStyleProp, ViewStyle } from 'react-native-reanimated';
-import { format, isToday, isYesterday } from 'date-fns';
+import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns';
 
 import { NewsEntity } from '@/domain/news/news.entity';
-
-import { formatTimeAgo } from '@/presentation/utils/date';
 
 import { ArticleCard } from './article-card.jsx';
 import { SIZES } from '@/presentation/constants/sizes';
@@ -47,6 +45,16 @@ function groupArticlesByDate(articles: NewsEntity[]): GroupedArticles {
         groups[dateKey].push(article);
         return groups;
     }, {} as GroupedArticles);
+}
+
+function formatTimeAgo(date?: string): string {
+    if (!date) return '';
+
+    try {
+        return formatDistanceToNow(new Date(date), { addSuffix: true });
+    } catch (error) {
+        return '';
+    }
 }
 
 export function ArticleList({
