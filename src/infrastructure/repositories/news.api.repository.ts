@@ -1,4 +1,4 @@
-import { NewsRepository } from '@/application/ports/news.repository';
+import { Language, NewsRepository } from '@/application/ports/news.repository';
 
 import type { NewsEntity } from '@/domain/news/news.entity';
 import { NewsError } from '@/domain/news/news.entity';
@@ -22,14 +22,23 @@ interface ApiResponse {
 
 const API_BASE_URL = 'https://fake-news-api.jterrazz.com';
 
+const LANGUAGE_SETTINGS = {
+    en: { country: 'us', language: 'en' },
+    fr: { country: 'fr', language: 'fr' },
+} as const;
+
 export const newsApiRepositoryFactory = (): NewsRepository => ({
-    getArticles: async (): Promise<NewsEntity[]> => {
+    getArticles: async (language: Language): Promise<NewsEntity[]> => {
         try {
-            const response = await fetch(`${API_BASE_URL}/articles?country=fr&language=fr`, {
-                headers: {
-                    Accept: 'application/json',
+            const { country, language: apiLang } = LANGUAGE_SETTINGS[language];
+            const response = await fetch(
+                `${API_BASE_URL}/articles?country=${country}&language=${apiLang}`,
+                {
+                    headers: {
+                        Accept: 'application/json',
+                    },
                 },
-            });
+            );
 
             if (!response.ok) {
                 throw new NewsError(

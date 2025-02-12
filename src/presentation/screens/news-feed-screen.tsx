@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
 import { useNewsStore } from '@/application/store/news.store';
+import { useSettingsStore } from '@/application/store/settings.store';
 
 import { NewsFeedTemplate } from '@/presentation/components/templates/news-feed-template';
 import { useHeaderAnimation } from '@/presentation/hooks/animations/use-header-animation';
@@ -8,7 +9,8 @@ import { useNewsArticles } from '@/presentation/hooks/use-news-articles';
 import { useNewsQuestion } from '@/presentation/hooks/use-news-question';
 
 export function NewsFeedScreen() {
-    const { data: newsItems, refetch } = useNewsArticles();
+    const language = useSettingsStore((state) => state.language);
+    const { data: newsItems, refetch } = useNewsArticles(language);
     const { answers } = useNewsStore();
     const [expandedIndex, setExpandedIndex] = useState(0);
     const [selectedAnswer, setSelectedAnswer] = useState<boolean | null>(null);
