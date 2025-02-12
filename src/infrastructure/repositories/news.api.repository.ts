@@ -3,10 +3,33 @@ import { NewsRepository } from '@/application/ports/news.repository';
 import type { NewsEntity } from '@/domain/news/news.entity';
 import { NewsError } from '@/domain/news/news.entity';
 
+interface ApiResponse {
+    items: Array<{
+        id: string;
+        headline: string;
+        article: string;
+        isFake: boolean;
+        category: string;
+        createdAt: string;
+        fakeReason: string | null;
+        country: string;
+        language: string;
+        summary: string;
+    }>;
+    nextCursor: string | null;
+    total: number;
+}
+
+const API_BASE_URL = 'https://fake-news-api.jterrazz.com';
+
 export const newsApiRepositoryFactory = (): NewsRepository => ({
-    getArticles: async (): Promise<NewsEntity> => {
+    getArticles: async (): Promise<NewsEntity[]> => {
         try {
-            const response = await fetch('https://your-api.com/news-articles.json');
+            const response = await fetch(`${API_BASE_URL}/articles?country=fr&language=fr`, {
+                headers: {
+                    Accept: 'application/json',
+                },
+            });
 
             if (!response.ok) {
                 throw new NewsError(
@@ -16,8 +39,20 @@ export const newsApiRepositoryFactory = (): NewsRepository => ({
                 );
             }
 
-            const data = await response.json();
-            return data as NewsEntity;
+            const data = (await response.json()) as ApiResponse;
+
+            if (data.items.length === 0) {
+                throw new NewsError('No articles available', 'NO_CONTENT', 404);
+            }
+
+            return data.items.map((item) => ({
+                article: item.article,
+                category: item.category,
+                createdAt: item.createdAt,
+                headline: item.headline,
+                id: item.id,
+                isFake: item.isFake,
+            }));
         } catch (error) {
             if (error instanceof NewsError) throw error;
 

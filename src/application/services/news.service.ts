@@ -175,25 +175,21 @@ export const createNewsService = (repository: NewsRepository): NewsService => {
             },
         ];
 
-        return SAMPLE_NEWS_ITEMS.map((item, index) => ({
+        return SAMPLE_NEWS_ITEMS.map((item) => ({
             ...item,
         }));
     };
 
     const getArticles = async (): Promise<NewsEntity[]> => {
-        return getFallbackArticles();
-        // const response = await repository.getArticles();
-
-        // // Validate response structure
-        // if (!Array.isArray(response.articles)) {
-        //     throw {
-        //         code: 'INVALID_RESPONSE',
-        //         message: 'Invalid response format',
-        //         status: 500,
-        //     } as NewsArticleError;
-        // }
-
-        // return response.articles;
+        try {
+            return await repository.getArticles();
+        } catch (error) {
+            // If there's an error fetching from the API, fallback to sample data
+            if (error.code === 'NO_CONTENT' || error.code === 'NETWORK_ERROR') {
+                return getFallbackArticles();
+            }
+            throw error;
+        }
     };
 
     return {
