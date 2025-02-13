@@ -30,6 +30,7 @@
     "newsFeed": {
       "title": "Fake News",
       "noArticles": "No articles available",
+      "noMoreArticles": "You've reached the end",
       "retry": "Pull to refresh",
       "readMore": "Read More",
       "tabs": {
@@ -40,7 +41,7 @@
     "errors": {
       "generic": "Something went wrong",
       "network": "Network error",
-      "tryAgain": "Please try again"
+      "tryAgain": "Try again"
     }
   }
 }

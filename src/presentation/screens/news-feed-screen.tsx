@@ -119,7 +119,9 @@ export function NewsFeedScreen() {
             selectedAnswer={selectedAnswer}
             activeTab={activeTab}
             isRefreshing={isRefreshing}
-            score={score.score}
+            isLoadingMore={isFetchingNextPage}
+            hasNextPage={hasNextPage}
+            score={score}
             lastClickedPosition={lastClickedPosition}
             answer={answer}
             headerAnimatedStyle={headerAnimatedStyle}
@@ -130,7 +132,6 @@ export function NewsFeedScreen() {
             onAnswerClick={handleAnswerClick}
             onRefresh={handleRefresh}
             onEndReached={handleEndReached}
-            isLoadingMore={isFetchingNextPage}
         />
     );
 }

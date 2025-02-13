@@ -1,13 +1,13 @@
 {
   "common": {
     "navigation": {
-      "newsFeed": "Fil d'actualité",
+      "newsFeed": "Fil d'actualités",
       "settings": "Paramètres"
     },
     "settings": {
       "title": "Paramètres",
-      "language": "Paramètres de langue",
-      "currentLanguage": "Langue",
+      "language": "Langue",
+      "currentLanguage": "Langue actuelle",
       "theme": "Thème",
       "notifications": "Notifications",
       "dangerZone": "Zone dangereuse",
@@ -30,7 +30,8 @@
     "newsFeed": {
       "title": "Fake News",
       "noArticles": "Aucun article disponible",
-      "retry": "Tirer pour rafraîchir",
+      "noMoreArticles": "Vous avez atteint la fin",
+      "retry": "Tirez pour rafraîchir",
       "readMore": "Lire la suite",
       "tabs": {
         "latest": "Récents",
@@ -40,7 +41,7 @@
     "errors": {
       "generic": "Une erreur est survenue",
       "network": "Erreur réseau",
-      "tryAgain": "Veuillez réessayer"
+      "tryAgain": "Réessayer"
     }
   }
 }

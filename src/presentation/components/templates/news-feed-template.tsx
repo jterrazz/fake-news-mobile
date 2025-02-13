@@ -10,10 +10,7 @@ import {
     View,
     ViewStyle,
 } from 'react-native';
-import ReAnimated, {
-    AnimatedStyleProp,
-    useAnimatedScrollHandler,
-} from 'react-native-reanimated';
+import ReAnimated, { AnimatedStyleProp, useAnimatedScrollHandler } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { NewsEntity } from '@/domain/news/news.entity';
@@ -34,6 +31,7 @@ interface NewsFeedTemplateProps {
     activeTab: 'latest' | 'to-read';
     isRefreshing: boolean;
     isLoadingMore: boolean;
+    hasNextPage: boolean;
     score: { score: number; streak: number };
     lastClickedPosition: { x: number; y: number };
     answer?: { wasCorrect: boolean };
@@ -54,6 +52,7 @@ export function NewsFeedTemplate({
     activeTab,
     isRefreshing,
     isLoadingMore,
+    hasNextPage,
     score,
     lastClickedPosition,
     answer,
@@ -76,11 +75,11 @@ export function NewsFeedTemplate({
             const isCloseToBottom =
                 layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom;
 
-            if (isCloseToBottom && !isLoadingMore) {
+            if (isCloseToBottom && !isLoadingMore && hasNextPage) {
                 onEndReached();
             }
         },
-        [isLoadingMore, onEndReached],
+        [isLoadingMore, hasNextPage, onEndReached],
     );
 
     const combinedScrollHandler = useAnimatedScrollHandler({
@@ -113,6 +112,26 @@ export function NewsFeedTemplate({
     const renderCelebrationEffect = () => {
         if (!answer?.wasCorrect || lastClickedPosition.x === 0) return null;
         return <CelebrationParticle isVisible={answer.wasCorrect} position={lastClickedPosition} />;
+    };
+
+    const renderFooter = () => {
+        if (isLoadingMore) {
+            return (
+                <View style={styles.loadingMore}>
+                    <ActivityIndicator size="small" color="#000000" />
+                </View>
+            );
+        }
+
+        if (!hasNextPage && newsItems.length > 0) {
+            return (
+                <View style={styles.endMessage}>
+                    <Text style={styles.endMessageText}>{t('common:newsFeed.noMoreArticles')}</Text>
+                </View>
+            );
+        }
+
+        return null;
     };
 
     return (
@@ -164,11 +183,7 @@ export function NewsFeedTemplate({
                                         renderExpandedContent={renderExpandedContent}
                                         scrollViewRef={scrollViewRef}
                                     />
-                                    {isLoadingMore && (
-                                        <View style={styles.loadingMore}>
-                                            <ActivityIndicator size="small" color="#000000" />
-                                        </View>
-                                    )}
+                                    {renderFooter()}
                                 </>
                             )}
                         </Container>
@@ -200,6 +215,16 @@ const styles = StyleSheet.create({
         fontSize: 16,
         textAlign: 'center',
     },
+    endMessage: {
+        alignItems: 'center',
+        paddingBottom: SIZES['3xl'] * 4,
+        paddingVertical: SIZES.lg,
+    },
+    endMessageText: {
+        color: '#666666',
+        fontSize: 14,
+        textAlign: 'center',
+    },
     fadeGradient: {
         bottom: 0,
         height: 100,
@@ -210,6 +235,7 @@ const styles = StyleSheet.create({
     },
     loadingMore: {
         alignItems: 'center',
+        paddingBottom: SIZES['3xl'] * 4,
         paddingVertical: SIZES.md,
     },
     mainContainer: {
