@@ -1,9 +1,9 @@
-import type { Language, NewsRepository } from '@/application/ports/news.repository';
+import type { ArticlesResponse, GetArticlesParams, NewsRepository } from '@/application/ports/news.repository';
 
 import { NewsEntity } from '@/domain/news/news.entity';
 
 export interface NewsService {
-    getArticles: (language: Language) => Promise<NewsEntity[]>;
+    getArticles: (params: GetArticlesParams) => Promise<ArticlesResponse>;
     getFallbackArticles: () => NewsEntity[];
 }
 
@@ -180,13 +180,18 @@ export const createNewsService = (repository: NewsRepository): NewsService => {
         }));
     };
 
-    const getArticles = async (language: Language): Promise<NewsEntity[]> => {
+    const getArticles = async (params: GetArticlesParams): Promise<ArticlesResponse> => {
         try {
-            return await repository.getArticles(language);
+            return await repository.getArticles(params);
         } catch (error) {
             // If there's an error fetching from the API, fallback to sample data
             if (error.code === 'NO_CONTENT' || error.code === 'NETWORK_ERROR') {
-                return getFallbackArticles();
+                const fallbackArticles = getFallbackArticles();
+                return {
+                    articles: fallbackArticles,
+                    nextCursor: null,
+                    total: fallbackArticles.length,
+                };
             }
             throw error;
         }

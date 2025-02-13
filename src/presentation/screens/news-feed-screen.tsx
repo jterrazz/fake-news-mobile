@@ -10,7 +10,10 @@ import { useNewsQuestion } from '@/presentation/hooks/use-news-question';
 
 export function NewsFeedScreen() {
     const language = useSettingsStore((state) => state.language);
-    const { data: newsItems, refetch } = useNewsArticles(language);
+    const { data, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } = useNewsArticles({
+        language,
+        limit: 10,
+    });
     const { answers } = useNewsStore();
     const [expandedIndex, setExpandedIndex] = useState(0);
     const [selectedAnswer, setSelectedAnswer] = useState<boolean | null>(null);
@@ -20,25 +23,21 @@ export function NewsFeedScreen() {
     const [answeredInSession, setAnsweredInSession] = useState<Set<string>>(new Set());
 
     const newsItemsWithAnswers = React.useMemo(() => {
-        return (newsItems ?? []).map((item) => ({
-            ...item,
-            answered: answers[item.id]
-                ? {
-                      answeredAt: answers[item.id].answeredAt,
-                      id: answers[item.id].id,
-                      wasCorrect: answers[item.id].wasCorrect,
-                  }
-                : undefined,
-        }));
-    }, [newsItems, answers]);
+        if (!data?.pages) return [];
 
-    React.useEffect(() => {
-        if (newsItemsWithAnswers.length === 0) {
-            setExpandedIndex(0);
-        } else if (expandedIndex >= newsItemsWithAnswers.length) {
-            setExpandedIndex(newsItemsWithAnswers.length - 1);
-        }
-    }, [newsItemsWithAnswers.length, expandedIndex]);
+        return data.pages
+            .flatMap((page) => page.items)
+            .map((item) => ({
+                ...item,
+                answered: answers[item.id]
+                    ? {
+                          answeredAt: answers[item.id].answeredAt,
+                          id: answers[item.id].id,
+                          wasCorrect: answers[item.id].wasCorrect,
+                      }
+                    : undefined,
+            }));
+    }, [data?.pages, answers]);
 
     const filteredNewsItems = React.useMemo(() => {
         if (activeTab === 'to-read') {
@@ -48,6 +47,16 @@ export function NewsFeedScreen() {
         }
         return newsItemsWithAnswers;
     }, [newsItemsWithAnswers, activeTab, answeredInSession]);
+
+    const currentNewsItem = filteredNewsItems[expandedIndex] ?? null;
+
+    React.useEffect(() => {
+        if (newsItemsWithAnswers.length === 0) {
+            setExpandedIndex(0);
+        } else if (expandedIndex >= newsItemsWithAnswers.length) {
+            setExpandedIndex(newsItemsWithAnswers.length - 1);
+        }
+    }, [newsItemsWithAnswers.length, expandedIndex]);
 
     React.useEffect(() => {
         if (currentNewsItem) {
@@ -60,7 +69,6 @@ export function NewsFeedScreen() {
         }
     }, [filteredNewsItems, currentNewsItem, expandedIndex]);
 
-    const currentNewsItem = filteredNewsItems[expandedIndex] ?? null;
     const { answer, handleAnswer, score } = useNewsQuestion({
         newsItem: currentNewsItem,
     });
@@ -98,6 +106,12 @@ export function NewsFeedScreen() {
         setAnsweredInSession(new Set());
     };
 
+    const handleEndReached = () => {
+        if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+        }
+    };
+
     return (
         <NewsFeedTemplate
             newsItems={filteredNewsItems}
@@ -105,7 +119,7 @@ export function NewsFeedScreen() {
             selectedAnswer={selectedAnswer}
             activeTab={activeTab}
             isRefreshing={isRefreshing}
-            score={score}
+            score={score.score}
             lastClickedPosition={lastClickedPosition}
             answer={answer}
             headerAnimatedStyle={headerAnimatedStyle}
@@ -115,6 +129,8 @@ export function NewsFeedScreen() {
             onArticleSelect={handleArticleSelect}
             onAnswerClick={handleAnswerClick}
             onRefresh={handleRefresh}
+            onEndReached={handleEndReached}
+            isLoadingMore={isFetchingNextPage}
         />
     );
 }

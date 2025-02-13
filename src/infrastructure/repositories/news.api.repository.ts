@@ -1,6 +1,9 @@
-import { Language, NewsRepository } from '@/application/ports/news.repository';
+import {
+    ArticlesResponse,
+    GetArticlesParams,
+    NewsRepository,
+} from '@/application/ports/news.repository';
 
-import type { NewsEntity } from '@/domain/news/news.entity';
 import { NewsError } from '@/domain/news/news.entity';
 
 interface ApiResponse {
@@ -27,18 +30,26 @@ const LANGUAGE_SETTINGS = {
     fr: { country: 'fr', language: 'fr' },
 } as const;
 
+const DEFAULT_PAGE_SIZE = 10;
+
 export const newsApiRepositoryFactory = (): NewsRepository => ({
-    getArticles: async (language: Language): Promise<NewsEntity[]> => {
+    getArticles: async (params: GetArticlesParams): Promise<ArticlesResponse> => {
         try {
-            const { country, language: apiLang } = LANGUAGE_SETTINGS[language];
-            const response = await fetch(
-                `${API_BASE_URL}/articles?country=${country}&language=${apiLang}`,
-                {
+            const { country, language: apiLang } = LANGUAGE_SETTINGS[params.language];
+            const searchParams = new URLSearchParams({
+                country,
+                language: apiLang,
+                limit: String(params.limit || DEFAULT_PAGE_SIZE),
+            });
+
+            if (params.cursor) searchParams.append('cursor', params.cursor);
+            if (params.category) searchParams.append('category', params.category);
+
+            const response = await fetch(`${API_BASE_URL}/articles?${searchParams.toString()}`, {
                     headers: {
                         Accept: 'application/json',
-                    },
                 },
-            );
+            });
 
             if (!response.ok) {
                 throw new NewsError(
@@ -54,14 +65,18 @@ export const newsApiRepositoryFactory = (): NewsRepository => ({
                 throw new NewsError('No articles available', 'NO_CONTENT', 404);
             }
 
-            return data.items.map((item) => ({
+            return {
+                articles: data.items.map((item) => ({
                 article: item.article,
                 category: item.category,
                 createdAt: item.createdAt,
                 headline: item.headline,
                 id: item.id,
                 isFake: item.isFake,
-            }));
+                })),
+                nextCursor: data.nextCursor,
+                total: data.total,
+            };
         } catch (error) {
             if (error instanceof NewsError) throw error;
 

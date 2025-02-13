@@ -1,9 +1,5 @@
 import type { StyleProp, ViewStyle } from 'react-native';
-import {
-    useAnimatedScrollHandler,
-    useAnimatedStyle,
-    useSharedValue,
-} from 'react-native-reanimated';
+import { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { Extrapolate, interpolate } from 'react-native-reanimated';
 
 interface HeaderAnimationStyles {
@@ -17,21 +13,26 @@ export function useHeaderAnimation(): HeaderAnimationStyles {
     const lastScrollY = useSharedValue(0);
     const headerHeight = useSharedValue(180);
 
-    const scrollHandler = useAnimatedScrollHandler({
-        onScroll: (event) => {
-            if (event.contentOffset.y < 0) {
-                headerHeight.value = 180;
-                lastScrollY.value = 0;
-                scrollY.value = 0;
-                return;
-            }
+    const updateHeaderHeight = (y: number) => {
+        'worklet';
 
-            const delta = event.contentOffset.y - lastScrollY.value;
-            headerHeight.value = Math.max(70, Math.min(180, headerHeight.value - delta));
-            lastScrollY.value = event.contentOffset.y;
-            scrollY.value = event.contentOffset.y;
-        },
-    });
+        if (y < 0) {
+            headerHeight.value = withTiming(180);
+            lastScrollY.value = 0;
+            scrollY.value = 0;
+            return;
+        }
+
+        const delta = y - lastScrollY.value;
+        headerHeight.value = Math.max(70, Math.min(180, headerHeight.value - delta));
+        lastScrollY.value = y;
+        scrollY.value = y;
+    };
+
+    const scrollHandler = (event: { nativeEvent: { contentOffset: { y: number } } }) => {
+        'worklet';
+        updateHeaderHeight(event.nativeEvent.contentOffset.y);
+    };
 
     const headerAnimatedStyle = useAnimatedStyle(() => ({
         paddingBottom: 0,

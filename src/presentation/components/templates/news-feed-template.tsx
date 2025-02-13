@@ -1,7 +1,19 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { RefreshControl, StyleSheet, Text, View } from 'react-native';
-import ReAnimated from 'react-native-reanimated';
+import {
+    ActivityIndicator,
+    NativeScrollEvent,
+    NativeSyntheticEvent,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    View,
+    ViewStyle,
+} from 'react-native';
+import ReAnimated, {
+    AnimatedStyleProp,
+    useAnimatedScrollHandler,
+} from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { NewsEntity } from '@/domain/news/news.entity';
@@ -21,17 +33,18 @@ interface NewsFeedTemplateProps {
     selectedAnswer: boolean | null;
     activeTab: 'latest' | 'to-read';
     isRefreshing: boolean;
-    score: number;
+    isLoadingMore: boolean;
+    score: { score: number; streak: number };
     lastClickedPosition: { x: number; y: number };
     answer?: { wasCorrect: boolean };
-    headerAnimatedStyle: any;
-    titleAnimatedStyle: any;
-    scrollHandler: any;
+    headerAnimatedStyle: AnimatedStyleProp<ViewStyle>;
+    titleAnimatedStyle: AnimatedStyleProp<ViewStyle>;
+    scrollHandler: (event: { nativeEvent: { contentOffset: { y: number } } }) => void;
     onTabChange: (tab: 'latest' | 'to-read') => void;
     onArticleSelect: (index: number) => void;
     onAnswerClick: (selectedFake: boolean, buttonPosition: { x: number; y: number }) => void;
     onRefresh: () => Promise<void>;
-    getAnimationStyles: (index: number) => any;
+    onEndReached: () => void;
 }
 
 export function NewsFeedTemplate({
@@ -40,6 +53,7 @@ export function NewsFeedTemplate({
     selectedAnswer,
     activeTab,
     isRefreshing,
+    isLoadingMore,
     score,
     lastClickedPosition,
     answer,
@@ -50,13 +64,35 @@ export function NewsFeedTemplate({
     onArticleSelect,
     onAnswerClick,
     onRefresh,
+    onEndReached,
 }: NewsFeedTemplateProps) {
     const { t } = useTranslation();
     const scrollViewRef = React.useRef<ReAnimated.ScrollView>(null);
 
+    const handleScroll = React.useCallback(
+        (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+            const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+            const paddingToBottom = 20;
+            const isCloseToBottom =
+                layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom;
+
+            if (isCloseToBottom && !isLoadingMore) {
+                onEndReached();
+            }
+        },
+        [isLoadingMore, onEndReached],
+    );
+
+    const combinedScrollHandler = useAnimatedScrollHandler({
+        onScroll: (event) => {
+            'worklet';
+            scrollHandler({ nativeEvent: { contentOffset: { y: event.contentOffset.y } } });
+        },
+    });
+
     const renderExpandedContent = (
         article: NewsEntity,
-        contentAnimatedStyle: any,
+        contentAnimatedStyle: AnimatedStyleProp<ViewStyle>,
         scrollToArticle?: (index: number) => void,
     ) => (
         <ExpandedArticle
@@ -93,11 +129,12 @@ export function NewsFeedTemplate({
                     <ReAnimated.ScrollView
                         ref={scrollViewRef}
                         style={styles.scrollView}
-                        onScroll={scrollHandler}
+                        onScroll={combinedScrollHandler}
                         scrollEventThrottle={16}
                         bounces={true}
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={{ flexGrow: 1 }}
+                        onMomentumScrollEnd={handleScroll}
                         refreshControl={
                             <RefreshControl
                                 refreshing={isRefreshing}
@@ -119,13 +156,20 @@ export function NewsFeedTemplate({
                                     </Text>
                                 </View>
                             ) : (
-                                <ArticleList
-                                    articles={newsItems}
-                                    expandedIndex={expandedIndex}
-                                    onArticlePress={onArticleSelect}
-                                    renderExpandedContent={renderExpandedContent}
-                                    scrollViewRef={scrollViewRef}
-                                />
+                                <>
+                                    <ArticleList
+                                        articles={newsItems}
+                                        expandedIndex={expandedIndex}
+                                        onArticlePress={onArticleSelect}
+                                        renderExpandedContent={renderExpandedContent}
+                                        scrollViewRef={scrollViewRef}
+                                    />
+                                    {isLoadingMore && (
+                                        <View style={styles.loadingMore}>
+                                            <ActivityIndicator size="small" color="#000000" />
+                                        </View>
+                                    )}
+                                </>
                             )}
                         </Container>
                     </ReAnimated.ScrollView>
@@ -163,6 +207,10 @@ const styles = StyleSheet.create({
         position: 'absolute',
         right: 0,
         zIndex: 1,
+    },
+    loadingMore: {
+        alignItems: 'center',
+        paddingVertical: SIZES.md,
     },
     mainContainer: {
         backgroundColor: '#FFFFFF',
