@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { SIZES } from '../../sizes.js';
@@ -9,17 +10,19 @@ interface HeaderTabsProps {
 }
 
 export function HeaderTabs({ activeTab, onTabChange }: HeaderTabsProps) {
+    const { t } = useTranslation();
+
     return (
         <View style={styles.container}>
             <Pressable style={styles.tab} onPress={() => onTabChange('latest')}>
                 <Text style={[styles.tabText, activeTab === 'latest' && styles.tabTextActive]}>
-                    Latest
+                    {t('common:newsFeed.tabs.latest')}
                 </Text>
                 {activeTab === 'latest' && <View style={styles.activeIndicator} />}
             </Pressable>
             <Pressable style={styles.tab} onPress={() => onTabChange('to-read')}>
                 <Text style={[styles.tabText, activeTab === 'to-read' && styles.tabTextActive]}>
-                    To Read
+                    {t('common:newsFeed.tabs.toRead')}
                 </Text>
                 {activeTab === 'to-read' && <View style={styles.activeIndicator} />}
             </Pressable>

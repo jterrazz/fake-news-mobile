@@ -1,0 +1,46 @@
+{
+  "common": {
+    "navigation": {
+      "newsFeed": "News Feed",
+      "settings": "Settings"
+    },
+    "settings": {
+      "title": "Settings",
+      "language": "Language Settings",
+      "currentLanguage": "Language",
+      "theme": "Theme",
+      "notifications": "Notifications",
+      "dangerZone": "Danger Zone",
+      "devNotes": {
+        "title": "Developer Notes",
+        "content": "I created this app to help people stay informed about the latest news while encouraging critical thinking through interactive questions. My goal is to promote media literacy and thoughtful engagement with current events."
+      },
+      "reset": {
+        "title": "Reset Everything",
+        "message": "Are you sure? This action cannot be undone.",
+        "cancel": "Cancel",
+        "confirm": "Reset",
+        "resetting": "Resetting...",
+        "successTitle": "Success",
+        "successMessage": "All data has been reset successfully.",
+        "errorTitle": "Error",
+        "errorMessage": "Failed to reset data. Please try again."
+      }
+    },
+    "newsFeed": {
+      "title": "Fake News",
+      "noArticles": "No articles available",
+      "retry": "Pull to refresh",
+      "readMore": "Read More",
+      "tabs": {
+        "latest": "Latest",
+        "toRead": "To Read"
+      }
+    },
+    "errors": {
+      "generic": "Something went wrong",
+      "network": "Network error",
+      "tryAgain": "Please try again"
+    }
+  }
+}

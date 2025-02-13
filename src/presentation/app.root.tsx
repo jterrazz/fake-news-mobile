@@ -3,6 +3,8 @@ import { Platform, StatusBar, UIManager } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 
+import '@/infrastructure/i18n/i18n.config';
+
 import { ContainerProvider } from './providers/container-provider.jsx';
 import { QueryClientProvider } from './providers/query-client-provider.jsx';
 import { NewsFeedScreen } from './screens/news-feed-screen.js';

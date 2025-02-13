@@ -1,0 +1,46 @@
+{
+  "common": {
+    "navigation": {
+      "newsFeed": "Fil d'actualité",
+      "settings": "Paramètres"
+    },
+    "settings": {
+      "title": "Paramètres",
+      "language": "Paramètres de langue",
+      "currentLanguage": "Langue",
+      "theme": "Thème",
+      "notifications": "Notifications",
+      "dangerZone": "Zone dangereuse",
+      "devNotes": {
+        "title": "Notes du développeur",
+        "content": "J'ai créé cette application pour aider les gens à rester informés des dernières actualités tout en encourageant la pensée critique à travers des questions interactives. Mon objectif est de promouvoir l'éducation aux médias et l'engagement réfléchi avec l'actualité."
+      },
+      "reset": {
+        "title": "Réinitialiser tout",
+        "message": "Êtes-vous sûr ? Cette action ne peut pas être annulée.",
+        "cancel": "Annuler",
+        "confirm": "Réinitialiser",
+        "resetting": "Réinitialisation...",
+        "successTitle": "Succès",
+        "successMessage": "Toutes les données ont été réinitialisées avec succès.",
+        "errorTitle": "Erreur",
+        "errorMessage": "Échec de la réinitialisation des données. Veuillez réessayer."
+      }
+    },
+    "newsFeed": {
+      "title": "Fake News",
+      "noArticles": "Aucun article disponible",
+      "retry": "Tirer pour rafraîchir",
+      "readMore": "Lire la suite",
+      "tabs": {
+        "latest": "Récents",
+        "toRead": "À lire"
+      }
+    },
+    "errors": {
+      "generic": "Une erreur est survenue",
+      "network": "Erreur réseau",
+      "tryAgain": "Veuillez réessayer"
+    }
+  }
+}

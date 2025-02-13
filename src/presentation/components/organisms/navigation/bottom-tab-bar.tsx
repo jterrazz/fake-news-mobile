@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { LayoutRectangle, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -58,6 +59,7 @@ type TabItemProps = {
 
 const TabItem = React.memo(
     ({ route, index, isFocused, descriptors, onPress, width, onLayout }: TabItemProps) => {
+        const { t } = useTranslation();
         const routeName = route.name.toLowerCase() as keyof typeof ROUTES;
         const icon = ROUTES[routeName]?.icon;
 
@@ -71,7 +73,7 @@ const TabItem = React.memo(
                 onLayout={(event) => onLayout(index, event.nativeEvent.layout)}
                 accessibilityRole="button"
                 accessibilityState={isFocused ? { selected: true } : {}}
-                accessibilityLabel={descriptors[route.key].options.tabBarAccessibilityLabel}
+                accessibilityLabel={t(`common.navigation.${routeName}`)}
                 testID={descriptors[route.key].options.tabBarTestID}
                 onPress={() => onPress(route, isFocused)}
                 style={[styles.item, { width }]}

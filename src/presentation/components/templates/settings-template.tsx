@@ -1,5 +1,14 @@
-import React from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import {
+    Animated,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 
 interface SettingsTemplateProps {
     selectedLanguage: 'en' | 'fr';
@@ -14,12 +23,12 @@ export function SettingsTemplate({
     onLanguageToggle,
     onReset,
 }: SettingsTemplateProps) {
+    const { t } = useTranslation();
+
     return (
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>
-                    {selectedLanguage === 'en' ? 'Settings' : 'Paramètres'}
-                </Text>
+                <Text style={styles.headerTitle}>{t('common:settings.title')}</Text>
             </View>
 
             <ScrollView
@@ -28,134 +37,222 @@ export function SettingsTemplate({
                 showsVerticalScrollIndicator={false}
             >
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>
-                        {selectedLanguage === 'en' ? 'Language Settings' : 'Paramètres de langue'}
-                    </Text>
+                    <View style={styles.sectionHeader}>
+                        <Text style={styles.sectionTitle}>{t('common:settings.language')}</Text>
+                        <Text style={styles.sectionSubtitle}>Choose your preferred language</Text>
+                    </View>
 
-                    <View style={styles.languageContainer}>
-                        <Text style={styles.label}>
-                            {selectedLanguage === 'en' ? 'Current Language:' : 'Langue actuelle:'}
+                    <View style={styles.card}>
+                        <View style={styles.settingRow}>
+                            <Text style={styles.settingLabel}>
+                                {t('common:settings.currentLanguage')}
+                            </Text>
+                            <View style={styles.languageToggleContainer}>
+                                <View style={styles.customToggle}>
+                                    <Animated.View
+                                        style={[
+                                            styles.customToggleSlider,
+                                            {
+                                                transform: [
+                                                    {
+                                                        translateX: useSliderAnimation(
+                                                            selectedLanguage === 'en',
+                                                        ),
+                                                    },
+                                                ],
+                                            },
+                                        ]}
+                                    />
+                                    <TouchableOpacity
+                                        style={styles.customToggleOption}
+                                        onPress={() =>
+                                            selectedLanguage === 'en' && onLanguageToggle()
+                                        }
+                                    >
+                                        <Text
+                                            style={[
+                                                styles.customToggleText,
+                                                selectedLanguage === 'fr' &&
+                                                    styles.customToggleTextActive,
+                                            ]}
+                                        >
+                                            FR
+                                        </Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={styles.customToggleOption}
+                                        onPress={() =>
+                                            selectedLanguage === 'fr' && onLanguageToggle()
+                                        }
+                                    >
+                                        <Text
+                                            style={[
+                                                styles.customToggleText,
+                                                selectedLanguage === 'en' &&
+                                                    styles.customToggleTextActive,
+                                            ]}
+                                        >
+                                            US
+                                        </Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </View>
+                    </View>
+                </View>
+
+                <View style={[styles.section, styles.dangerSection]}>
+                    <View style={styles.sectionHeader}>
+                        <Text style={[styles.sectionTitle, styles.dangerTitle]}>
+                            {t('common:settings.dangerZone')}
                         </Text>
+                        <Text style={styles.sectionSubtitle}>Actions that cannot be undone</Text>
+                    </View>
 
-                        <TouchableOpacity style={styles.languageButton} onPress={onLanguageToggle}>
-                            <Text style={styles.buttonText}>
-                                {selectedLanguage === 'en' ? 'English' : 'Français'}
+                    <View style={styles.dangerCard}>
+                        <TouchableOpacity
+                            style={[styles.resetButton, isResetting && styles.resetButtonDisabled]}
+                            onPress={onReset}
+                            disabled={isResetting}
+                        >
+                            <Text style={styles.resetButtonText}>
+                                {isResetting
+                                    ? t('common:settings.reset.resetting')
+                                    : t('common:settings.reset.title')}
                             </Text>
                         </TouchableOpacity>
                     </View>
                 </View>
 
-                <View style={styles.dangerZone}>
-                    <Text style={styles.dangerTitle}>
-                        {selectedLanguage === 'en' ? 'Danger Zone' : 'Zone dangereuse'}
-                    </Text>
-                    <TouchableOpacity
-                        style={[styles.resetButton, isResetting && styles.resetButtonDisabled]}
-                        onPress={onReset}
-                        disabled={isResetting}
-                    >
-                        <Text style={styles.resetButtonText}>
-                            {isResetting
-                                ? selectedLanguage === 'en'
-                                    ? 'Resetting...'
-                                    : 'Réinitialisation...'
-                                : selectedLanguage === 'en'
-                                  ? 'Reset Everything'
-                                  : 'Réinitialiser tout'}
+                <View style={[styles.section, styles.lastSection]}>
+                    <View style={styles.sectionHeader}>
+                        <Text style={styles.sectionTitle}>
+                            {t('common:settings.devNotes.title')}
                         </Text>
-                    </TouchableOpacity>
-                </View>
+                        <Text style={styles.sectionSubtitle}>Information for developers</Text>
+                    </View>
 
-                <View style={styles.devNotesContainer}>
-                    <Text style={styles.devNotesTitle}>
-                        {selectedLanguage === 'en' ? 'Developer Notes' : 'Notes du développeur'}
-                    </Text>
-                    <Text style={styles.devNotesText}>
-                        {selectedLanguage === 'en'
-                            ? 'I created this app to help people stay informed about the latest news while encouraging critical thinking through interactive questions. My goal is to promote media literacy and thoughtful engagement with current events.'
-                            : "J'ai créé cette application pour aider les gens à rester informés des dernières actualités tout en encourageant la pensée critique à travers des questions interactives. Mon objectif est de promouvoir l'éducation aux médias et l'engagement réfléchi avec l'actualité."}
-                    </Text>
+                    <View style={styles.card}>
+                        <Text style={styles.devNotesText}>
+                            {t('common:settings.devNotes.content')}
+                        </Text>
+                    </View>
                 </View>
             </ScrollView>
         </SafeAreaView>
     );
 }
 
+function useSliderAnimation(isEn: boolean) {
+    const slideAnim = useRef(new Animated.Value(isEn ? 1 : 0)).current;
+
+    useEffect(() => {
+        Animated.spring(slideAnim, {
+            friction: 8,
+            tension: 50,
+            toValue: isEn ? 1 : 0,
+            useNativeDriver: true,
+        }).start();
+    }, [isEn]);
+
+    return slideAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 80],
+    });
+}
+
 const styles = StyleSheet.create({
-    buttonText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontWeight: '500',
+    card: {
+        backgroundColor: '#FFFFFF',
+        borderColor: '#F3F4F6',
+        borderRadius: 12,
+        borderWidth: 1,
+        elevation: 2,
+        padding: 16,
+        shadowColor: '#000',
+        shadowOffset: { height: 1, width: 0 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
     },
     content: {
-        paddingBottom: 24,
-        paddingHorizontal: 16,
+        paddingBottom: 40,
+        paddingHorizontal: 20,
+        paddingTop: 32,
+    },
+    customToggle: {
+        backgroundColor: '#F3F4F6',
+        borderRadius: 30,
+        flexDirection: 'row',
+        height: 36,
+        padding: 3,
+        position: 'relative',
+        width: 140,
+    },
+    customToggleOption: {
+        alignItems: 'center',
+        flex: 1,
+        justifyContent: 'center',
+        zIndex: 1,
+    },
+    customToggleSlider: {
+        backgroundColor: '#111827',
+        borderRadius: 28,
+        height: 30,
+        left: 3,
+        position: 'absolute',
+        top: 3,
+        width: 67,
+    },
+    customToggleText: {
+        color: '#6B7280',
+        fontSize: 13,
+        fontWeight: '600',
+        letterSpacing: 0.3,
+    },
+    customToggleTextActive: {
+        color: '#FFFFFF',
+    },
+    dangerCard: {
+        backgroundColor: '#FEF2F2',
+        borderColor: '#FEE2E2',
+        borderRadius: 12,
+        borderWidth: 1,
+        padding: 16,
+    },
+    dangerSection: {
+        marginTop: 48,
     },
     dangerTitle: {
-        color: 'black',
-        fontSize: 18,
-        fontWeight: '600',
-        marginBottom: 12,
-    },
-    dangerZone: {
-        backgroundColor: '#FFF1F0',
-        borderColor: '#FFE4E6',
-        borderRadius: 8,
-        borderWidth: 1,
-        marginTop: 32,
-        padding: 16,
-    },
-    devNotesContainer: {
-        backgroundColor: '#F3F4F6',
-        borderRadius: 8,
-        marginTop: 32,
-        padding: 16,
+        color: '#991B1B',
     },
     devNotesText: {
-        color: '#374151',
+        color: '#4B5563',
         fontSize: 14,
-        lineHeight: 20,
-    },
-    devNotesTitle: {
-        color: 'black',
-        fontSize: 18,
-        fontWeight: '600',
-        marginBottom: 8,
+        lineHeight: 22,
     },
     header: {
-        borderBottomColor: '#E5E7EB',
+        borderBottomColor: '#F3F4F6',
         borderBottomWidth: 1,
-        marginBottom: 16,
-        paddingVertical: 16,
+        paddingVertical: 24,
     },
     headerTitle: {
-        color: 'black',
-        fontSize: 24,
+        color: '#111827',
+        fontSize: 28,
         fontWeight: '700',
+        letterSpacing: -0.5,
         textAlign: 'center',
     },
-    label: {
-        fontSize: 16,
-    },
-    languageButton: {
-        backgroundColor: 'black',
-        borderRadius: 6,
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-    },
-    languageContainer: {
+    languageToggleContainer: {
         alignItems: 'center',
-        backgroundColor: '#f5f5f5',
-        borderRadius: 8,
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        padding: 16,
+    },
+    lastSection: {
+        marginBottom: 0,
     },
     resetButton: {
         alignItems: 'center',
-        backgroundColor: 'black',
-        borderRadius: 6,
-        paddingHorizontal: 16,
+        backgroundColor: '#991B1B',
+        borderRadius: 8,
         paddingVertical: 12,
     },
     resetButtonDisabled: {
@@ -163,8 +260,8 @@ const styles = StyleSheet.create({
     },
     resetButtonText: {
         color: '#FFFFFF',
-        fontSize: 16,
-        fontWeight: '500',
+        fontSize: 15,
+        fontWeight: '600',
     },
     safeArea: {
         backgroundColor: '#FFFFFF',
@@ -174,11 +271,31 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     section: {
-        marginBottom: 24,
+        marginBottom: 40,
+    },
+    sectionHeader: {
+        marginBottom: 16,
+    },
+    sectionSubtitle: {
+        color: '#6B7280',
+        fontSize: 14,
+        letterSpacing: -0.1,
     },
     sectionTitle: {
+        color: '#111827',
         fontSize: 20,
         fontWeight: '600',
-        marginBottom: 16,
+        letterSpacing: -0.3,
+        marginBottom: 4,
+    },
+    settingLabel: {
+        color: '#374151',
+        fontSize: 16,
+        fontWeight: '500',
+    },
+    settingRow: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
     },
 });

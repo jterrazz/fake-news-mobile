@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 import ReAnimated from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -50,6 +51,7 @@ export function NewsFeedTemplate({
     onAnswerClick,
     onRefresh,
 }: NewsFeedTemplateProps) {
+    const { t } = useTranslation();
     const scrollViewRef = React.useRef<ReAnimated.ScrollView>(null);
 
     const renderExpandedContent = (
@@ -101,7 +103,7 @@ export function NewsFeedTemplate({
                                 refreshing={isRefreshing}
                                 onRefresh={onRefresh}
                                 tintColor="#000000"
-                                title="Pull to refresh"
+                                title={t('common:newsFeed.retry')}
                                 titleColor="#999999"
                                 progressViewOffset={128}
                             />
@@ -112,7 +114,9 @@ export function NewsFeedTemplate({
                                 <LoadingSpinner size="large" />
                             ) : newsItems.length === 0 ? (
                                 <View style={styles.emptyState}>
-                                    <Text style={styles.emptyStateText}>No articles available</Text>
+                                    <Text style={styles.emptyStateText}>
+                                        {t('common:newsFeed.noArticles')}
+                                    </Text>
                                 </View>
                             ) : (
                                 <ArticleList
@@ -120,7 +124,6 @@ export function NewsFeedTemplate({
                                     expandedIndex={expandedIndex}
                                     onArticlePress={onArticleSelect}
                                     renderExpandedContent={renderExpandedContent}
-                                    isRefreshing={isRefreshing}
                                     scrollViewRef={scrollViewRef}
                                 />
                             )}

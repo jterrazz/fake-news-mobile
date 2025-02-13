@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Platform, StyleSheet, View } from 'react-native';
 import ReAnimated, { AnimatedStyleProp } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
@@ -25,11 +26,13 @@ export function NewsHeader({
     headerAnimatedStyle,
     titleAnimatedStyle,
 }: NewsHeaderProps) {
+    const { t } = useTranslation();
+
     return (
         <BlurView intensity={95} tint="extraLight" style={[styles.headerBlur, headerAnimatedStyle]}>
             <SafeArea style={styles.headerContent}>
                 <ReAnimated.View style={[styles.titleContainer, titleAnimatedStyle]}>
-                    <AnimatedTitle text="FAKE NEWS" />
+                    <AnimatedTitle text={t('common:newsFeed.title')} />
                 </ReAnimated.View>
                 <View style={styles.headerContentInner}>
                     <HeaderTabs activeTab={activeTab} onTabChange={onTabChange} />
