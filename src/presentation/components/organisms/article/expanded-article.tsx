@@ -1,17 +1,17 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, ViewStyle } from 'react-native';
 import ReAnimated, { AnimatedStyleProp } from 'react-native-reanimated';
 
 import { NewsEntity } from '@/domain/news/news.entity';
 
-import { SIZES } from '../../sizes.js';
 import { ArticleContent } from '../../molecules/article/article-content.jsx';
 import { ArticleHeader } from '../../molecules/article/article-header.jsx';
+import { SIZES } from '../../sizes.js';
 import { AnswerButtons } from '../question/answer-buttons.jsx';
 
 interface ExpandedArticleProps {
     article: NewsEntity;
-    contentAnimatedStyle: AnimatedStyleProp<any>;
+    contentAnimatedStyle: AnimatedStyleProp<ViewStyle>;
     isAnswered: boolean;
     selectedAnswer: boolean | null;
     wasCorrect?: boolean;
@@ -35,15 +35,20 @@ export function ExpandedArticle({
             <ArticleHeader category={article.category} headline={article.headline} />
             <ArticleContent content={article.article} />
             <View style={styles.actionContainer}>
-                <AnswerButtons
-                    isAnswered={isAnswered}
-                    selectedAnswer={selectedAnswer}
-                    wasCorrect={wasCorrect}
-                    onAnswerClick={onAnswerClick}
-                    onNextArticle={onNextArticle}
-                    showNextButton={showNextButton}
-                    currentArticleId={article.id}
-                />
+                <View style={styles.actionRow}>
+                    <View style={styles.buttonsContainer}>
+                        <AnswerButtons
+                            isAnswered={isAnswered}
+                            selectedAnswer={selectedAnswer}
+                            wasCorrect={wasCorrect}
+                            onAnswerClick={onAnswerClick}
+                            onNextArticle={onNextArticle}
+                            showNextButton={showNextButton}
+                            currentArticleId={article.id}
+                            article={article}
+                        />
+                    </View>
+                </View>
             </View>
         </ReAnimated.View>
     );
@@ -65,6 +70,14 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.04,
         shadowRadius: 8,
         zIndex: 2,
+    },
+    actionRow: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    buttonsContainer: {
+        flex: 1,
     },
     expandedContent: {
         position: 'relative',

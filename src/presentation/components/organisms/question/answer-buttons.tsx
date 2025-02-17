@@ -1,9 +1,12 @@
 import React, { useEffect } from 'react';
 import { Animated, Easing, Platform, StyleSheet, Text, View } from 'react-native';
 
+import { NewsEntity } from '@/domain/news/news.entity.js';
+
 import { IconButton } from '../../atoms/buttons/icon-button.jsx';
 import { TextButton } from '../../atoms/buttons/text-button.jsx';
 
+import { FakeReasonButton } from '@/presentation/components/molecules/article/fake-reason-button.jsx';
 import { SIZES } from '@/presentation/components/sizes.js';
 
 interface ButtonPosition {
@@ -19,6 +22,7 @@ interface AnswerButtonsProps {
     onNextArticle?: () => void;
     showNextButton?: boolean;
     currentArticleId: string;
+    article: NewsEntity;
 }
 
 export function AnswerButtons({
@@ -29,6 +33,7 @@ export function AnswerButtons({
     onNextArticle,
     showNextButton,
     currentArticleId,
+    article,
 }: AnswerButtonsProps) {
     // Move animation state management into the component
     const [animations] = React.useState(() => ({
@@ -145,7 +150,9 @@ export function AnswerButtons({
                 <Text
                     style={[styles.hintText, { textTransform: isAnswered ? 'uppercase' : 'none' }]}
                 >
-                    {isAnswered ? 'This article was FAKE' : 'Is this article fake or real?'}
+                    {isAnswered
+                        ? `This article was ${article.isFake ? 'FAKE' : 'REAL'}`
+                        : 'Is this article fake or real?'}
                 </Text>
             </View>
 
@@ -177,6 +184,11 @@ export function AnswerButtons({
                             />
                         </Animated.View>
                     )}
+                    <FakeReasonButton
+                        fakeReason={article.fakeReason}
+                        isAnswered={isAnswered}
+                        isFake={article.isFake}
+                    />
                 </View>
             ) : (
                 <View style={styles.buttonRow}>

@@ -11,13 +11,14 @@ export interface NewsEntity {
     isFake: boolean;
     category: string;
     createdAt: string;
+    fakeReason: string | null;
     answered?: NewsAnswer;
 }
 
 export class NewsError extends Error {
     constructor(
         message: string,
-        public code: string,
+        public code: 'FETCH_ERROR' | 'NO_CONTENT' | 'NETWORK_ERROR',
         public status: number,
     ) {
         super(message);

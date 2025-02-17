@@ -67,12 +67,13 @@ export const newsApiRepositoryFactory = (): NewsRepository => ({
 
             return {
                 articles: data.items.map((item) => ({
-                article: item.article,
-                category: item.category,
-                createdAt: item.createdAt,
-                headline: item.headline,
-                id: item.id,
-                isFake: item.isFake,
+                    article: item.article,
+                    category: item.category,
+                    createdAt: item.createdAt,
+                    fakeReason: item.fakeReason,
+                    headline: item.headline,
+                    id: item.id,
+                    isFake: item.isFake,
                 })),
                 nextCursor: data.nextCursor,
                 total: data.total,

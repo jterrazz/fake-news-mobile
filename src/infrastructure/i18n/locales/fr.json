@@ -33,6 +33,8 @@
       "noMoreArticles": "Vous avez atteint la fin",
       "retry": "Tirez pour rafraîchir",
       "readMore": "Lire la suite",
+      "whyFake": "Pourquoi est-ce faux ?",
+      "close": "Fermer",
       "tabs": {
         "latest": "Récents",
         "toRead": "À lire"

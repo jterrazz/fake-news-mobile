@@ -33,6 +33,8 @@
       "noMoreArticles": "You've reached the end",
       "retry": "Pull to refresh",
       "readMore": "Read More",
+      "whyFake": "Why is this fake?",
+      "close": "Close",
       "tabs": {
         "latest": "Latest",
         "toRead": "To Read"
