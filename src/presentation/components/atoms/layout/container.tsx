@@ -21,6 +21,6 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     withHeaderOffset: {
-        paddingTop: 160,
+        paddingTop: 96,
     },
 });

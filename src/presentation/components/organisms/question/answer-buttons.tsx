@@ -147,11 +147,9 @@ export function AnswerButtons({
     return (
         <View style={styles.buttonContainer}>
             <View style={styles.hintContainer}>
-                <Text
-                    style={[styles.hintText, { textTransform: isAnswered ? 'uppercase' : 'none' }]}
-                >
+                <Text style={[styles.hintText]}>
                     {isAnswered
-                        ? `This article was ${article.isFake ? 'FAKE' : 'REAL'}`
+                        ? `This article was ${article.isFake ? 'fake' : 'real'}`
                         : 'Is this article fake or real?'}
                 </Text>
             </View>
@@ -293,7 +291,6 @@ const styles = StyleSheet.create({
     hintText: {
         backgroundColor: '#FFFFFF',
         borderRadius: 4,
-        color: '#666666',
         elevation: 1,
         fontFamily: Platform.OS === 'ios' ? 'SF Pro Text' : 'System',
         fontSize: 13,
