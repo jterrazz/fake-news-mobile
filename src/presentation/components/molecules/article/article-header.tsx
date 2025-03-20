@@ -1,9 +1,9 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { SIZES } from '../../sizes.js';
 import { CategoryLabel } from '../../atoms/typography/category-label.jsx';
 import { Headline } from '../../atoms/typography/headline.jsx';
+import { SIZES } from '../../sizes.jsx';
 
 import { PublisherInfo } from './publisher-info.jsx';
 

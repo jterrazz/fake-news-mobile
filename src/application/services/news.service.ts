@@ -1,7 +1,9 @@
-import type { ArticlesResponse, GetArticlesParams, NewsRepository } from '@/application/ports/news.repository';
+import type {
+    ArticlesResponse,
+    GetArticlesParams,
+    NewsRepository,
+} from '@/application/ports/news.repository';
 
-export interface NewsService {
-    getArticles: (params: GetArticlesParams) => Promise<ArticlesResponse>;
 export interface NewsService {
     getArticles: (params: GetArticlesParams) => Promise<ArticlesResponse>;
 }
