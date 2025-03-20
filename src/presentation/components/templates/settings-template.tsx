@@ -2,13 +2,14 @@ import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     Animated,
+    Dimensions,
     SafeAreaView,
-    ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 interface SettingsTemplateProps {
     selectedLanguage: 'en' | 'fr';
@@ -24,29 +25,63 @@ export function SettingsTemplate({
     onReset,
 }: SettingsTemplateProps) {
     const { t } = useTranslation();
+    const scrollY = useRef(new Animated.Value(0)).current;
+
+    const headerOpacity = scrollY.interpolate({
+        extrapolate: 'clamp',
+        inputRange: [0, 60],
+        outputRange: [1, 0],
+    });
+
+    const headerScale = scrollY.interpolate({
+        extrapolate: 'clamp',
+        inputRange: [0, 60],
+        outputRange: [1, 0.8],
+    });
 
     return (
         <SafeAreaView style={styles.safeArea}>
-            <View style={styles.header}>
+            <Animated.View
+                style={[
+                    styles.header,
+                    { opacity: headerOpacity, transform: [{ scale: headerScale }] },
+                ]}
+            >
                 <Text style={styles.headerTitle}>{t('common:settings.title')}</Text>
-            </View>
+                <LinearGradient
+                    colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0.8)']}
+                    style={styles.headerGradient}
+                />
+            </Animated.View>
 
-            <ScrollView
+            <Animated.ScrollView
                 style={styles.scrollView}
                 contentContainerStyle={styles.content}
                 showsVerticalScrollIndicator={false}
+                onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
+                    useNativeDriver: true,
+                })}
+                scrollEventThrottle={16}
             >
-                <View style={styles.section}>
-                    <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>{t('common:settings.language')}</Text>
-                        <Text style={styles.sectionSubtitle}>Choose your preferred language</Text>
-                    </View>
+                {/* Preferences Group */}
+                <View style={styles.group}>
+                    <Text style={styles.groupTitle}>{t('common:settings.groups.preferences')}</Text>
 
-                    <View style={styles.card}>
+                    <TouchableOpacity
+                        style={styles.card}
+                        activeOpacity={0.7}
+                        onPress={onLanguageToggle}
+                    >
                         <View style={styles.settingRow}>
-                            <Text style={styles.settingLabel}>
-                                {t('common:settings.currentLanguage')}
-                            </Text>
+                            <View>
+                                <Text style={styles.settingLabel}>
+                                    {t('common:settings.currentLanguage')}
+                                </Text>
+                                <Text style={styles.settingSubLabel}>
+                                    {selectedLanguage === 'en' ? 'English (US)' : 'Français'}
+                                </Text>
+                            </View>
+
                             <View style={styles.languageToggleContainer}>
                                 <View style={styles.customToggle}>
                                     <Animated.View
@@ -63,12 +98,7 @@ export function SettingsTemplate({
                                             },
                                         ]}
                                     />
-                                    <TouchableOpacity
-                                        style={styles.customToggleOption}
-                                        onPress={() =>
-                                            selectedLanguage === 'en' && onLanguageToggle()
-                                        }
-                                    >
+                                    <View style={styles.customToggleOption}>
                                         <Text
                                             style={[
                                                 styles.customToggleText,
@@ -78,13 +108,8 @@ export function SettingsTemplate({
                                         >
                                             FR
                                         </Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity
-                                        style={styles.customToggleOption}
-                                        onPress={() =>
-                                            selectedLanguage === 'fr' && onLanguageToggle()
-                                        }
-                                    >
+                                    </View>
+                                    <View style={styles.customToggleOption}>
                                         <Text
                                             style={[
                                                 styles.customToggleText,
@@ -94,43 +119,16 @@ export function SettingsTemplate({
                                         >
                                             US
                                         </Text>
-                                    </TouchableOpacity>
+                                    </View>
                                 </View>
                             </View>
                         </View>
-                    </View>
+                    </TouchableOpacity>
                 </View>
 
-                <View style={[styles.section, styles.dangerSection]}>
-                    <View style={styles.sectionHeader}>
-                        <Text style={[styles.sectionTitle, styles.dangerTitle]}>
-                            {t('common:settings.dangerZone')}
-                        </Text>
-                        <Text style={styles.sectionSubtitle}>Actions that cannot be undone</Text>
-                    </View>
-
-                    <View style={styles.dangerCard}>
-                        <TouchableOpacity
-                            style={[styles.resetButton, isResetting && styles.resetButtonDisabled]}
-                            onPress={onReset}
-                            disabled={isResetting}
-                        >
-                            <Text style={styles.resetButtonText}>
-                                {isResetting
-                                    ? t('common:settings.reset.resetting')
-                                    : t('common:settings.reset.title')}
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-
-                <View style={[styles.section, styles.lastSection]}>
-                    <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>
-                            {t('common:settings.devNotes.title')}
-                        </Text>
-                        <Text style={styles.sectionSubtitle}>Information for developers</Text>
-                    </View>
+                {/* Information Group */}
+                <View style={styles.group}>
+                    <Text style={styles.groupTitle}>{t('common:settings.groups.information')}</Text>
 
                     <View style={styles.card}>
                         <Text style={styles.devNotesText}>
@@ -138,7 +136,34 @@ export function SettingsTemplate({
                         </Text>
                     </View>
                 </View>
-            </ScrollView>
+
+                {/* Danger Zone Group */}
+                <View style={[styles.group, styles.lastGroup]}>
+                    <Text style={[styles.groupTitle, styles.dangerTitle]}>
+                        {t('common:settings.dangerZone')}
+                    </Text>
+
+                    <TouchableOpacity
+                        style={[styles.dangerCard, isResetting && styles.resetButtonDisabled]}
+                        activeOpacity={0.7}
+                        onPress={onReset}
+                        disabled={isResetting}
+                    >
+                        <LinearGradient
+                            colors={['#991B1B', '#7F1D1D']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={styles.dangerGradient}
+                        >
+                            <Text style={styles.resetButtonText}>
+                                {isResetting
+                                    ? t('common:settings.reset.resetting')
+                                    : t('common:settings.reset.title')}
+                            </Text>
+                        </LinearGradient>
+                    </TouchableOpacity>
+                </View>
+            </Animated.ScrollView>
         </SafeAreaView>
     );
 }
@@ -148,8 +173,8 @@ function useSliderAnimation(isEn: boolean) {
 
     useEffect(() => {
         Animated.spring(slideAnim, {
-            friction: 8,
-            tension: 50,
+            friction: 10,
+            tension: 100,
             toValue: isEn ? 1 : 0,
             useNativeDriver: true,
         }).start();
@@ -157,27 +182,27 @@ function useSliderAnimation(isEn: boolean) {
 
     return slideAnim.interpolate({
         inputRange: [0, 1],
-        outputRange: [0, 80],
+        outputRange: [0, 70],
     });
 }
+
+const { width } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
     card: {
         backgroundColor: '#FFFFFF',
-        borderColor: '#F3F4F6',
-        borderRadius: 12,
-        borderWidth: 1,
+        borderRadius: 16,
         elevation: 2,
-        padding: 16,
+        padding: 20,
         shadowColor: '#000',
-        shadowOffset: { height: 1, width: 0 },
+        shadowOffset: { height: 2, width: 0 },
         shadowOpacity: 0.05,
-        shadowRadius: 2,
+        shadowRadius: 15,
     },
     content: {
-        paddingBottom: 40,
-        paddingHorizontal: 20,
-        paddingTop: 32,
+        paddingBottom: 32,
+        paddingHorizontal: 24,
+        paddingTop: 100,
     },
     customToggle: {
         backgroundColor: '#F3F4F6',
@@ -197,27 +222,33 @@ const styles = StyleSheet.create({
     customToggleSlider: {
         backgroundColor: '#111827',
         borderRadius: 28,
+        elevation: 3,
         height: 30,
         left: 3,
         position: 'absolute',
+        shadowColor: '#000',
+        shadowOffset: { height: 2, width: 0 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
         top: 3,
         width: 67,
     },
     customToggleText: {
         color: '#6B7280',
-        fontSize: 13,
+        fontSize: 14,
         fontWeight: '600',
-        letterSpacing: 0.3,
+        letterSpacing: 0.5,
     },
     customToggleTextActive: {
         color: '#FFFFFF',
     },
     dangerCard: {
-        backgroundColor: '#FEF2F2',
-        borderColor: '#FEE2E2',
-        borderRadius: 12,
-        borderWidth: 1,
-        padding: 16,
+        borderRadius: 16,
+        overflow: 'hidden',
+    },
+    dangerGradient: {
+        alignItems: 'center',
+        padding: 20,
     },
     dangerSection: {
         marginTop: 48,
@@ -227,41 +258,62 @@ const styles = StyleSheet.create({
     },
     devNotesText: {
         color: '#4B5563',
-        fontSize: 14,
-        lineHeight: 22,
+        fontSize: 15,
+        letterSpacing: -0.3,
+        lineHeight: 24,
+    },
+    group: {
+        marginBottom: 48,
+    },
+    groupTitle: {
+        color: '#6B7280',
+        fontSize: 13,
+        fontWeight: '600',
+        letterSpacing: 0.8,
+        marginBottom: 16,
+        textTransform: 'uppercase',
     },
     header: {
-        borderBottomColor: '#F3F4F6',
-        borderBottomWidth: 1,
+        backgroundColor: 'white',
+        left: 0,
         paddingVertical: 24,
+        position: 'absolute',
+        right: 0,
+        top: 0,
+        zIndex: 10,
+    },
+    headerGradient: {
+        bottom: -20,
+        height: 20,
+        left: 0,
+        position: 'absolute',
+        right: 0,
     },
     headerTitle: {
         color: '#111827',
-        fontSize: 28,
+        fontSize: 34,
         fontWeight: '700',
-        letterSpacing: -0.5,
+        letterSpacing: -1,
         textAlign: 'center',
     },
     languageToggleContainer: {
         alignItems: 'center',
         flexDirection: 'row',
     },
-    lastSection: {
+    lastGroup: {
         marginBottom: 0,
     },
-    resetButton: {
-        alignItems: 'center',
-        backgroundColor: '#991B1B',
-        borderRadius: 8,
-        paddingVertical: 12,
+    lastSection: {
+        marginBottom: 0,
     },
     resetButtonDisabled: {
         opacity: 0.5,
     },
     resetButtonText: {
         color: '#FFFFFF',
-        fontSize: 15,
+        fontSize: 16,
         fontWeight: '600',
+        letterSpacing: 0.3,
     },
     safeArea: {
         backgroundColor: '#FFFFFF',
@@ -270,32 +322,23 @@ const styles = StyleSheet.create({
     scrollView: {
         flex: 1,
     },
-    section: {
-        marginBottom: 40,
-    },
-    sectionHeader: {
-        marginBottom: 16,
-    },
-    sectionSubtitle: {
-        color: '#6B7280',
-        fontSize: 14,
-        letterSpacing: -0.1,
-    },
-    sectionTitle: {
-        color: '#111827',
-        fontSize: 20,
-        fontWeight: '600',
-        letterSpacing: -0.3,
-        marginBottom: 4,
-    },
+    section: undefined,
+    sectionHeader: undefined,
+    sectionSubtitle: undefined,
+    sectionTitle: undefined,
     settingLabel: {
-        color: '#374151',
-        fontSize: 16,
-        fontWeight: '500',
+        color: '#111827',
+        fontSize: 17,
+        fontWeight: '600',
+        marginBottom: 4,
     },
     settingRow: {
         alignItems: 'center',
         flexDirection: 'row',
         justifyContent: 'space-between',
+    },
+    settingSubLabel: {
+        color: '#6B7280',
+        fontSize: 14,
     },
 });

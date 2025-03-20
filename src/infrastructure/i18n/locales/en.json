@@ -11,6 +11,10 @@
       "theme": "Theme",
       "notifications": "Notifications",
       "dangerZone": "Danger Zone",
+      "groups": {
+        "preferences": "Preferences",
+        "information": "Information"
+      },
       "devNotes": {
         "title": "Developer Notes",
         "content": "I created this app to help people stay informed about the latest news while encouraging critical thinking through interactive questions. My goal is to promote media literacy and thoughtful engagement with current events."
