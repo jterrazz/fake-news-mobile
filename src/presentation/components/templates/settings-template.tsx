@@ -3,12 +3,14 @@ import { useTranslation } from 'react-i18next';
 import {
     Animated,
     Dimensions,
+    Platform,
     SafeAreaView,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 interface SettingsTemplateProps {
@@ -26,24 +28,39 @@ export function SettingsTemplate({
 }: SettingsTemplateProps) {
     const { t } = useTranslation();
     const scrollY = useRef(new Animated.Value(0)).current;
+    const insets = useSafeAreaInsets();
 
     const headerOpacity = scrollY.interpolate({
         extrapolate: 'clamp',
-        inputRange: [0, 60],
+        inputRange: [0, 40],
         outputRange: [1, 0],
     });
 
     const headerScale = scrollY.interpolate({
         extrapolate: 'clamp',
-        inputRange: [0, 60],
+        inputRange: [0, 40],
         outputRange: [1, 0.8],
     });
+
+    const headerStyle = {
+        ...styles.header,
+        paddingBottom: 8,
+        paddingTop: Math.max(insets.top, 16),
+    };
+
+    const contentStyle = {
+        ...styles.content,
+        paddingTop: Platform.select({
+            android: 24,
+            ios: 24 + Math.max(insets.top - 20, 0),
+        }),
+    };
 
     return (
         <SafeAreaView style={styles.safeArea}>
             <Animated.View
                 style={[
-                    styles.header,
+                    headerStyle,
                     { opacity: headerOpacity, transform: [{ scale: headerScale }] },
                 ]}
             >
@@ -56,7 +73,7 @@ export function SettingsTemplate({
 
             <Animated.ScrollView
                 style={styles.scrollView}
-                contentContainerStyle={styles.content}
+                contentContainerStyle={contentStyle}
                 showsVerticalScrollIndicator={false}
                 onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
                     useNativeDriver: true,
@@ -182,7 +199,7 @@ function useSliderAnimation(isEn: boolean) {
 
     return slideAnim.interpolate({
         inputRange: [0, 1],
-        outputRange: [0, 70],
+        outputRange: [0, 66],
     });
 }
 
@@ -202,7 +219,6 @@ const styles = StyleSheet.create({
     content: {
         paddingBottom: 32,
         paddingHorizontal: 24,
-        paddingTop: 100,
     },
     customToggle: {
         backgroundColor: '#F3F4F6',
@@ -263,37 +279,37 @@ const styles = StyleSheet.create({
         lineHeight: 24,
     },
     group: {
-        marginBottom: 48,
+        marginBottom: 24,
     },
     groupTitle: {
         color: '#6B7280',
         fontSize: 13,
         fontWeight: '600',
         letterSpacing: 0.8,
-        marginBottom: 16,
+        marginBottom: 8,
         textTransform: 'uppercase',
     },
     header: {
         backgroundColor: 'white',
         left: 0,
-        paddingVertical: 24,
         position: 'absolute',
         right: 0,
         top: 0,
         zIndex: 10,
     },
     headerGradient: {
-        bottom: -20,
-        height: 20,
+        bottom: -12,
+        height: 12,
         left: 0,
         position: 'absolute',
         right: 0,
     },
     headerTitle: {
         color: '#111827',
-        fontSize: 34,
+        fontSize: 32,
         fontWeight: '700',
         letterSpacing: -1,
+        lineHeight: 38,
         textAlign: 'center',
     },
     languageToggleContainer: {
