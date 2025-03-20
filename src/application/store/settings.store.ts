@@ -4,7 +4,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 import type { Language } from '@/application/ports/news.repository';
 
-import { container } from '@/core/container';
+import { container } from '@/di/container';
 
 interface SettingsState {
     language: Language;

@@ -13,6 +13,7 @@ export interface Container {
     storageService: StorageService;
 }
 
+// TODO Migrate to snap library
 export const createContainer = (): Container => {
     // Infrastructure layer
     const storageRepository = storageReactNativeRepositoryFactory();

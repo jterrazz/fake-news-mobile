@@ -5,7 +5,7 @@ import { Alert } from 'react-native';
 import { useNewsStore } from '@/application/store/news.store';
 import { useSettingsStore } from '@/application/store/settings.store';
 
-import { container } from '@/core/container';
+import { container } from '@/di/container';
 import { SettingsTemplate } from '@/presentation/components/templates/settings-template';
 
 export function SettingsScreen() {
