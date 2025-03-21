@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import type { AnimatedStyleProp } from 'react-native-reanimated';
 import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns';
@@ -62,16 +62,91 @@ export function ArticleList({
     renderExpandedContent,
     scrollViewRef,
 }: ArticleListProps) {
-    const scrollToArticle = (index: number) => {
-        scrollViewRef?.current?.scrollTo({
-            animated: true,
-            y: index * 150,
+    // Track article positions with a state instead of refs
+    const [articlePositions, setArticlePositions] = useState<Map<number, number>>(new Map());
+    const [dateHeaderPositions, setDateHeaderPositions] = useState<Map<string, number>>(new Map());
+
+    // Constants for scroll positioning
+    const HEADER_HEIGHT = 120; // Approximate height based on NewsHeader
+    const SCROLL_OFFSET = 20; // Space between header and top of expanded article
+    const SCROLL_DELAY = 200; // Delay before scrolling to ensure animations have started
+
+    // Record the position of an article when its layout changes
+    const handleArticleLayout = useCallback((index: number, y: number) => {
+        setArticlePositions((prev) => {
+            const newMap = new Map(prev);
+            newMap.set(index, y);
+            return newMap;
         });
-    };
+    }, []);
+
+    // Record the position of a date header when its layout changes
+    const handleDateHeaderLayout = useCallback((dateKey: string, y: number) => {
+        setDateHeaderPositions((prev) => {
+            const newMap = new Map(prev);
+            newMap.set(dateKey, y);
+            return newMap;
+        });
+    }, []);
+
+    // Scroll to the expanded article when expandedIndex changes
+    useEffect(() => {
+        if (expandedIndex === -1 || !scrollViewRef?.current) return;
+
+        const timer = setTimeout(() => {
+            // Get cached position of the article if available
+            const position = articlePositions.get(expandedIndex);
+
+            if (position !== undefined) {
+                scrollViewRef.current?.scrollTo({
+                    animated: true,
+                    y: Math.max(0, position - HEADER_HEIGHT - SCROLL_OFFSET),
+                });
+            } else {
+                // Fallback to approximate position
+                const estimatedHeight = 150; // Average article height
+                const estimatedPosition = expandedIndex * estimatedHeight;
+
+                scrollViewRef.current?.scrollTo({
+                    animated: true,
+                    y: Math.max(0, estimatedPosition - HEADER_HEIGHT),
+                });
+            }
+        }, SCROLL_DELAY);
+
+        return () => clearTimeout(timer);
+    }, [expandedIndex, scrollViewRef, articlePositions]);
 
     const groupedArticles = groupArticlesByDate(articles);
     const sortedDates = Object.entries(groupedArticles).sort(([dateA], [dateB]) =>
         dateB.localeCompare(dateA),
+    );
+
+    // Function to manually scroll to an article (used in expandedContent)
+    const scrollToArticle = useCallback(
+        (index: number) => {
+            if (index < 0 || index >= articles.length || !scrollViewRef?.current) return;
+
+            // Get cached position if available
+            const position = articlePositions.get(index);
+
+            if (position !== undefined) {
+                scrollViewRef.current.scrollTo({
+                    animated: true,
+                    y: Math.max(0, position - HEADER_HEIGHT - SCROLL_OFFSET),
+                });
+            } else {
+                // Fallback to approximate position
+                const estimatedHeight = 150; // Average article height
+                const estimatedPosition = index * estimatedHeight;
+
+                scrollViewRef.current.scrollTo({
+                    animated: true,
+                    y: Math.max(0, estimatedPosition - HEADER_HEIGHT),
+                });
+            }
+        },
+        [articles.length, scrollViewRef, articlePositions],
     );
 
     let globalIndex = 0;
@@ -79,7 +154,10 @@ export function ArticleList({
     return (
         <View style={styles.container}>
             {sortedDates.map(([dateKey, dateArticles], dateIndex) => (
-                <View key={dateKey}>
+                <View
+                    key={dateKey}
+                    onLayout={(e) => handleDateHeaderLayout(dateKey, e.nativeEvent.layout.y)}
+                >
                     <Text style={[styles.dateHeader, dateIndex === 0 && styles.firstDateHeader]}>
                         {getDateLabel(new Date(dateKey))}
                     </Text>
@@ -95,26 +173,35 @@ export function ArticleList({
                                 const isExpanded = currentIndex === expandedIndex;
 
                                 return (
-                                    <ArticleCard
+                                    <View
                                         key={article.id}
-                                        headline={article.headline}
-                                        category={article.category}
-                                        timeAgo={formatTimeAgo(article.answered?.answeredAt)}
-                                        isAnswered={!!article.answered}
-                                        isCorrect={article.answered?.wasCorrect}
-                                        isFake={article.isFake}
-                                        isExpanded={isExpanded}
-                                        onPress={() => onArticlePress(currentIndex)}
-                                        expandedContent={
-                                            isExpanded
-                                                ? renderExpandedContent(
-                                                      article,
-                                                      undefined,
-                                                      scrollToArticle,
-                                                  )
-                                                : undefined
+                                        onLayout={(e) =>
+                                            handleArticleLayout(
+                                                currentIndex,
+                                                e.nativeEvent.layout.y,
+                                            )
                                         }
-                                    />
+                                    >
+                                        <ArticleCard
+                                            headline={article.headline}
+                                            category={article.category}
+                                            timeAgo={formatTimeAgo(article.answered?.answeredAt)}
+                                            isAnswered={!!article.answered}
+                                            isCorrect={article.answered?.wasCorrect}
+                                            isFake={article.isFake}
+                                            isExpanded={isExpanded}
+                                            onPress={() => onArticlePress(currentIndex)}
+                                            expandedContent={
+                                                isExpanded
+                                                    ? renderExpandedContent(
+                                                          article,
+                                                          undefined,
+                                                          scrollToArticle,
+                                                      )
+                                                    : undefined
+                                            }
+                                        />
+                                    </View>
                                 );
                             })}
                     </View>

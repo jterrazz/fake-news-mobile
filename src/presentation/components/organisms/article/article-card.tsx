@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import ReAnimated from 'react-native-reanimated';
 
@@ -32,9 +32,10 @@ export function ArticleCard({
 }: ArticleCardProps) {
     const { containerAnimatedStyle, contentAnimatedStyle, previewAnimatedStyle } =
         useArticleAnimation(isExpanded ?? false);
+    const articleRef = useRef<View>(null);
 
     return (
-        <View style={styles.articleWrapper}>
+        <View style={styles.articleWrapper} ref={articleRef}>
             <ReAnimated.View
                 style={[
                     styles.articleContainer,
