@@ -105,12 +105,15 @@ export function NewsFeedTemplate({
                 const nextIndex = expandedIndex + 1;
                 if (nextIndex >= newsItems.length) return;
 
-                // First select the article
+                // First select the article to start expansion animation
                 onArticleSelect(nextIndex);
 
-                // Then use the scrollToArticle function directly
+                // Then use the scrollToArticle with a slight delay to let expansion begin
                 if (scrollToArticle) {
-                    scrollToArticle(nextIndex);
+                    // Short delay to let the expansion animation start first
+                    setTimeout(() => {
+                        scrollToArticle(nextIndex);
+                    }, 100);
                 }
             }}
             showNextButton={expandedIndex < newsItems.length - 1}

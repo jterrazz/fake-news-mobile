@@ -67,8 +67,8 @@ export function ArticleList({
     const [dateHeaderPositions, setDateHeaderPositions] = useState<Map<string, number>>(new Map());
 
     // Constants for scroll positioning
-    const HEADER_HEIGHT = 110; // Approximate height based on NewsHeader
-    const SCROLL_OFFSET = 20; // Space between header and top of expanded article
+    const HEADER_HEIGHT = 0; // Approximate height based on NewsHeader
+    const SCROLL_OFFSET = -20; // Space between header and top of expanded article
     const SCROLL_DELAY = 200; // Delay before scrolling to ensure animations have started
 
     // Record the position of an article when its layout changes
@@ -93,6 +93,8 @@ export function ArticleList({
     useEffect(() => {
         if (expandedIndex === -1 || !scrollViewRef?.current) return;
 
+        // Use a longer delay to ensure the article expansion has started
+        // before scrolling to its position
         const timer = setTimeout(() => {
             // Get cached position of the article if available
             const position = articlePositions.get(expandedIndex);
@@ -123,7 +125,7 @@ export function ArticleList({
         dateB.localeCompare(dateA),
     );
 
-    // Function to manually scroll to an article (used in expandedContent)
+    // Function to manually scroll to an article (used for the "Next" button)
     const scrollToArticle = useCallback(
         (index: number) => {
             if (index < 0 || index >= articles.length || !scrollViewRef?.current) return;
@@ -132,6 +134,7 @@ export function ArticleList({
             const position = articlePositions.get(index);
 
             if (position !== undefined) {
+                // Smooth scrolling with a slightly longer animation duration
                 scrollViewRef.current.scrollTo({
                     animated: true,
                     y: Math.max(0, position - HEADER_HEIGHT - SCROLL_OFFSET),
