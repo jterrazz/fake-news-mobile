@@ -18,6 +18,7 @@ interface ArticleListProps {
         scrollToArticle?: (index: number) => void,
     ) => React.ReactNode;
     scrollViewRef?: React.RefObject<ScrollView>;
+    suppressScroll?: boolean;
 }
 
 interface GroupedArticles {
@@ -61,6 +62,7 @@ export function ArticleList({
     onArticlePress,
     renderExpandedContent,
     scrollViewRef,
+    suppressScroll = false,
 }: ArticleListProps) {
     // Track article positions with a state instead of refs
     const [articlePositions, setArticlePositions] = useState<Map<number, number>>(new Map());
@@ -97,7 +99,8 @@ export function ArticleList({
 
     // Scroll to the expanded article when expandedIndex changes
     useEffect(() => {
-        if (expandedIndex === -1 || !scrollViewRef?.current) return;
+        // Don't scroll if scrolling is suppressed or there's no valid scroll view or index
+        if (expandedIndex === -1 || !scrollViewRef?.current || suppressScroll) return;
 
         // Use a longer delay to ensure the article expansion has started
         // before scrolling to its position
@@ -124,7 +127,7 @@ export function ArticleList({
         }, SCROLL_DELAY);
 
         return () => clearTimeout(timer);
-    }, [expandedIndex, scrollViewRef, articlePositions]);
+    }, [expandedIndex, scrollViewRef, articlePositions, suppressScroll]);
 
     const groupedArticles = groupArticlesByDate(articles);
     const sortedDates = Object.entries(groupedArticles).sort(([dateA], [dateB]) =>

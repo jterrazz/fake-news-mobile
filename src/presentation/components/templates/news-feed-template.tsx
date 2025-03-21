@@ -42,6 +42,7 @@ interface NewsFeedTemplateProps {
     onAnswerClick: (selectedFake: boolean, buttonPosition: { x: number; y: number }) => void;
     onRefresh: () => Promise<void>;
     onEndReached: () => void;
+    suppressScroll?: boolean;
 }
 
 export function NewsFeedTemplate({
@@ -63,6 +64,7 @@ export function NewsFeedTemplate({
     onAnswerClick,
     onRefresh,
     onEndReached,
+    suppressScroll,
 }: NewsFeedTemplateProps) {
     const { t } = useTranslation();
     const scrollViewRef = React.useRef<ReAnimated.ScrollView>(null);
@@ -205,6 +207,7 @@ export function NewsFeedTemplate({
                                         onArticlePress={onArticleSelect}
                                         renderExpandedContent={renderExpandedContent}
                                         scrollViewRef={scrollViewRef}
+                                        suppressScroll={suppressScroll}
                                     />
                                     {renderFooter()}
                                 </>

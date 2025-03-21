@@ -22,6 +22,7 @@ export function NewsFeedScreen() {
     const [lastClickedPosition, setLastClickedPosition] = useState({ x: 0, y: 0 });
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [answeredInSession, setAnsweredInSession] = useState<Set<string>>(new Set());
+    const [suppressScroll, setSuppressScroll] = useState(false);
 
     const newsItemsWithAnswers = React.useMemo(() => {
         if (!data?.pages) return [];
@@ -92,6 +93,7 @@ export function NewsFeedScreen() {
 
     const handleArticleSelect = (index: number) => {
         console.log(`NewsScreen: Selecting article at index ${index}`);
+        setSuppressScroll(false);
         setExpandedIndex(index);
         setSelectedAnswer(null);
         setLastClickedPosition({ x: 0, y: 0 });
@@ -101,6 +103,8 @@ export function NewsFeedScreen() {
         selectedFake: boolean,
         buttonPosition: { x: number; y: number },
     ) => {
+        setSuppressScroll(true);
+
         setSelectedAnswer(selectedFake);
         setLastClickedPosition(buttonPosition);
 
@@ -148,6 +152,7 @@ export function NewsFeedScreen() {
             onAnswerClick={handleAnswerClick}
             onRefresh={handleRefresh}
             onEndReached={handleEndReached}
+            suppressScroll={suppressScroll}
         />
     );
 }

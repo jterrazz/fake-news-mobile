@@ -64,6 +64,7 @@ export function AnswerButtons({
         animations.fade.fake.setValue(1);
         animations.fade.real.setValue(1);
 
+        // Run main button animations
         Animated.parallel([
             // Fade out unselected button
             Animated.timing(animations.fade[selectedFake ? 'real' : 'fake'], {
@@ -91,35 +92,37 @@ export function AnswerButtons({
                 toValue: centerX,
                 useNativeDriver: true,
             }),
+        ]).start();
 
-            // Scale animation for selected button
-            Animated.sequence([
-                Animated.timing(nextButtonAnim.scale, {
-                    duration: 200,
-                    easing: Easing.bezier(0.4, 0.0, 0.2, 1),
-                    toValue: 1.05,
-                    useNativeDriver: true,
-                }),
-                Animated.spring(nextButtonAnim.scale, {
-                    damping: 15,
-                    mass: 0.8,
-                    restDisplacementThreshold: 0.01,
-                    restSpeedThreshold: 0.01,
-                    stiffness: 250,
-                    toValue: 1,
-                    useNativeDriver: true,
-                }),
-            ]),
-
-            // Fade in next button
-            Animated.timing(nextButtonAnim.opacity, {
-                delay: 200,
+        // Run next button animations separately to ensure reliability
+        // This prevents it from being cancelled by other animations
+        Animated.sequence([
+            // Scale animation for next button
+            Animated.timing(nextButtonAnim.scale, {
                 duration: 300,
                 easing: Easing.bezier(0.4, 0.0, 0.2, 1),
+                toValue: 1.05,
+                useNativeDriver: true,
+            }),
+            Animated.spring(nextButtonAnim.scale, {
+                damping: 15,
+                mass: 0.8,
+                restDisplacementThreshold: 0.01,
+                restSpeedThreshold: 0.01,
+                stiffness: 250,
                 toValue: 1,
                 useNativeDriver: true,
             }),
         ]).start();
+
+        // Fade in next button with a longer duration
+        Animated.timing(nextButtonAnim.opacity, {
+            delay: 200,
+            duration: 500, // Longer duration for more reliability
+            easing: Easing.bezier(0.4, 0.0, 0.2, 1),
+            toValue: 1,
+            useNativeDriver: true,
+        }).start();
     };
 
     const handleAnswerClick = (
@@ -140,9 +143,23 @@ export function AnswerButtons({
         animations.fade.real.setValue(1);
         animations.slide.fake.setValue(0);
         animations.slide.real.setValue(0);
-        nextButtonAnim.opacity.setValue(0);
-        nextButtonAnim.scale.setValue(0.95);
-    }, [currentArticleId]);
+
+        // Only reset next button if we're not in an answered state
+        // This prevents the button from disappearing after it's been shown
+        if (!isAnswered) {
+            nextButtonAnim.opacity.setValue(0);
+            nextButtonAnim.scale.setValue(0.95);
+        }
+    }, [currentArticleId, isAnswered]);
+
+    // Make sure next button always stays visible after answering
+    useEffect(() => {
+        if (isAnswered && showNextButton) {
+            // Ensure the next button is immediately visible if the state indicates it should be
+            nextButtonAnim.opacity.setValue(1);
+            nextButtonAnim.scale.setValue(1);
+        }
+    }, [isAnswered, showNextButton]);
 
     return (
         <View style={styles.buttonContainer}>
