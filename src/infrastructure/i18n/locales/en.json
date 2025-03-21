@@ -43,6 +43,14 @@
       "real": "REAL",
       "thisArticleWas": "This article was",
       "isThisArticleFakeOrReal": "Is this article fake or real?",
+      "dates": {
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "timeAgo": {
+          "prefix": "",
+          "suffix": " ago"
+        }
+      },
       "tabs": {
         "latest": "Latest",
         "toRead": "To Read"

@@ -1,7 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import type { AnimatedStyleProp } from 'react-native-reanimated';
 import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import type { TFunction } from 'i18next';
 
 import { NewsEntity } from '@/domain/news/news.entity';
 
@@ -25,10 +28,14 @@ interface GroupedArticles {
     [key: string]: NewsEntity[];
 }
 
-function getDateLabel(date: Date): string {
-    if (isToday(date)) return 'Today';
-    if (isYesterday(date)) return 'Yesterday';
-    return format(date, 'MMMM d, yyyy');
+function getDateLabel(date: Date, t: TFunction): string {
+    if (isToday(date)) return t('common:newsFeed.dates.today');
+    if (isYesterday(date)) return t('common:newsFeed.dates.yesterday');
+
+    // Use French locale for dates when the app is in French
+    const currentLanguage = t('common:language', { defaultValue: 'en' });
+    const locale = currentLanguage === 'fr' ? fr : undefined;
+    return format(date, 'MMMM d, yyyy', { locale });
 }
 
 function groupArticlesByDate(articles: NewsEntity[]): GroupedArticles {
@@ -46,11 +53,19 @@ function groupArticlesByDate(articles: NewsEntity[]): GroupedArticles {
     }, {} as GroupedArticles);
 }
 
-function formatTimeAgo(date?: string): string {
+function formatTimeAgo(date: string | undefined, t: TFunction): string {
     if (!date) return '';
 
     try {
-        return formatDistanceToNow(new Date(date), { addSuffix: true });
+        // Use French locale for relative time when the app is in French
+        const currentLanguage = t('common:language', { defaultValue: 'en' });
+        const locale = currentLanguage === 'fr' ? fr : undefined;
+        const distance = formatDistanceToNow(new Date(date), { locale });
+
+        // Add prefix/suffix based on language
+        const prefix = t('common:newsFeed.dates.timeAgo.prefix');
+        const suffix = t('common:newsFeed.dates.timeAgo.suffix');
+        return `${prefix}${distance}${suffix}`;
     } catch (error) {
         return '';
     }
@@ -64,6 +79,8 @@ export function ArticleList({
     scrollViewRef,
     suppressScroll = false,
 }: ArticleListProps) {
+    const { t } = useTranslation();
+
     // Track article positions with a state instead of refs
     const [articlePositions, setArticlePositions] = useState<Map<number, number>>(new Map());
     const [dateHeaderPositions, setDateHeaderPositions] = useState<Map<string, number>>(new Map());
@@ -172,7 +189,7 @@ export function ArticleList({
                     onLayout={(e) => handleDateHeaderLayout(dateKey, e.nativeEvent.layout.y)}
                 >
                     <Text style={[styles.dateHeader, dateIndex === 0 && styles.firstDateHeader]}>
-                        {getDateLabel(new Date(dateKey))}
+                        {getDateLabel(new Date(dateKey), t)}
                     </Text>
                     <View style={styles.articleGroup}>
                         {dateArticles
@@ -198,7 +215,7 @@ export function ArticleList({
                                         <ArticleCard
                                             headline={article.headline}
                                             category={article.category}
-                                            timeAgo={formatTimeAgo(article.answered?.answeredAt)}
+                                            timeAgo={formatTimeAgo(article.answered?.answeredAt, t)}
                                             isAnswered={!!article.answered}
                                             isCorrect={article.answered?.wasCorrect}
                                             isFake={article.isFake}
