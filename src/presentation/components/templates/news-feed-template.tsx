@@ -277,7 +277,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flex: 1,
         justifyContent: 'center',
-        paddingTop: 80, // Fixed padding for empty state
     },
     emptyStateText: {
         color: '#999999',
