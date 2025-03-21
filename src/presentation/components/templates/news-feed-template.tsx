@@ -107,32 +107,53 @@ export function NewsFeedTemplate({
         article: NewsEntity,
         contentAnimatedStyle: AnimatedStyleProp<ViewStyle>,
         scrollToArticle?: (index: number) => void,
-    ) => (
-        <ExpandedArticle
-            article={article}
-            contentAnimatedStyle={contentAnimatedStyle}
-            isAnswered={selectedAnswer !== null || article.answered !== undefined}
-            selectedAnswer={selectedAnswer}
-            wasCorrect={answer?.wasCorrect ?? article.answered?.wasCorrect}
-            onAnswerClick={onAnswerClick}
-            onNextArticle={() => {
-                const nextIndex = expandedIndex + 1;
-                if (nextIndex >= newsItems.length) return;
+    ) => {
+        const shouldShowNextButton = expandedIndex < newsItems.length - 1;
+        const isArticleAnswered = selectedAnswer !== null || article.answered !== undefined;
 
-                // First select the article to start expansion animation
-                onArticleSelect(nextIndex);
+        // Force selectedAnswer to be a boolean if the article is already answered but selectedAnswer is null
+        const effectiveSelectedAnswer =
+            selectedAnswer !== null
+                ? selectedAnswer
+                : article.answered
+                  ? article.answered.wasCorrect === article.isFake // If wasCorrect is true and article is fake, the user selected "fake"
+                  : null;
 
-                // Then use the scrollToArticle with a slight delay to let expansion begin
-                if (scrollToArticle) {
-                    // Short delay to let the expansion animation start first
-                    setTimeout(() => {
-                        scrollToArticle(nextIndex);
-                    }, 100);
-                }
-            }}
-            showNextButton={expandedIndex < newsItems.length - 1}
-        />
-    );
+        console.log(
+            `Rendering article ${expandedIndex}, should show next button: ${shouldShowNextButton}`,
+        );
+        console.log(
+            `Article answered status: isAnswered=${isArticleAnswered}, effectiveSelectedAnswer=${effectiveSelectedAnswer}`,
+        );
+
+        return (
+            <ExpandedArticle
+                article={article}
+                contentAnimatedStyle={contentAnimatedStyle}
+                isAnswered={isArticleAnswered}
+                selectedAnswer={effectiveSelectedAnswer}
+                wasCorrect={answer?.wasCorrect ?? article.answered?.wasCorrect}
+                onAnswerClick={onAnswerClick}
+                onNextArticle={() => {
+                    console.log('Next article button pressed');
+                    const nextIndex = expandedIndex + 1;
+                    if (nextIndex >= newsItems.length) return;
+
+                    // First select the article to start expansion animation
+                    onArticleSelect(nextIndex);
+
+                    // Then use the scrollToArticle with a slight delay to let expansion begin
+                    if (scrollToArticle) {
+                        // Short delay to let the expansion animation start first
+                        setTimeout(() => {
+                            scrollToArticle(nextIndex);
+                        }, 100);
+                    }
+                }}
+                showNextButton={shouldShowNextButton}
+            />
+        );
+    };
 
     const renderCelebrationEffect = () => {
         if (!answer?.wasCorrect || lastClickedPosition.x === 0) return null;

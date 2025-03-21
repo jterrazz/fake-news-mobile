@@ -104,8 +104,10 @@ export function NewsFeedScreen() {
         buttonPosition: { x: number; y: number },
     ) => {
         setSuppressScroll(true);
-
-        setSelectedAnswer(selectedFake);
+        
+        setSelectedAnswer(selectedFake);  
+        console.log(`Setting selectedAnswer to ${selectedFake}`);
+        
         setLastClickedPosition(buttonPosition);
 
         if (currentNewsItem) {

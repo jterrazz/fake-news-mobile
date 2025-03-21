@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
 import { Animated, Easing, Platform, StyleSheet, Text, View } from 'react-native';
 
-import { NewsEntity } from '@/domain/news/news.entity.js';
+import { NewsEntity } from '@/domain/news/news.entity';
 
 import { IconButton } from '../../atoms/buttons/icon-button.jsx';
 import { TextButton } from '../../atoms/buttons/text-button.jsx';
 
-import { FakeReasonButton } from '@/presentation/components/molecules/article/fake-reason-button.jsx';
-import { SIZES } from '@/presentation/components/sizes.js';
+import { FakeReasonButton } from '@/presentation/components/molecules/article/fake-reason-button';
+import { SIZES } from '@/presentation/components/sizes';
 
 interface ButtonPosition {
     x: number;
@@ -182,13 +182,11 @@ export function AnswerButtons({
                         {selectedAnswer === true ? 'FAKE' : 'REAL'}
                     </TextButton>
 
+                    {/* Next button - force opacity to 1 regardless of animation value */}
                     {selectedAnswer !== null && showNextButton && (
-                        <Animated.View
+                        <View
                             style={[
                                 styles.nextButtonContainer,
-                                {
-                                    transform: [{ scale: nextButtonAnim.scale }],
-                                },
                             ]}
                         >
                             <IconButton
@@ -197,7 +195,7 @@ export function AnswerButtons({
                                 size="medium"
                                 variant="primary"
                             />
-                        </Animated.View>
+                        </View>
                     )}
                     <FakeReasonButton
                         fakeReason={article.fakeReason}
@@ -326,6 +324,15 @@ const styles = StyleSheet.create({
         shadowRadius: 2,
     },
     nextButtonContainer: {
+        alignItems: 'center',  
+        backgroundColor: 'rgba(0, 0, 0, 0.04)',
+        // Light background to make it more visible
+borderRadius: 20,
+        height: 40,
+        justifyContent: 'center',
+        marginLeft: 8,
+        padding: 4,
         position: 'relative',
+        width: 40,
     },
 });

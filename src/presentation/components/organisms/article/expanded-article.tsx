@@ -6,7 +6,7 @@ import { NewsEntity } from '@/domain/news/news.entity';
 
 import { ArticleContent } from '../../molecules/article/article-content.jsx';
 import { ArticleHeader } from '../../molecules/article/article-header.jsx';
-import { SIZES } from '../../sizes.js';
+import { SIZES } from '../../sizes.jsx';
 import { AnswerButtons } from '../question/answer-buttons.jsx';
 
 interface ExpandedArticleProps {
