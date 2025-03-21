@@ -65,7 +65,7 @@ export function ArticleList({
     // Track article positions with a state instead of refs
     const [articlePositions, setArticlePositions] = useState<Map<number, number>>(new Map());
     const [dateHeaderPositions, setDateHeaderPositions] = useState<Map<string, number>>(new Map());
-    
+
     // Clear position data when articles change or component remounts
     useEffect(() => {
         setArticlePositions(new Map());
@@ -73,8 +73,8 @@ export function ArticleList({
     }, [articles]);
 
     // Constants for scroll positioning
-    const HEADER_HEIGHT = 120; // Match the actual header height
-    const SCROLL_OFFSET = 20; // Space between header and top of expanded article
+    const HEADER_HEIGHT = 0; // Match the actual header height
+    const SCROLL_OFFSET = -20; // Space between header and top of expanded article
     const SCROLL_DELAY = 200; // Delay before scrolling to ensure animations have started
 
     // Record the position of an article when its layout changes
@@ -200,7 +200,13 @@ export function ArticleList({
                                             isCorrect={article.answered?.wasCorrect}
                                             isFake={article.isFake}
                                             isExpanded={isExpanded}
-                                            onPress={() => onArticlePress(currentIndex)}
+                                            onPress={() => {
+                                                console.log(
+                                                    `Pressing article ${currentIndex}`,
+                                                    article.headline,
+                                                );
+                                                onArticlePress(currentIndex);
+                                            }}
                                             expandedContent={
                                                 isExpanded
                                                     ? renderExpandedContent(

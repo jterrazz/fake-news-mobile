@@ -1,4 +1,4 @@
-import React, {useState } from 'react';
+import React, { useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { useNewsStore } from '@/application/store/news.store';
@@ -74,25 +74,24 @@ export function NewsFeedScreen() {
         newsItem: currentNewsItem,
     });
 
-    const { headerAnimatedStyle, titleAnimatedStyle, scrollHandler, resetAnimation } = useHeaderAnimation();
+    const { headerAnimatedStyle, titleAnimatedStyle, scrollHandler, resetAnimation } =
+        useHeaderAnimation();
 
     useFocusEffect(
         React.useCallback(() => {
+            console.log('Screen focused - Resetting animation only');
             resetAnimation();
-            
-            if (filteredNewsItems.length > 0) {
-                setExpandedIndex(0);
-            }
-            
+
             setSelectedAnswer(null);
-            
+
             return () => {
                 // No cleanup needed
             };
-        }, [resetAnimation, filteredNewsItems.length])
+        }, [resetAnimation]),
     );
 
     const handleArticleSelect = (index: number) => {
+        console.log(`NewsScreen: Selecting article at index ${index}`);
         setExpandedIndex(index);
         setSelectedAnswer(null);
         setLastClickedPosition({ x: 0, y: 0 });
