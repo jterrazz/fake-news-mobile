@@ -19,15 +19,24 @@ const LANGUAGE_DETECTOR = {
     },
     detect: async (callback: (lng: string) => void) => {
         try {
-            // Get language from settings store
+            // First try to get language from settings store
             const language = useSettingsStore.getState().language;
             if (language) {
                 callback(language);
                 return;
             }
 
-            // Fallback to device language if store is empty
-            callback(Localization.locale.split('-')[0]);
+            // If no stored language, get system language
+            const deviceLocale = Localization.locale;
+            const languageCode = deviceLocale.split('-')[0].toLowerCase();
+
+            // Check if the language is supported
+            const supportedLanguages = ['en', 'fr'];
+            const detectedLanguage = supportedLanguages.includes(languageCode)
+                ? languageCode
+                : 'en';
+
+            callback(detectedLanguage);
         } catch {
             callback('en');
         }
