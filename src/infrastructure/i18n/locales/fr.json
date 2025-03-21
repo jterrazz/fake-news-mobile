@@ -19,6 +19,10 @@
         "title": "Notes du développeur",
         "content": "Salut ! 👋 J'ai créé cette app pour rendre la lecture des actus vraiment amusante. Saurez-vous repérer les fausses nouvelles ? C'est comme un jeu qui vous aide à détecter la désinformation. Profitez du défi et merci de rejoindre notre communauté de chercheurs de vérité ! 🕵️‍♂️✨"
       },
+      "aiDisclaimer": {
+        "title": "Contenu Généré par IA",
+        "content": "Tous les articles et contenus d'actualité de cette application sont générés par intelligence artificielle. Bien que nous nous efforcions d'assurer la qualité et la précision, veuillez noter que ce contenu est généré automatiquement et doit être considéré en conséquence."
+      },
       "reset": {
         "title": "Réinitialiser tout",
         "message": "Êtes-vous sûr ? Cette action ne peut pas être annulée.",

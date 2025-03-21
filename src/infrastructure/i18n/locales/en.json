@@ -19,6 +19,10 @@
         "title": "Developer Notes",
         "content": "Hey there! 👋 I built this app to make scrolling through news actually fun. Can you spot the fake stories? It's like a game that happens to make you better at spotting misinformation. Enjoy the challenge, and thanks for joining our truth-seeking community! 🕵️‍♂️✨"
       },
+      "aiDisclaimer": {
+        "title": "AI-Generated Content",
+        "content": "All articles and news content in this application are generated using artificial intelligence. While we strive for accuracy and quality, please note that this content is automatically generated and should be viewed accordingly."
+      },
       "reset": {
         "title": "Reset Everything",
         "message": "Are you sure? This action cannot be undone.",

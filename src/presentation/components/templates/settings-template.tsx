@@ -148,8 +148,23 @@ export function SettingsTemplate({
                     <Text style={styles.groupTitle}>{t('common:settings.groups.information')}</Text>
 
                     <View style={styles.card}>
+                        <Text style={[styles.settingLabel, { marginBottom: 8 }]}>
+                            {t('common:settings.devNotes.title')}
+                        </Text>
                         <Text style={styles.devNotesText}>
                             {t('common:settings.devNotes.content')}
+                        </Text>
+                    </View>
+
+                    <View style={[styles.card, styles.aiDisclaimer]}>
+                        <Text style={[styles.settingLabel, { marginBottom: 8 }]}>
+                            {t('common:settings.aiDisclaimer.title', 'AI-Generated Content')}
+                        </Text>
+                        <Text style={styles.devNotesText}>
+                            {t(
+                                'common:settings.aiDisclaimer.content',
+                                'All articles and news content in this application are generated using artificial intelligence. While we strive for accuracy and quality, please note that this content is automatically generated and should be viewed accordingly.',
+                            )}
                         </Text>
                     </View>
                 </View>
@@ -206,6 +221,10 @@ function useSliderAnimation(isEn: boolean) {
 const { width } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
+    aiDisclaimer: {
+        marginTop: 12,
+    },
+
     card: {
         backgroundColor: '#FFFFFF',
         borderRadius: 16,
@@ -216,10 +235,12 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.05,
         shadowRadius: 15,
     },
+
     content: {
         paddingBottom: 32,
         paddingHorizontal: 24,
     },
+
     customToggle: {
         backgroundColor: '#F3F4F6',
         borderRadius: 30,
@@ -229,12 +250,14 @@ const styles = StyleSheet.create({
         position: 'relative',
         width: 140,
     },
+
     customToggleOption: {
         alignItems: 'center',
         flex: 1,
         justifyContent: 'center',
         zIndex: 1,
     },
+
     customToggleSlider: {
         backgroundColor: '#111827',
         borderRadius: 28,
@@ -249,38 +272,45 @@ const styles = StyleSheet.create({
         top: 3,
         width: 67,
     },
+
     customToggleText: {
         color: '#6B7280',
         fontSize: 14,
         fontWeight: '600',
         letterSpacing: 0.5,
     },
+
     customToggleTextActive: {
         color: '#FFFFFF',
     },
+
     dangerCard: {
         borderRadius: 16,
         overflow: 'hidden',
     },
+
     dangerGradient: {
         alignItems: 'center',
         padding: 20,
     },
-    dangerSection: {
-        marginTop: 48,
-    },
+
+    // Danger Zone
     dangerTitle: {
         color: '#991B1B',
     },
+
     devNotesText: {
         color: '#4B5563',
         fontSize: 15,
         letterSpacing: -0.3,
         lineHeight: 24,
     },
+
+    // Groups and Cards
     group: {
         marginBottom: 24,
     },
+
     groupTitle: {
         color: '#6B7280',
         fontSize: 13,
@@ -289,6 +319,8 @@ const styles = StyleSheet.create({
         marginBottom: 8,
         textTransform: 'uppercase',
     },
+
+    // Header
     header: {
         backgroundColor: 'white',
         left: 0,
@@ -297,6 +329,7 @@ const styles = StyleSheet.create({
         top: 0,
         zIndex: 10,
     },
+
     headerGradient: {
         bottom: -12,
         height: 12,
@@ -304,6 +337,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         right: 0,
     },
+
     headerTitle: {
         color: '#111827',
         fontSize: 32,
@@ -312,42 +346,45 @@ const styles = StyleSheet.create({
         lineHeight: 38,
         textAlign: 'center',
     },
+
+    // Language Toggle
     languageToggleContainer: {
         alignItems: 'center',
         flexDirection: 'row',
     },
+
     lastGroup: {
         marginBottom: 0,
     },
-    lastSection: {
-        marginBottom: 0,
-    },
+
     resetButtonDisabled: {
         opacity: 0.5,
     },
+
     resetButtonText: {
         color: '#FFFFFF',
         fontSize: 16,
         fontWeight: '600',
         letterSpacing: 0.3,
     },
+
+    // Layout
     safeArea: {
         backgroundColor: '#FFFFFF',
         flex: 1,
     },
+
     scrollView: {
         flex: 1,
     },
-    section: undefined,
-    sectionHeader: undefined,
-    sectionSubtitle: undefined,
-    sectionTitle: undefined,
+
     settingLabel: {
         color: '#111827',
         fontSize: 17,
         fontWeight: '600',
         marginBottom: 4,
     },
+    // Settings Items
     settingRow: {
         alignItems: 'center',
         flexDirection: 'row',
