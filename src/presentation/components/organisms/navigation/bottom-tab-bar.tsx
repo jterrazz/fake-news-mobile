@@ -14,22 +14,30 @@ type TabRoute = {
 
 const ROUTES: Record<string, TabRoute> = {
     feed: { icon: 'newspaper-variant', name: 'Feed' },
-    home: { icon: 'newspaper-variant', name: 'Home' },
+    home: { icon: 'home', name: 'Home' },
     profile: { icon: 'account', name: 'Profile' },
-    settings: { icon: 'tune', name: 'Settings' },
+    settings: { icon: 'cog', name: 'Settings' },
 } as const;
 
 const TAB_BAR_CONFIG = {
-    borderRadius: 16,
-    bottomOffset: 42,
-    height: 60,
-    width: 196,
+    borderRadius: 28,
+    bottomOffset: 34,
+    height: 72,
+    width: 280,
 } as const;
 
 const SPRING_CONFIG = {
-    damping: 20,
-    mass: 0.5,
-    stiffness: 120,
+    damping: 15,
+    mass: 0.6,
+    stiffness: 180,
+} as const;
+
+const COLORS = {
+    active: '#000000',
+    background: 'rgba(255, 255, 255, 0.85)',
+    border: 'rgba(0, 0, 0, 0.06)',
+    inactive: '#94A3B8',
+    indicator: 'rgba(0, 0, 0, 0.04)',
 } as const;
 
 const ANIMATION_CONFIG = {
@@ -63,26 +71,32 @@ const TabItem = React.memo(
         const routeName = route.name.toLowerCase() as keyof typeof ROUTES;
         const icon = ROUTES[routeName]?.icon;
 
-        const animatedStyle = useAnimatedStyle(() => ({
-            opacity: withSpring(isFocused ? 1 : 0.7, ANIMATION_CONFIG),
-            transform: [{ scale: withSpring(isFocused ? 1.1 : 1, ANIMATION_CONFIG) }],
-        }));
+        const animatedStyle = useAnimatedStyle(() => {
+            'worklet';
+            const scale = withSpring(isFocused ? 1.15 : 1, ANIMATION_CONFIG);
+            const opacity = withSpring(isFocused ? 1 : 0.65, ANIMATION_CONFIG);
+
+            return {
+                opacity,
+                transform: [{ scale }] as any, // Type assertion needed due to React Native Reanimated typing limitations
+            };
+        });
 
         return (
             <Pressable
                 onLayout={(event) => onLayout(index, event.nativeEvent.layout)}
                 accessibilityRole="button"
                 accessibilityState={isFocused ? { selected: true } : {}}
-                accessibilityLabel={t(`common.navigation.${routeName}`)}
+                accessibilityLabel={t('common:navigation:' + routeName)}
                 testID={descriptors[route.key].options.tabBarTestID}
                 onPress={() => onPress(route, isFocused)}
                 style={[styles.item, { width }]}
             >
-                <Animated.View style={animatedStyle}>
+                <Animated.View style={[styles.iconContainer, animatedStyle]}>
                     <MaterialCommunityIcons
                         name={icon as keyof typeof MaterialCommunityIcons.glyphMap}
-                        size={18}
-                        color={isFocused ? '#FFFFFF' : '#64748B'}
+                        size={22}
+                        color={isFocused ? COLORS.active : COLORS.inactive}
                     />
                 </Animated.View>
             </Pressable>
@@ -167,23 +181,23 @@ export const BottomTabBar = (props: BottomTabBarProps) => (
 
 const styles = StyleSheet.create({
     blurContainer: {
-        backgroundColor: 'rgba(255, 255, 255, 0.85)',
-        borderColor: 'rgba(148, 163, 184, 0.08)',
+        backgroundColor: COLORS.background,
+        borderColor: COLORS.border,
         borderRadius: TAB_BAR_CONFIG.borderRadius,
         borderWidth: 1,
         bottom: TAB_BAR_CONFIG.bottomOffset,
-        elevation: 8,
+        elevation: 0,
         height: TAB_BAR_CONFIG.height,
         left: '50%',
         overflow: 'hidden',
         position: 'absolute',
         shadowColor: '#000',
         shadowOffset: {
-            height: 8,
+            height: 16,
             width: 0,
         },
-        shadowOpacity: 0.15,
-        shadowRadius: 16,
+        shadowOpacity: 0.08,
+        shadowRadius: 24,
         transform: [{ translateX: -TAB_BAR_CONFIG.width / 2 }],
         width: TAB_BAR_CONFIG.width,
     },
@@ -195,15 +209,21 @@ const styles = StyleSheet.create({
         position: 'relative',
         width: '100%',
     },
+    iconContainer: {
+        alignItems: 'center',
+        borderRadius: 16,
+        height: 48,
+        justifyContent: 'center',
+        width: 48,
+    },
     indicator: {
-        backgroundColor: 'black',
-        borderRadius: 12,
-        elevation: 2,
-        height: 44,
+        backgroundColor: COLORS.indicator,
+        borderRadius: 20,
+        height: 48,
         position: 'absolute',
         shadowColor: '#000',
         shadowOffset: { height: 2, width: 0 },
-        shadowOpacity: 0.08,
+        shadowOpacity: 0.04,
         shadowRadius: 8,
     },
     item: {
