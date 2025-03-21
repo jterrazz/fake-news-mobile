@@ -33,8 +33,8 @@
     },
     "newsFeed": {
       "title": "Fake News",
-      "noArticles": "No articles available",
-      "noMoreArticles": "You've reached the end",
+      "noArticles": "News is taking a nap! Pull to wake it up ✨",
+      "noMoreArticles": "That's all folks! No more news for now 🚀",
       "retry": "Pull to refresh",
       "readMore": "Read More",
       "whyFake": "Why is this fake?",

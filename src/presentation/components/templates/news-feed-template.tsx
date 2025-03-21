@@ -156,27 +156,27 @@ export function NewsFeedTemplate({
             />
             <SafeArea>
                 <View style={styles.scrollContainer}>
-                    <ReAnimated.ScrollView
-                        ref={scrollViewRef}
-                        style={styles.scrollView}
-                        onScroll={combinedScrollHandler}
-                        scrollEventThrottle={16}
-                        bounces={true}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ flexGrow: 1 }}
-                        onMomentumScrollEnd={handleScroll}
-                        refreshControl={
-                            <RefreshControl
-                                refreshing={isRefreshing}
-                                onRefresh={onRefresh}
-                                tintColor="#000000"
-                                title={t('common:newsFeed.retry')}
-                                titleColor="#999999"
-                                progressViewOffset={128}
-                            />
-                        }
-                    >
-                        <Container style={styles.container} withHeaderOffset>
+                    <Container style={styles.container} withHeaderOffset>
+                        <ReAnimated.ScrollView
+                            ref={scrollViewRef}
+                            style={styles.scrollView}
+                            onScroll={combinedScrollHandler}
+                            scrollEventThrottle={16}
+                            bounces={true}
+                            showsVerticalScrollIndicator={false}
+                            contentContainerStyle={{ flexGrow: 1 }}
+                            onMomentumScrollEnd={handleScroll}
+                            refreshControl={
+                                <RefreshControl
+                                    refreshing={isRefreshing}
+                                    onRefresh={onRefresh}
+                                    tintColor="#000000"
+                                    title={t('common:newsFeed.retry')}
+                                    titleColor="#999999"
+                                    progressViewOffset={48}
+                                />
+                            }
+                        >
                             {isRefreshing ? (
                                 <LoadingSpinner size="large" />
                             ) : newsItems.length === 0 ? (
@@ -197,8 +197,8 @@ export function NewsFeedTemplate({
                                     {renderFooter()}
                                 </>
                             )}
-                        </Container>
-                    </ReAnimated.ScrollView>
+                        </ReAnimated.ScrollView>
+                    </Container>
                     <LinearGradient
                         colors={['rgba(255,255,255,0)', 'rgba(255,255,255,1)']}
                         style={styles.fadeGradient}
@@ -228,11 +228,11 @@ const styles = StyleSheet.create({
     },
     endMessage: {
         alignItems: 'center',
-        paddingBottom: SIZES['3xl'] * 4,
-        paddingVertical: SIZES.lg,
+        paddingBottom: SIZES['3xl'] * 3,
+        paddingVertical: SIZES.xs,
     },
     endMessageText: {
-        color: '#666666',
+        color: '#BBBBBB',
         fontSize: 14,
         textAlign: 'center',
     },
