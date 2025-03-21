@@ -67,7 +67,7 @@ export function ArticleList({
     const [dateHeaderPositions, setDateHeaderPositions] = useState<Map<string, number>>(new Map());
 
     // Constants for scroll positioning
-    const HEADER_HEIGHT = 120; // Approximate height based on NewsHeader
+    const HEADER_HEIGHT = 110; // Approximate height based on NewsHeader
     const SCROLL_OFFSET = 20; // Space between header and top of expanded article
     const SCROLL_DELAY = 200; // Delay before scrolling to ensure animations have started
 
@@ -98,6 +98,7 @@ export function ArticleList({
             const position = articlePositions.get(expandedIndex);
 
             if (position !== undefined) {
+                // Add smooth animation properties
                 scrollViewRef.current?.scrollTo({
                     animated: true,
                     y: Math.max(0, position - HEADER_HEIGHT - SCROLL_OFFSET),

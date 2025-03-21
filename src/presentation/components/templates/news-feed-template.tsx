@@ -102,8 +102,16 @@ export function NewsFeedTemplate({
             wasCorrect={answer?.wasCorrect ?? article.answered?.wasCorrect}
             onAnswerClick={onAnswerClick}
             onNextArticle={() => {
-                onArticleSelect(expandedIndex + 1);
-                scrollToArticle?.(expandedIndex + 1);
+                const nextIndex = expandedIndex + 1;
+                if (nextIndex >= newsItems.length) return;
+
+                // First select the article
+                onArticleSelect(nextIndex);
+
+                // Then use the scrollToArticle function directly
+                if (scrollToArticle) {
+                    scrollToArticle(nextIndex);
+                }
             }}
             showNextButton={expandedIndex < newsItems.length - 1}
         />
