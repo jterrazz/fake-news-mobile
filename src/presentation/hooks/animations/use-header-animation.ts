@@ -32,8 +32,8 @@ export function useHeaderAnimation(): HeaderAnimationStyles {
     };
 
     const resetAnimation = () => {
-        // Use immediate timing for a hard reset to avoid transition artifacts
-        headerHeight.value = 180;
+        // Set initial values directly without animation for consistent state
+        headerHeight.value = 180;  // Always reset to full expanded size
         lastScrollY.value = 0;
         scrollY.value = 0;
     };

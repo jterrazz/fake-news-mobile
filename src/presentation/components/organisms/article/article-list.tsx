@@ -75,8 +75,8 @@ export function ArticleList({
     }, [articles]);
 
     // Constants for scroll positioning
-    const HEADER_HEIGHT = 0; // Match the actual header height
-    const SCROLL_OFFSET = -20; // Space between header and top of expanded article
+    const HEADER_HEIGHT = 120; // Fixed header height for consistent behavior
+    const SCROLL_OFFSET = 24; // Fixed offset for consistent positioning
     const SCROLL_DELAY = 200; // Delay before scrolling to ensure animations have started
 
     // Record the position of an article when its layout changes
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     },
     container: {
         flex: 1,
-        paddingTop: SIZES.xl,
+        paddingTop: 8,
     },
     dateHeader: {
         color: '#000000',
@@ -251,6 +251,6 @@ const styles = StyleSheet.create({
         textTransform: 'uppercase',
     },
     firstDateHeader: {
-        marginTop: SIZES.xl + SIZES.lg,
+        marginTop: 16,
     },
 });

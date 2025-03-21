@@ -23,6 +23,7 @@ export function NewsFeedScreen() {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [answeredInSession, setAnsweredInSession] = useState<Set<string>>(new Set());
     const [suppressScroll, setSuppressScroll] = useState(false);
+    const [isFromTabSwitch, setIsFromTabSwitch] = useState(false);
 
     const newsItemsWithAnswers = React.useMemo(() => {
         if (!data?.pages) return [];
@@ -80,15 +81,20 @@ export function NewsFeedScreen() {
 
     useFocusEffect(
         React.useCallback(() => {
-            console.log('Screen focused - Resetting animation only');
-            resetAnimation();
-
+            if (!isFromTabSwitch) {
+                console.log('Screen focused from navigation - Resetting animation');
+                resetAnimation();
+            } else {
+                console.log('Screen focused from tab switch - Skipping animation reset');
+                setIsFromTabSwitch(false);
+            }
+            
             setSelectedAnswer(null);
-
+            
             return () => {
                 // No cleanup needed
             };
-        }, [resetAnimation]),
+        }, [resetAnimation, isFromTabSwitch])
     );
 
     const handleArticleSelect = (index: number) => {
@@ -124,6 +130,7 @@ export function NewsFeedScreen() {
     };
 
     const handleTabChange = (newTab: 'latest' | 'to-read') => {
+        setIsFromTabSwitch(true);
         setActiveTab(newTab);
         setAnsweredInSession(new Set());
     };

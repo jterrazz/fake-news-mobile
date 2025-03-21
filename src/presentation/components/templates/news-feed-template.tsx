@@ -2,8 +2,10 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
+    Dimensions,
     NativeScrollEvent,
     NativeSyntheticEvent,
+    Platform,
     RefreshControl,
     StyleSheet,
     Text,
@@ -11,12 +13,12 @@ import {
     ViewStyle,
 } from 'react-native';
 import ReAnimated, { AnimatedStyleProp, useAnimatedScrollHandler } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { NewsEntity } from '@/domain/news/news.entity';
 
 import { LoadingSpinner } from '@/presentation/components/atoms/indicators/loading-spinner';
-import { SafeArea } from '@/presentation/components/atoms/layout/safe-area';
 import { CelebrationParticle } from '@/presentation/components/molecules/feedback/celebration-particle';
 import { NewsHeader } from '@/presentation/components/molecules/header/news-header';
 import { ArticleList } from '@/presentation/components/organisms/article/article-list';
@@ -68,6 +70,7 @@ export function NewsFeedTemplate({
 }: NewsFeedTemplateProps) {
     const { t } = useTranslation();
     const scrollViewRef = React.useRef<ReAnimated.ScrollView>(null);
+    const { top } = useSafeAreaInsets();
 
     // Reset scroll position when the component mounts or when activeTab changes
     React.useEffect(() => {
@@ -180,69 +183,87 @@ export function NewsFeedTemplate({
         return null;
     };
 
+    // COMPONENT LAYOUT ARCHITECTURE
+    // Use a fixed pixel-based approach that won't reflow or recalculate on navigation
+    const SCREEN_HEIGHT = Dimensions.get('window').height;
+    const FIXED_HEADER_HEIGHT = Platform.OS === 'ios' ? 110 : 90;
+
     return (
         <View style={styles.mainContainer}>
-            <NewsHeader
-                activeTab={activeTab}
-                onTabChange={onTabChange}
-                score={score}
-                headerAnimatedStyle={headerAnimatedStyle}
-                titleAnimatedStyle={titleAnimatedStyle}
-            />
-            <SafeArea style={styles.safeArea}>
-                <View style={styles.scrollContainer}>
-                    <ReAnimated.ScrollView
-                        ref={scrollViewRef}
-                        style={styles.scrollView}
-                        onScroll={combinedScrollHandler}
-                        scrollEventThrottle={16}
-                        bounces={true}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ flexGrow: 1 }}
-                        onMomentumScrollEnd={handleScroll}
-                        refreshControl={
-                            <RefreshControl
-                                refreshing={isRefreshing}
-                                onRefresh={onRefresh}
-                                tintColor="#000000"
-                                title={t('common:newsFeed.retry')}
-                                titleColor="#999999"
-                                progressViewOffset={48}
-                            />
-                        }
-                    >
-                        <View style={styles.container}>
-                            {isRefreshing ? (
-                                <LoadingSpinner size="large" />
-                            ) : newsItems.length === 0 ? (
-                                <View style={styles.emptyState}>
-                                    <Text style={styles.emptyStateText}>
-                                        {t('common:newsFeed.noArticles')}
-                                    </Text>
-                                </View>
-                            ) : (
-                                <>
-                                    <ArticleList
-                                        articles={newsItems}
-                                        expandedIndex={expandedIndex}
-                                        onArticlePress={onArticleSelect}
-                                        renderExpandedContent={renderExpandedContent}
-                                        scrollViewRef={scrollViewRef}
-                                        suppressScroll={suppressScroll}
-                                    />
-                                    {renderFooter()}
-                                </>
-                            )}
-                        </View>
-                    </ReAnimated.ScrollView>
-                    <LinearGradient
-                        colors={['rgba(255,255,255,0)', 'rgba(255,255,255,1)']}
-                        style={styles.fadeGradient}
-                        pointerEvents="none"
-                    />
-                </View>
-                {renderCelebrationEffect()}
-            </SafeArea>
+            <View style={{ height: FIXED_HEADER_HEIGHT, zIndex: 10 }}>
+                <NewsHeader
+                    activeTab={activeTab}
+                    onTabChange={onTabChange}
+                    score={score}
+                    headerAnimatedStyle={headerAnimatedStyle}
+                    titleAnimatedStyle={titleAnimatedStyle}
+                />
+            </View>
+
+            <View
+                style={{
+                    flex: 1,
+                    height: SCREEN_HEIGHT - FIXED_HEADER_HEIGHT,
+                    marginTop: 0,
+                    overflow: 'hidden',
+                    paddingTop: 0,
+                    position: 'relative',
+                }}
+            >
+                <ReAnimated.ScrollView
+                    ref={scrollViewRef}
+                    style={styles.scrollView}
+                    onScroll={combinedScrollHandler}
+                    scrollEventThrottle={16}
+                    bounces={true}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{
+                        flexGrow: 1,
+                        paddingTop: Platform.OS === 'ios' ? 30 : 20, // Fixed padding inside scroll content
+                    }}
+                    onMomentumScrollEnd={handleScroll}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={isRefreshing}
+                            onRefresh={onRefresh}
+                            tintColor="#000000"
+                            title={t('common:newsFeed.retry')}
+                            titleColor="#999999"
+                            progressViewOffset={60}
+                        />
+                    }
+                >
+                    <View style={styles.container}>
+                        {isRefreshing ? (
+                            <LoadingSpinner size="large" />
+                        ) : newsItems.length === 0 ? (
+                            <View style={styles.emptyState}>
+                                <Text style={styles.emptyStateText}>
+                                    {t('common:newsFeed.noArticles')}
+                                </Text>
+                            </View>
+                        ) : (
+                            <>
+                                <ArticleList
+                                    articles={newsItems}
+                                    expandedIndex={expandedIndex}
+                                    onArticlePress={onArticleSelect}
+                                    renderExpandedContent={renderExpandedContent}
+                                    scrollViewRef={scrollViewRef}
+                                    suppressScroll={suppressScroll}
+                                />
+                                {renderFooter()}
+                            </>
+                        )}
+                    </View>
+                </ReAnimated.ScrollView>
+                <LinearGradient
+                    colors={['rgba(255,255,255,0)', 'rgba(255,255,255,1)']}
+                    style={styles.fadeGradient}
+                    pointerEvents="none"
+                />
+            </View>
+            {renderCelebrationEffect()}
         </View>
     );
 }
@@ -250,16 +271,16 @@ export function NewsFeedTemplate({
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingHorizontal: SIZES.sm,
+        paddingHorizontal: 16,
     },
     emptyState: {
         alignItems: 'center',
         flex: 1,
         justifyContent: 'center',
-        paddingTop: 100,
+        paddingTop: 80, // Fixed padding for empty state
     },
     emptyStateText: {
-        color: '#666666',
+        color: '#999999',
         fontSize: 16,
         textAlign: 'center',
     },
@@ -275,11 +296,10 @@ const styles = StyleSheet.create({
     },
     fadeGradient: {
         bottom: 0,
-        height: 100,
+        height: 80,
         left: 0,
         position: 'absolute',
         right: 0,
-        zIndex: 1,
     },
     loadingMore: {
         alignItems: 'center',
@@ -295,7 +315,6 @@ const styles = StyleSheet.create({
     },
     scrollContainer: {
         flex: 1,
-        paddingTop: 96,
         position: 'relative',
     },
     scrollView: {
