@@ -1,16 +1,26 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import type { ViewStyle } from 'react-native';
 import { StyleSheet, Text, View } from 'react-native';
 
 interface StatusIndicatorProps {
     isCorrect: boolean;
     isFake: boolean;
-    style?: any;
+    style?: ViewStyle;
 }
 
 export function StatusIndicator({ isCorrect, isFake, style }: StatusIndicatorProps) {
+    const { t } = useTranslation();
+
+    // Get the first letter of the translated word (Fake/Real)
+    const translatedWord = isFake
+        ? (t('common:newsFeed.fake') as string)
+        : (t('common:newsFeed.real') as string);
+    const letter = translatedWord.charAt(0);
+
     return (
         <View style={[styles.container, isCorrect ? styles.correct : styles.incorrect, style]}>
-            <Text style={styles.text}>{isFake ? 'F' : 'R'}</Text>
+            <Text style={styles.text}>{letter}</Text>
         </View>
     );
 }
