@@ -1,11 +1,13 @@
-import type { StyleProp, ViewStyle } from 'react-native';
+import type { ViewStyle } from 'react-native';
+import type { AnimatedStyleProp } from 'react-native-reanimated';
 import { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { Extrapolate, interpolate } from 'react-native-reanimated';
 
 interface HeaderAnimationStyles {
-    headerAnimatedStyle: StyleProp<ViewStyle>;
-    titleAnimatedStyle: StyleProp<ViewStyle>;
+    headerAnimatedStyle: AnimatedStyleProp<ViewStyle>;
+    titleAnimatedStyle: AnimatedStyleProp<ViewStyle>;
     scrollHandler: (event: { nativeEvent: { contentOffset: { y: number } } }) => void;
+    resetAnimation: () => void;
 }
 
 export function useHeaderAnimation(): HeaderAnimationStyles {
@@ -27,6 +29,13 @@ export function useHeaderAnimation(): HeaderAnimationStyles {
         headerHeight.value = Math.max(70, Math.min(180, headerHeight.value - delta));
         lastScrollY.value = y;
         scrollY.value = y;
+    };
+
+    const resetAnimation = () => {
+        // Use immediate timing for a hard reset to avoid transition artifacts
+        headerHeight.value = 180;
+        lastScrollY.value = 0;
+        scrollY.value = 0;
     };
 
     const scrollHandler = (event: { nativeEvent: { contentOffset: { y: number } } }) => {
@@ -52,6 +61,7 @@ export function useHeaderAnimation(): HeaderAnimationStyles {
 
     return {
         headerAnimatedStyle,
+        resetAnimation,
         scrollHandler,
         titleAnimatedStyle,
     };

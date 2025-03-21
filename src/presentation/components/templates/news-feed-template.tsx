@@ -16,7 +16,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { NewsEntity } from '@/domain/news/news.entity';
 
 import { LoadingSpinner } from '@/presentation/components/atoms/indicators/loading-spinner';
-import { Container } from '@/presentation/components/atoms/layout/container';
 import { SafeArea } from '@/presentation/components/atoms/layout/safe-area';
 import { CelebrationParticle } from '@/presentation/components/molecules/feedback/celebration-particle';
 import { NewsHeader } from '@/presentation/components/molecules/header/news-header';
@@ -67,6 +66,19 @@ export function NewsFeedTemplate({
 }: NewsFeedTemplateProps) {
     const { t } = useTranslation();
     const scrollViewRef = React.useRef<ReAnimated.ScrollView>(null);
+
+    // Reset scroll position when the component mounts or when activeTab changes
+    React.useEffect(() => {
+        // Small timeout to ensure the component is fully rendered
+        const timeout = setTimeout(() => {
+            if (scrollViewRef.current) {
+                // Force an immediate hard reset of the scroll position
+                scrollViewRef.current.scrollTo({ animated: false, y: 0 });
+            }
+        }, 50);
+
+        return () => clearTimeout(timeout);
+    }, [activeTab, newsItems.length]);
 
     const handleScroll = React.useCallback(
         (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -154,29 +166,29 @@ export function NewsFeedTemplate({
                 headerAnimatedStyle={headerAnimatedStyle}
                 titleAnimatedStyle={titleAnimatedStyle}
             />
-            <SafeArea>
+            <SafeArea style={styles.safeArea}>
                 <View style={styles.scrollContainer}>
-                    <Container style={styles.container} withHeaderOffset>
-                        <ReAnimated.ScrollView
-                            ref={scrollViewRef}
-                            style={styles.scrollView}
-                            onScroll={combinedScrollHandler}
-                            scrollEventThrottle={16}
-                            bounces={true}
-                            showsVerticalScrollIndicator={false}
-                            contentContainerStyle={{ flexGrow: 1 }}
-                            onMomentumScrollEnd={handleScroll}
-                            refreshControl={
-                                <RefreshControl
-                                    refreshing={isRefreshing}
-                                    onRefresh={onRefresh}
-                                    tintColor="#000000"
-                                    title={t('common:newsFeed.retry')}
-                                    titleColor="#999999"
-                                    progressViewOffset={48}
-                                />
-                            }
-                        >
+                    <ReAnimated.ScrollView
+                        ref={scrollViewRef}
+                        style={styles.scrollView}
+                        onScroll={combinedScrollHandler}
+                        scrollEventThrottle={16}
+                        bounces={true}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={{ flexGrow: 1 }}
+                        onMomentumScrollEnd={handleScroll}
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={isRefreshing}
+                                onRefresh={onRefresh}
+                                tintColor="#000000"
+                                title={t('common:newsFeed.retry')}
+                                titleColor="#999999"
+                                progressViewOffset={48}
+                            />
+                        }
+                    >
+                        <View style={styles.container}>
                             {isRefreshing ? (
                                 <LoadingSpinner size="large" />
                             ) : newsItems.length === 0 ? (
@@ -197,8 +209,8 @@ export function NewsFeedTemplate({
                                     {renderFooter()}
                                 </>
                             )}
-                        </ReAnimated.ScrollView>
-                    </Container>
+                        </View>
+                    </ReAnimated.ScrollView>
                     <LinearGradient
                         colors={['rgba(255,255,255,0)', 'rgba(255,255,255,1)']}
                         style={styles.fadeGradient}
@@ -213,6 +225,7 @@ export function NewsFeedTemplate({
 
 const styles = StyleSheet.create({
     container: {
+        flex: 1,
         paddingHorizontal: SIZES.sm,
     },
     emptyState: {
@@ -253,8 +266,12 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFFFFF',
         flex: 1,
     },
+    safeArea: {
+        flex: 1,
+    },
     scrollContainer: {
         flex: 1,
+        paddingTop: 96,
         position: 'relative',
     },
     scrollView: {

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, {useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 
 import { useNewsStore } from '@/application/store/news.store';
 import { useSettingsStore } from '@/application/store/settings.store';
@@ -73,7 +74,23 @@ export function NewsFeedScreen() {
         newsItem: currentNewsItem,
     });
 
-    const { headerAnimatedStyle, titleAnimatedStyle, scrollHandler } = useHeaderAnimation();
+    const { headerAnimatedStyle, titleAnimatedStyle, scrollHandler, resetAnimation } = useHeaderAnimation();
+
+    useFocusEffect(
+        React.useCallback(() => {
+            resetAnimation();
+            
+            if (filteredNewsItems.length > 0) {
+                setExpandedIndex(0);
+            }
+            
+            setSelectedAnswer(null);
+            
+            return () => {
+                // No cleanup needed
+            };
+        }, [resetAnimation, filteredNewsItems.length])
+    );
 
     const handleArticleSelect = (index: number) => {
         setExpandedIndex(index);
