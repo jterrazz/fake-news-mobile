@@ -13,6 +13,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import { SIZES } from '../sizes.jsx';
+
 interface SettingsTemplateProps {
     selectedLanguage: 'en' | 'fr';
     isResetting: boolean;
@@ -316,7 +318,7 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: '600',
         letterSpacing: 0.8,
-        marginBottom: 8,
+        marginBottom: SIZES.lg,
         textTransform: 'uppercase',
     },
 
