@@ -34,10 +34,10 @@ const SPRING_CONFIG = {
 
 const COLORS = {
     active: '#000000',
-    background: 'rgba(255, 255, 255, 0.85)',
-    border: 'rgba(0, 0, 0, 0.06)',
-    inactive: '#94A3B8',
-    indicator: 'rgba(0, 0, 0, 0.04)',
+    background: 'rgba(255, 255, 255, 0.75)',
+    border: 'rgb(242, 242, 242)',
+    inactive: 'rgb(179, 179, 179)',
+    indicator: 'rgba(0, 0, 0, 0.05)',
 } as const;
 
 const ANIMATION_CONFIG = {
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
             height: 16,
             width: 0,
         },
-        shadowOpacity: 0.08,
+        shadowOpacity: 0.06,
         shadowRadius: 24,
         transform: [{ translateX: -TAB_BAR_CONFIG.width / 2 }],
         width: TAB_BAR_CONFIG.width,
