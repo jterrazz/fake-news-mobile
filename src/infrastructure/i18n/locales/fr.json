@@ -39,6 +39,10 @@
       "readMore": "Lire la suite",
       "whyFake": "Pourquoi est-ce faux ?",
       "close": "Fermer",
+      "fake": "FAUX",
+      "real": "VRAI",
+      "thisArticleWas": "Cet article était",
+      "isThisArticleFakeOrReal": "Cet article est-il vrai ou faux ?",
       "tabs": {
         "latest": "Récents",
         "toRead": "À lire"

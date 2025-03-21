@@ -39,6 +39,10 @@
       "readMore": "Read More",
       "whyFake": "Why is this fake?",
       "close": "Close",
+      "fake": "FAKE",
+      "real": "REAL",
+      "thisArticleWas": "This article was",
+      "isThisArticleFakeOrReal": "Is this article fake or real?",
       "tabs": {
         "latest": "Latest",
         "toRead": "To Read"

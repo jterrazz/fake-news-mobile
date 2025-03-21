@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Animated, Easing, Platform, StyleSheet, Text, View } from 'react-native';
 
 import { NewsEntity } from '@/domain/news/news.entity';
@@ -35,6 +36,8 @@ export function AnswerButtons({
     currentArticleId,
     article,
 }: AnswerButtonsProps) {
+    const { t } = useTranslation();
+
     // Move animation state management into the component
     const [animations] = React.useState(() => ({
         fade: {
@@ -166,8 +169,8 @@ export function AnswerButtons({
             <View style={styles.hintContainer}>
                 <Text style={[styles.hintText]}>
                     {isAnswered
-                        ? `This article was ${article.isFake ? 'fake' : 'real'}`
-                        : 'Is this article fake or real?'}
+                        ? `${t('common:newsFeed.thisArticleWas')} ${article.isFake ? t('common:newsFeed.fake') : t('common:newsFeed.real')}`
+                        : t('common:newsFeed.isThisArticleFakeOrReal')}
                 </Text>
             </View>
 
@@ -179,16 +182,14 @@ export function AnswerButtons({
                         disabled
                         size="small"
                     >
-                        {selectedAnswer === true ? 'FAKE' : 'REAL'}
+                        {selectedAnswer === true
+                            ? t('common:newsFeed.fake')
+                            : t('common:newsFeed.real')}
                     </TextButton>
 
                     {/* Next button - force opacity to 1 regardless of animation value */}
                     {selectedAnswer !== null && showNextButton && (
-                        <View
-                            style={[
-                                styles.nextButtonContainer,
-                            ]}
-                        >
+                        <View style={[styles.nextButtonContainer]}>
                             <IconButton
                                 icon="arrow-down"
                                 onPress={onNextArticle}
@@ -232,7 +233,7 @@ export function AnswerButtons({
                             disabled={isAnswered}
                             size="small"
                         >
-                            FAKE
+                            {t('common:newsFeed.fake')}
                         </TextButton>
                     </Animated.View>
 
@@ -263,7 +264,7 @@ export function AnswerButtons({
                             disabled={isAnswered}
                             size="small"
                         >
-                            REAL
+                            {t('common:newsFeed.real')}
                         </TextButton>
                     </Animated.View>
                 </View>
@@ -324,10 +325,10 @@ const styles = StyleSheet.create({
         shadowRadius: 2,
     },
     nextButtonContainer: {
-        alignItems: 'center',  
+        alignItems: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.04)',
         // Light background to make it more visible
-borderRadius: 20,
+        borderRadius: 20,
         height: 40,
         justifyContent: 'center',
         marginLeft: 8,

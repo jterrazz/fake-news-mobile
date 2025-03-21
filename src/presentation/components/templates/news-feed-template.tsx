@@ -229,7 +229,7 @@ export function NewsFeedTemplate({
                             tintColor="#000000"
                             title={t('common:newsFeed.retry')}
                             titleColor="#999999"
-                            progressViewOffset={60}
+                            progressViewOffset={100}
                         />
                     }
                 >
