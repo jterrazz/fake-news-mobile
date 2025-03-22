@@ -20,7 +20,8 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.jterrazz.fakenews"
+      "bundleIdentifier": "com.jterrazz.fakenews",
+      "hermesBuildFlags": ["-DWITH_DYNARR=0"]
     },
     "android": {
       "adaptiveIcon": {
