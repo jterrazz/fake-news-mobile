@@ -115,36 +115,36 @@ export function ArticleList({
     }, []);
 
     // Scroll to the expanded article when expandedIndex changes
-    useEffect(() => {
-        // Don't scroll if scrolling is suppressed or there's no valid scroll view or index
-        if (expandedIndex === -1 || !scrollViewRef?.current || suppressScroll) return;
+    // useEffect(() => {
+    //     // Don't scroll if scrolling is suppressed or there's no valid scroll view or index
+    //     if (expandedIndex === -1 || !scrollViewRef?.current || suppressScroll) return;
 
-        // Use a longer delay to ensure the article expansion has started
-        // before scrolling to its position
-        const timer = setTimeout(() => {
-            // Get cached position of the article if available
-            const position = articlePositions.get(expandedIndex);
+    //     // Use a longer delay to ensure the article expansion has started
+    //     // before scrolling to its position
+    //     const timer = setTimeout(() => {
+    //         // Get cached position of the article if available
+    //         const position = articlePositions.get(expandedIndex);
 
-            if (position !== undefined) {
-                // Add smooth animation properties
-                scrollViewRef.current?.scrollTo({
-                    animated: true,
-                    y: Math.max(0, position - HEADER_HEIGHT - SCROLL_OFFSET),
-                });
-            } else {
-                // Fallback to approximate position
-                const estimatedHeight = 150; // Average article height
-                const estimatedPosition = expandedIndex * estimatedHeight;
+    //         if (position !== undefined) {
+    //             // Add smooth animation properties
+    //             scrollViewRef.current?.scrollTo({
+    //                 animated: true,
+    //                 y: Math.max(0, position - HEADER_HEIGHT - SCROLL_OFFSET),
+    //             });
+    //         } else {
+    //             // Fallback to approximate position
+    //             const estimatedHeight = 150; // Average article height
+    //             const estimatedPosition = expandedIndex * estimatedHeight;
 
-                scrollViewRef.current?.scrollTo({
-                    animated: true,
-                    y: Math.max(0, estimatedPosition - HEADER_HEIGHT),
-                });
-            }
-        }, SCROLL_DELAY);
+    //             scrollViewRef.current?.scrollTo({
+    //                 animated: true,
+    //                 y: Math.max(0, estimatedPosition - HEADER_HEIGHT),
+    //             });
+    //         }
+    //     }, SCROLL_DELAY);
 
-        return () => clearTimeout(timer);
-    }, [expandedIndex, scrollViewRef, articlePositions, suppressScroll]);
+    //     return () => clearTimeout(timer);
+    // }, [expandedIndex, scrollViewRef, articlePositions, suppressScroll]);
 
     const groupedArticles = groupArticlesByDate(articles);
     const sortedDates = Object.entries(groupedArticles).sort(([dateA], [dateB]) =>
@@ -154,27 +154,24 @@ export function ArticleList({
     // Function to manually scroll to an article (used for the "Next" button)
     const scrollToArticle = useCallback(
         (index: number) => {
-            if (index < 0 || index >= articles.length || !scrollViewRef?.current) return;
-
-            // Get cached position if available
-            const position = articlePositions.get(index);
-
-            if (position !== undefined) {
-                // Smooth scrolling with a slightly longer animation duration
-                scrollViewRef.current.scrollTo({
-                    animated: true,
-                    y: Math.max(0, position - HEADER_HEIGHT - SCROLL_OFFSET),
-                });
-            } else {
-                // Fallback to approximate position
-                const estimatedHeight = 150; // Average article height
-                const estimatedPosition = index * estimatedHeight;
-
-                scrollViewRef.current.scrollTo({
-                    animated: true,
-                    y: Math.max(0, estimatedPosition - HEADER_HEIGHT),
-                });
-            }
+            // if (index < 0 || index >= articles.length || !scrollViewRef?.current) return;
+            // // Get cached position if available
+            // const position = articlePositions.get(index);
+            // if (position !== undefined) {
+            //     // Smooth scrolling with a slightly longer animation duration
+            //     scrollViewRef.current.scrollTo({
+            //         animated: true,
+            //         y: Math.max(0, position - HEADER_HEIGHT - SCROLL_OFFSET),
+            //     });
+            // } else {
+            //     // Fallback to approximate position
+            //     const estimatedHeight = 150; // Average article height
+            //     const estimatedPosition = index * estimatedHeight;
+            //     scrollViewRef.current.scrollTo({
+            //         animated: true,
+            //         y: Math.max(0, estimatedPosition - HEADER_HEIGHT),
+            //     });
+            // }
         },
         [articles.length, scrollViewRef, articlePositions],
     );

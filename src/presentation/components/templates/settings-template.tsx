@@ -82,6 +82,31 @@ export function SettingsTemplate({
                 })}
                 scrollEventThrottle={16}
             >
+                {/* Information Group */}
+                <View style={styles.group}>
+                    <Text style={styles.groupTitle}>{t('common:settings.groups.information')}</Text>
+
+                    <View style={styles.card}>
+                        <Text style={[styles.settingLabel, { marginBottom: 8 }]}>
+                            {t('common:settings.devNotes.title')}
+                        </Text>
+                        <Text style={styles.devNotesText}>
+                            {t('common:settings.devNotes.content')}
+                        </Text>
+                    </View>
+
+                    <View style={[styles.card, styles.aiDisclaimer]}>
+                        <Text style={[styles.settingLabel, { marginBottom: 8 }]}>
+                            {t('common:settings.aiDisclaimer.title', 'AI-Generated Content')}
+                        </Text>
+                        <Text style={styles.devNotesText}>
+                            {t(
+                                'common:settings.aiDisclaimer.content',
+                                'All articles and news content in this application are generated using artificial intelligence. While we strive for accuracy and quality, please note that this content is automatically generated and should be viewed accordingly.',
+                            )}
+                        </Text>
+                    </View>
+                </View>
                 {/* Preferences Group */}
                 <View style={styles.group}>
                     <Text style={styles.groupTitle}>{t('common:settings.groups.preferences')}</Text>
@@ -143,32 +168,6 @@ export function SettingsTemplate({
                             </View>
                         </View>
                     </TouchableOpacity>
-                </View>
-
-                {/* Information Group */}
-                <View style={styles.group}>
-                    <Text style={styles.groupTitle}>{t('common:settings.groups.information')}</Text>
-
-                    <View style={styles.card}>
-                        <Text style={[styles.settingLabel, { marginBottom: 8 }]}>
-                            {t('common:settings.devNotes.title')}
-                        </Text>
-                        <Text style={styles.devNotesText}>
-                            {t('common:settings.devNotes.content')}
-                        </Text>
-                    </View>
-
-                    <View style={[styles.card, styles.aiDisclaimer]}>
-                        <Text style={[styles.settingLabel, { marginBottom: 8 }]}>
-                            {t('common:settings.aiDisclaimer.title', 'AI-Generated Content')}
-                        </Text>
-                        <Text style={styles.devNotesText}>
-                            {t(
-                                'common:settings.aiDisclaimer.content',
-                                'All articles and news content in this application are generated using artificial intelligence. While we strive for accuracy and quality, please note that this content is automatically generated and should be viewed accordingly.',
-                            )}
-                        </Text>
-                    </View>
                 </View>
 
                 {/* Danger Zone Group */}
@@ -356,7 +355,7 @@ const styles = StyleSheet.create({
     },
 
     lastGroup: {
-        marginBottom: 0,
+        marginBottom: 64,
     },
 
     resetButtonDisabled: {

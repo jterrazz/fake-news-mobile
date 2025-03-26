@@ -5,9 +5,6 @@
   "main": "expo/AppEntry.js",
   "scripts": {
     "dev": "expo start",
-    "dev:android": "expo run:android",
-    "dev:ios": "expo run:ios",
-    "dev:web": "expo start --web",
     "prebuild": "npx expo prebuild",
     "clean": "rm -rf ios android node_modules .expo",
     "android": "expo run:android",
