@@ -1,5 +1,7 @@
 import React from 'react';
-import { Platform, StyleSheet, Text, TextProps } from 'react-native';
+import { StyleSheet, Text, TextProps } from 'react-native';
+
+import { FONT_FAMILY } from '@/presentation/theme/typography';
 
 interface HeadlineProps extends TextProps {
     children: React.ReactNode;
@@ -16,9 +18,8 @@ export function Headline({ children, size = 'medium', style, ...props }: Headlin
 
 const styles = StyleSheet.create({
     base: {
-        color: '#000000',
-        fontFamily: Platform.OS === 'ios' ? 'New York' : 'serif',
-        fontWeight: '700',
+        color: '#111111',
+        fontFamily: FONT_FAMILY.semibold,
         letterSpacing: -0.5,
         textShadowColor: 'rgba(0, 0, 0, 0.04)',
         textShadowOffset: { height: 1, width: 0 },
@@ -29,7 +30,7 @@ const styles = StyleSheet.create({
         lineHeight: 40,
     },
     medium: {
-        fontSize: 24,
+        fontSize: 26,
         lineHeight: 30,
     },
     small: {

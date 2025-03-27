@@ -1,5 +1,7 @@
 import React from 'react';
-import { Platform, StyleSheet, Text, TextProps } from 'react-native';
+import { StyleSheet, Text, TextProps } from 'react-native';
+
+import { FONT_FAMILY } from '@/presentation/theme/typography';
 
 interface BodyProps extends TextProps {
     children: React.ReactNode;
@@ -18,8 +20,7 @@ export function Body({ children, variant = 'primary', size = 'medium', style, ..
 const styles = StyleSheet.create({
     base: {
         color: '#1A1A1A',
-        fontFamily: Platform.OS === 'ios' ? 'New York' : 'Noto Serif',
-        fontWeight: '400',
+        fontFamily: FONT_FAMILY.regular,
         letterSpacing: 0.1,
     },
     large: {

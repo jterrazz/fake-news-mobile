@@ -2,6 +2,8 @@ import React from 'react';
 import { Platform, StatusBar, UIManager } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
+import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
 
 import '@/infrastructure/i18n/i18n.config';
 
@@ -17,6 +19,9 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
+// Keep the splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync();
+
 function Providers({ children }: { children: React.ReactNode }) {
     return (
         <ContainerProvider>
@@ -25,23 +30,50 @@ function Providers({ children }: { children: React.ReactNode }) {
     );
 }
 
-export const AppRoot = () => {
-    const BottomTab = createBottomTabNavigator();
+export function AppRoot() {
+    const [fontsLoaded] = useFonts({
+        'Geist-Black': require('../../assets/fonts/Geist-Black.otf'),
+        'Geist-Bold': require('../../assets/fonts/Geist-Bold.otf'),
+        'Geist-ExtraBold': require('../../assets/fonts/Geist-ExtraBold.otf'),
+        'Geist-ExtraLight': require('../../assets/fonts/Geist-ExtraLight.otf'),
+        'Geist-Light': require('../../assets/fonts/Geist-Light.otf'),
+        'Geist-Medium': require('../../assets/fonts/Geist-Medium.otf'),
+        'Geist-Regular': require('../../assets/fonts/Geist-Regular.otf'),
+        'Geist-SemiBold': require('../../assets/fonts/Geist-SemiBold.otf'),
+        'Geist-Thin': require('../../assets/fonts/Geist-Thin.otf'),
+    });
+
+    React.useEffect(() => {
+        if (fontsLoaded) {
+            // Hide splash screen once fonts are loaded
+            SplashScreen.hideAsync();
+        }
+    }, [fontsLoaded]);
+
+    if (!fontsLoaded) {
+        return null; // Still loading fonts
+    }
 
     return (
         <Providers>
-            <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
-            <NavigationContainer>
-                <BottomTab.Navigator
-                    tabBar={BottomTabBar}
-                    screenOptions={{
-                        headerShown: false,
-                    }}
-                >
-                    <BottomTab.Screen name="Home" component={NewsFeedScreen} />
-                    <BottomTab.Screen name="Settings" component={SettingsScreen} />
-                </BottomTab.Navigator>
-            </NavigationContainer>
+            <StatusBar barStyle="dark-content" />
+            <Navigation />
         </Providers>
     );
-};
+}
+
+function Navigation() {
+    const Tab = createBottomTabNavigator();
+
+    return (
+        <NavigationContainer>
+            <Tab.Navigator
+                screenOptions={{ headerShown: false }}
+                tabBar={(props) => <BottomTabBar {...props} />}
+            >
+                <Tab.Screen name="feed" component={NewsFeedScreen} />
+                <Tab.Screen name="settings" component={SettingsScreen} />
+            </Tab.Navigator>
+        </NavigationContainer>
+    );
+}

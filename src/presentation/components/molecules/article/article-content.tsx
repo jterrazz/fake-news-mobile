@@ -4,6 +4,8 @@ import Markdown from 'react-native-markdown-display';
 
 import { SIZES } from '../../sizes.jsx';
 
+import { FONT_FAMILY } from '@/presentation/theme/typography.js';
+
 interface ArticleContentProps {
     content: string;
 }
@@ -35,18 +37,19 @@ const markdownStyles = StyleSheet.create({
         paddingLeft: SIZES.sm,
     },
     body: {
-        color: '#000000',
+        color: '#222222',
+        fontFamily: FONT_FAMILY.regular,
         fontSize: 16,
         lineHeight: 24,
     },
     heading1: {
+        fontFamily: FONT_FAMILY.bold,
         fontSize: 24,
-        fontWeight: 'bold',
         marginBottom: SIZES.sm,
     },
     heading2: {
+        fontFamily: FONT_FAMILY.bold,
         fontSize: 20,
-        fontWeight: 'bold',
         marginBottom: SIZES.sm,
     },
     link: {
@@ -57,5 +60,8 @@ const markdownStyles = StyleSheet.create({
     },
     paragraph: {
         marginBottom: SIZES.sm,
+    },
+    strong: {
+        fontFamily: FONT_FAMILY.bold,
     },
 });

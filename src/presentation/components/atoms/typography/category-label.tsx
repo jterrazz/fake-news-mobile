@@ -1,6 +1,8 @@
 import React from 'react';
 import { StyleSheet, Text, TextProps, View, ViewStyle } from 'react-native';
 
+import { FONT_FAMILY } from '@/presentation/theme/typography';
+
 interface CategoryLabelProps extends TextProps {
     children: React.ReactNode;
     containerStyle?: ViewStyle;
@@ -25,8 +27,8 @@ const styles = StyleSheet.create({
     },
     text: {
         color: '#666666',
+        fontFamily: FONT_FAMILY.semibold,
         fontSize: 9,
-        fontWeight: '600',
         letterSpacing: 0.5,
         lineHeight: 11,
         textTransform: 'uppercase',

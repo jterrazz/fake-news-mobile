@@ -1,7 +1,8 @@
 import React from 'react';
-import { Animated, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, View, ViewStyle } from 'react-native';
 
 import { FONT_SIZES } from '@/presentation/components/sizes';
+import { FONT_FAMILY } from '@/presentation/theme/typography';
 
 interface TextButtonProps {
     children: React.ReactNode;
@@ -9,7 +10,7 @@ interface TextButtonProps {
     variant?: 'primary' | 'correct' | 'incorrect';
     disabled?: boolean;
     size?: 'small' | 'full';
-    style?: React.CSSProperties;
+    style?: ViewStyle;
 }
 
 export function TextButton({
@@ -131,9 +132,8 @@ const styles = StyleSheet.create({
     },
     buttonText: {
         color: '#000000',
-        fontFamily: Platform.OS === 'ios' ? 'SF Pro Text' : 'System',
+        fontFamily: FONT_FAMILY.bold,
         fontSize: FONT_SIZES.sm,
-        fontWeight: '700',
         letterSpacing: 2,
         lineHeight: 48,
         textAlign: 'center',

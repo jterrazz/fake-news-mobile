@@ -16,12 +16,16 @@
       "enabled": false,
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.jterrazz.fakenews",
-      "hermesBuildFlags": ["-DWITH_DYNARR=0"]
+      "hermesBuildFlags": [
+        "-DWITH_DYNARR=0"
+      ]
     },
     "android": {
       "adaptiveIcon": {
@@ -46,7 +50,37 @@
           },
           "imageWidth": 256
         }
-      ]
+      ],
+      "expo-font"
+    ],
+    "fonts": [
+      {
+        "asset": "./assets/fonts/Geist-Thin.otf"
+      },
+      {
+        "asset": "./assets/fonts/Geist-ExtraLight.otf"
+      },
+      {
+        "asset": "./assets/fonts/Geist-Light.otf"
+      },
+      {
+        "asset": "./assets/fonts/Geist-Regular.otf"
+      },
+      {
+        "asset": "./assets/fonts/Geist-Medium.otf"
+      },
+      {
+        "asset": "./assets/fonts/Geist-SemiBold.otf"
+      },
+      {
+        "asset": "./assets/fonts/Geist-Bold.otf"
+      },
+      {
+        "asset": "./assets/fonts/Geist-ExtraBold.otf"
+      },
+      {
+        "asset": "./assets/fonts/Geist-Black.otf"
+      }
     ]
   }
 }

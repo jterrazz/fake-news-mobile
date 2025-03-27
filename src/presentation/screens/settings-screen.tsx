@@ -16,39 +16,35 @@ export function SettingsScreen() {
     const setLanguage = useSettingsStore((state) => state.setLanguage);
 
     const handleReset = () => {
-        Alert.alert(
-            t('common:settings.reset.title'),
-            t('common:settings.reset.message'),
-            [
-                {
-                    style: 'cancel',
-                    text: t('common:settings.reset.cancel'),
+        Alert.alert(t('common:settings.reset.title'), t('common:settings.reset.message'), [
+            {
+                style: 'cancel',
+                text: t('common:settings.reset.cancel'),
+            },
+            {
+                onPress: async () => {
+                    try {
+                        setIsResetting(true);
+                        await container.storageService.clear();
+                        resetStore();
+                        setLanguage('en');
+                        Alert.alert(
+                            t('common:settings.reset.successTitle'),
+                            t('common:settings.reset.successMessage'),
+                        );
+                    } catch (error) {
+                        Alert.alert(
+                            t('common:settings.reset.errorTitle'),
+                            t('common:settings.reset.errorMessage'),
+                        );
+                    } finally {
+                        setIsResetting(false);
+                    }
                 },
-                {
-                    onPress: async () => {
-                        try {
-                            setIsResetting(true);
-                            await container.storageService.clear();
-                            resetStore();
-                            setLanguage('en');
-                            Alert.alert(
-                                t('common:settings.reset.successTitle'),
-                                t('common:settings.reset.successMessage'),
-                            );
-                        } catch (error) {
-                            Alert.alert(
-                                t('common:settings.reset.errorTitle'),
-                                t('common:settings.reset.errorMessage'),
-                            );
-                        } finally {
-                            setIsResetting(false);
-                        }
-                    },
-                    style: 'destructive',
-                    text: t('common:settings.reset.confirm'),
-                },
-            ],
-        );
+                style: 'destructive',
+                text: t('common:settings.reset.confirm'),
+            },
+        ]);
     };
 
     const handleLanguageToggle = () => {
