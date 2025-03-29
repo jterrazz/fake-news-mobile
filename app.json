@@ -16,16 +16,12 @@
       "enabled": false,
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.jterrazz.fakenews",
-      "hermesBuildFlags": [
-        "-DWITH_DYNARR=0"
-      ]
+      "hermesBuildFlags": ["-DWITH_DYNARR=0"]
     },
     "android": {
       "adaptiveIcon": {
