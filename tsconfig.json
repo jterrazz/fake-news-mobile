@@ -1,5 +1,5 @@
 {
-  "extends": "@jterrazz/package-typescript/tsconfig/expo",
+  "extends": "@jterrazz/typescript/tsconfig/expo",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
