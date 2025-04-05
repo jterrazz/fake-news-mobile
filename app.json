@@ -42,7 +42,8 @@
             "image": "./assets/icon-transparent.png",
             "backgroundColor": "#000000"
           },
-          "imageWidth": 128
+          "imageWidth": 128,
+          "resizeMode": "contain"
         }
       ],
       "expo-font"
