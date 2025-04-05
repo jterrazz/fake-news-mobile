@@ -46,7 +46,7 @@ export function AppRoot() {
     React.useEffect(() => {
         if (fontsLoaded) {
             // Hide splash screen once fonts are loaded
-            // SplashScreen.hideAsync();
+            SplashScreen.hideAsync();
         }
     }, [fontsLoaded]);
 

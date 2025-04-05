@@ -1,11 +1,18 @@
 import React from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, ImageSourcePropType, StyleSheet, Text, View } from 'react-native';
 
+// Import icons
+import IconDefault from '../../../../../assets/icon.png';
+import IconBrown from '../../../../../assets/icon-brown.png';
+import IconDark from '../../../../../assets/icon-dark.png';
+import IconGreen from '../../../../../assets/icon-green.png';
 import { StatusIndicator } from '../../atoms/indicators/status-indicator.jsx';
 
 import { ArticleMeta } from './article-meta.jsx';
 import { SIZES } from '@/presentation/components/sizes.js';
 import { FONT_FAMILY } from '@/presentation/theme/typography';
+
+type IconVariant = 'default' | 'dark' | 'green' | 'brown';
 
 interface ArticlePreviewProps {
     headline: string;
@@ -14,7 +21,15 @@ interface ArticlePreviewProps {
     isAnswered?: boolean;
     isCorrect?: boolean;
     isFake?: boolean;
+    iconVariant?: IconVariant;
 }
+
+const ICON_SOURCES: Record<IconVariant, ImageSourcePropType> = {
+    brown: IconBrown,
+    dark: IconDark,
+    default: IconDefault,
+    green: IconGreen,
+};
 
 export function ArticlePreview({
     headline,
@@ -23,13 +38,14 @@ export function ArticlePreview({
     isAnswered,
     isCorrect,
     isFake,
+    iconVariant,
 }: ArticlePreviewProps) {
     return (
         <View style={styles.previewContent}>
             <View style={styles.previewLeftColumn}>
                 <View style={styles.previewIconContainer}>
                     <Image
-                        source={require('../../../../../assets/icon.png')}
+                        source={ICON_SOURCES[iconVariant]}
                         style={styles.previewIcon}
                         resizeMode="cover"
                     />

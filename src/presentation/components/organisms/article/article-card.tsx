@@ -7,6 +7,21 @@ import { ArticlePreview } from '../../molecules/article-preview/article-preview.
 import { SIZES } from '@/presentation/components/sizes.js';
 import { useArticleAnimation } from '@/presentation/hooks/animations/use-article-animation';
 
+type IconVariant = 'default' | 'dark' | 'green' | 'brown';
+
+const getIconVariantFromHeadline = (headline: string): IconVariant => {
+    if (!headline) return 'default';
+
+    // Get the first letter and convert to lowercase
+    const firstLetter = headline.trim().toLowerCase().charAt(0);
+
+    // Distribute letters across the variants
+    if ('abcdefgh'.includes(firstLetter)) return 'default';
+    if ('ijklmnop'.includes(firstLetter)) return 'dark';
+    if ('qrstuv'.includes(firstLetter)) return 'green';
+    return 'brown'; // wxyz and any other characters
+};
+
 interface ArticleCardProps {
     headline: string;
     category: string;
@@ -34,6 +49,8 @@ export function ArticleCard({
         useArticleAnimation(isExpanded ?? false);
     const articleRef = useRef<View>(null);
 
+    const iconVariant = getIconVariantFromHeadline(headline);
+
     return (
         <View style={styles.articleWrapper} ref={articleRef}>
             <ReAnimated.View
@@ -58,6 +75,7 @@ export function ArticleCard({
                             isAnswered={isAnswered}
                             isCorrect={isCorrect}
                             isFake={isFake}
+                            iconVariant={iconVariant}
                         />
                     </ReAnimated.View>
 

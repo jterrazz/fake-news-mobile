@@ -19,7 +19,7 @@ export function ArticleHeader({ category, headline }: ArticleHeaderProps) {
                 <CategoryLabel>{category}</CategoryLabel>
             </View>
             <Headline style={styles.headline}>{headline}</Headline>
-            <PublisherInfo />
+            <PublisherInfo headline={headline} />
         </View>
     );
 }

@@ -2,15 +2,49 @@ import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { format } from 'date-fns';
 
+// Import icons
+import IconDefault from '../../../../../assets/icon.png';
+import IconBrown from '../../../../../assets/icon-brown.png';
+import IconDark from '../../../../../assets/icon-dark.png';
+import IconGreen from '../../../../../assets/icon-green.png';
 import { SIZES } from '../../sizes.js';
 
-export function PublisherInfo() {
+type IconVariant = 'default' | 'dark' | 'green' | 'brown';
+
+const ICON_SOURCES = {
+    brown: IconBrown,
+    dark: IconDark,
+    default: IconDefault,
+    green: IconGreen,
+};
+
+const getIconVariantFromHeadline = (headline: string): IconVariant => {
+    if (!headline) return 'default';
+
+    // Get the first letter and convert to lowercase
+    const firstLetter = headline.trim().toLowerCase().charAt(0);
+
+    // Distribute letters across the variants
+    if ('abcdefgh'.includes(firstLetter)) return 'default';
+    if ('ijklmnop'.includes(firstLetter)) return 'dark';
+    if ('qrstuv'.includes(firstLetter)) return 'green';
+    return 'brown'; // wxyz and any other characters
+};
+
+interface PublisherInfoProps {
+    headline: string;
+}
+
+export function PublisherInfo({ headline }: PublisherInfoProps) {
+    const currentDate = new Date();
+    const iconVariant = getIconVariantFromHeadline(headline);
+
     return (
         <View style={styles.container}>
-            <Image source={require('../../../../../assets/icon.png')} style={styles.icon} />
+            <Image source={ICON_SOURCES[iconVariant]} style={styles.icon} />
             <View style={styles.info}>
                 <Text style={styles.name}>AI BREAKING NEWS</Text>
-                <Text style={styles.date}>{format(new Date(), 'MMMM d, yyyy')}</Text>
+                <Text style={styles.date}>{format(currentDate, 'MMMM d, yyyy')}</Text>
             </View>
         </View>
     );
