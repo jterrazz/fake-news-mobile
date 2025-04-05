@@ -7,10 +7,7 @@ import { SIZES } from '../../sizes.js';
 export function PublisherInfo() {
     return (
         <View style={styles.container}>
-            <Image
-                source={require('../../../../../assets/icon.png')}
-                style={styles.icon}
-            />
+            <Image source={require('../../../../../assets/icon.png')} style={styles.icon} />
             <View style={styles.info}>
                 <Text style={styles.name}>AI BREAKING NEWS</Text>
                 <Text style={styles.date}>{format(new Date(), 'MMMM d, yyyy')}</Text>
@@ -45,4 +42,4 @@ const styles = StyleSheet.create({
         marginBottom: 1,
         textTransform: 'uppercase',
     },
-}); 
+});

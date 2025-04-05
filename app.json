@@ -5,6 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
     "developmentClient": {
       "silentLaunch": true
     },
@@ -21,13 +22,13 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.jterrazz.fakenews",
-      "hermesBuildFlags": ["-DWITH_DYNARR=0"]
+      "hermesBuildFlags": ["-DWITH_DYNARR=0"],
+      "icon": {
+        "dark": "./assets/icon-dark.png",
+        "light": "./assets/icon.png"
+      }
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
       "package": "com.jterrazz.fakenews"
     },
     "plugins": [
@@ -35,8 +36,12 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#000000",
-          "image": "./assets/splash-icon.png",
+          "backgroundColor": "#ffffff",
+          "image": "./assets/icon-transparent-dark.png",
+          "dark": {
+            "image": "./assets/icon-transparent.png",
+            "backgroundColor": "#000000"
+          },
           "imageWidth": 128
         }
       ],
