@@ -30,9 +30,6 @@
       },
       "package": "com.jterrazz.fakenews"
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
     "plugins": [
       "expo-asset",
       [
@@ -40,11 +37,7 @@
         {
           "backgroundColor": "#000000",
           "image": "./assets/splash-icon.png",
-          "dark": {
-            "image": "./assets/splash-icon-dark.png",
-            "backgroundColor": "#000000"
-          },
-          "imageWidth": 256
+          "imageWidth": 128
         }
       ],
       "expo-font"
