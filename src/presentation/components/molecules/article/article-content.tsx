@@ -1,7 +1,8 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 
+import { AnimatedGradientText } from '../../atoms/typography/animated-gradient-text.js';
 import { SIZES } from '../../sizes.jsx';
 
 import { FONT_FAMILY } from '@/presentation/theme/typography.js';
@@ -14,6 +15,8 @@ export function ArticleContent({ content }: ArticleContentProps) {
     return (
         <View style={styles.container}>
             <Markdown style={markdownStyles}>{content}</Markdown>
+            <Text>Hello, world!</Text>
+            <AnimatedGradientText text="Hello, world!" />
         </View>
     );
 }

@@ -1,7 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { AnimatedGradientText } from '@/presentation/components/atoms/typography/animated-gradient-text';
 import { CategoryLabel } from '@/presentation/components/atoms/typography/category-label';
 import { SIZES } from '@/presentation/components/sizes';
 
@@ -18,7 +17,7 @@ export function ArticleMeta({
 }: ArticleMetaProps) {
     return (
         <View style={styles.metaContainer}>
-            <AnimatedGradientText text={publisher} style={styles.publisher} />
+            <Text style={styles.publisher}>{publisher}</Text>
             <Text style={styles.dot}>•</Text>
             <CategoryLabel>{category}</CategoryLabel>
             <Text style={styles.dot}>•</Text>

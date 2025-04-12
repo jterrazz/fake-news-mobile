@@ -14,7 +14,7 @@ export function AnimatedGradientText({ text, style }: AnimatedGradientTextProps)
     useEffect(() => {
         Animated.loop(
             Animated.timing(animatedValue, {
-                duration: 8000,
+                duration: 4000,
                 easing: Easing.linear,
                 toValue: 1,
                 useNativeDriver: true,
@@ -34,17 +34,16 @@ export function AnimatedGradientText({ text, style }: AnimatedGradientTextProps)
         outputRange: [0, -200],
     });
 
-    // Create a perfectly looping gradient pattern with purple, orange, yellow
+    // Create a perfectly looping gradient pattern with pastel colors
     const baseColors = [
-        '#9D4EDD', // Deep purple
-        '#B75CFF', // Bright purple
-        '#FF9E5C', // Light orange
-        '#FF8427', // Orange
-        '#FFB800', // Golden yellow
-        '#FFD449', // Bright yellow
-        '#FF8427', // Orange
-        '#FF9E5C', // Light orange
-        '#9D4EDD', // Back to deep purple
+        '#C7A0DD', // Soft lavender
+        '#D4B0EA', // Light lavender
+        '#E6C0A0', // Soft peach
+        '#EED1B0', // Light peach
+        '#F1DFA0', // Soft yellow
+        '#E6C0A0', // Back to soft peach
+        '#D4B0EA', // Back to light lavender
+        '#C7A0DD', // Back to soft lavender
     ] as const;
 
     // Duplicate the pattern to ensure smooth transition
@@ -77,19 +76,16 @@ export function AnimatedGradientText({ text, style }: AnimatedGradientTextProps)
 }
 
 const styles = StyleSheet.create({
-    animatedGradient: {
-        width: 400,
-    },
+    animatedGradient: {},
     container: {
         height: 20,
         overflow: 'hidden',
     },
     gradient: {
         height: 20,
-        width: 400,
     },
     gradientContainer: {
-        backgroundColor: '#9D4EDD', // Match the first color
+        backgroundColor: '#C7A0DD', // Match the first color
         overflow: 'hidden',
     },
     maskContainer: {
@@ -98,9 +94,8 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     text: {
-        fontSize: 11,
-        fontWeight: '600',
+        fontSize: 15,
+        fontWeight: '700',
         letterSpacing: 0.5,
-        textTransform: 'uppercase',
     },
 });
