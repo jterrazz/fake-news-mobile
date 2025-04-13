@@ -40,12 +40,17 @@ const extractParts = (text: string) => {
 
 export function GradientTextMask({ children, style }: Props) {
     const animatedValue = useRef(new Animated.Value(0)).current;
-    const [textHeight, setTextHeight] = useState(style?.fontSize || 16);
+    const [textHeight, setTextHeight] = useState(style?.fontSize ?? 16);
+
+    const gradientWidth = 800; // Visible width
+    const repeatFactor = 3; // How many times to repeat the color cycle
+    const totalWidth = gradientWidth * repeatFactor;
 
     useEffect(() => {
         Animated.loop(
             Animated.timing(animatedValue, {
-                duration: 4000,
+                duration: 8000,
+                // Slower, smoother
                 easing: Easing.linear,
                 toValue: 1,
                 useNativeDriver: true,
@@ -55,20 +60,12 @@ export function GradientTextMask({ children, style }: Props) {
 
     const translateX = animatedValue.interpolate({
         inputRange: [0, 1],
-        outputRange: [0, -600],
+        outputRange: [0, -gradientWidth], // Only animate by visible area
     });
 
-    const colors = [
-        '#C7A0DD',
-        '#D4B0EA',
-        '#E6C0A0',
-        '#EED1B0',
-        '#F1DFA0',
-        '#E6C0A0',
-        '#D4B0EA',
-        '#C7A0DD',
-    ];
-    const gradientColors = [...colors, ...colors, colors[0]];
+    const pastel = ['#C7A0DD', '#D4B0EA', '#E6C0A0', '#EED1B0', '#F1DFA0'];
+    const repeated = Array(repeatFactor).fill(pastel).flat();
+    const gradientColors = [...repeated, repeated[0]]; // seamless wrap
 
     const parts = extractParts(children);
 
@@ -81,7 +78,7 @@ export function GradientTextMask({ children, style }: Props) {
 
     return (
         <View style={{ position: 'relative' }}>
-            {/* Base layer: full text in normal color */}
+            {/* Base text layer */}
             <Text style={style} onLayout={onLayout}>
                 {parts.map((part, i) => (
                     <Text key={i} style={style}>
@@ -90,7 +87,7 @@ export function GradientTextMask({ children, style }: Props) {
                 ))}
             </Text>
 
-            {/* Masked overlay */}
+            {/* Masked gradient layer */}
             <MaskedView
                 style={StyleSheet.absoluteFill}
                 maskElement={
@@ -110,7 +107,7 @@ export function GradientTextMask({ children, style }: Props) {
                         end={{ x: 1, y: 0.5 }}
                         style={{
                             height: textHeight,
-                            width: 800, // 🔥 dynamic height to match text
+                            width: totalWidth,
                         }}
                     />
                 </Animated.View>
