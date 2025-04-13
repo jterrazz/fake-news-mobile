@@ -2,7 +2,9 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 
-import { AnimatedGradientText } from '../../atoms/typography/animated-gradient-text.js';
+import {
+    GradientTextMask,
+} from '../../atoms/typography/animated-gradient-text.js';
 import { SIZES } from '../../sizes.jsx';
 
 import { FONT_FAMILY } from '@/presentation/theme/typography.js';
@@ -16,7 +18,10 @@ export function ArticleContent({ content }: ArticleContentProps) {
         <View style={styles.container}>
             <Markdown style={markdownStyles}>{content}</Markdown>
             <Text>Hello, world!</Text>
-            <AnimatedGradientText text="Hello, world!" />
+            <GradientTextMask style={{ fontSize: 16, fontWeight: '600', lineHeight: 24 }}>
+                This paragraph has some **animated gradient words** in the middle of it, and
+                everything **wraps like normal text** across lines.
+            </GradientTextMask>
         </View>
     );
 }
