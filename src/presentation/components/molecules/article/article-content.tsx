@@ -17,8 +17,15 @@ export function ArticleContent({ content }: ArticleContentProps) {
             <Markdown style={markdownStyles}>{content}</Markdown>
             <Text>Hello, world!</Text>
             <GradientTextMask style={{ fontSize: 16, fontWeight: '600', lineHeight: 24 }}>
-                This paragraph has some **animated gradient words** in the middle of it, and
-                everything **wraps like normal text** across lines.
+                This paragraph has some %%animated gradient words%% in the middle of it, and
+                everything %%wraps like normal text%% across lines. Continue the example. This
+                paragraph has some other text in the middle of it, and everything android wraps like
+                normal text across lines. Continue the example. This paragraph has some other text
+                in the middle of it, and everything android wraps like normal text across lines.
+                Continue the example. This paragraph has some other text in the middle of it, and
+                everything android wraps like normal text across lines. Continue the example. This
+                paragraph has some other text in the middle of it, and everything android wraps like
+                normal text across lines. %%Continue the example.%%
             </GradientTextMask>
         </View>
     );

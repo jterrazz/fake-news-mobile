@@ -17,7 +17,7 @@ interface Props {
 }
 
 const extractParts = (text: string) => {
-    const regex = /\*\*(.*?)\*\*/g;
+    const regex = /%%([^%]+)%%/g;
     const parts: { text: string; gradient: boolean }[] = [];
 
     let lastIndex = 0;
