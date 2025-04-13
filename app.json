@@ -4,7 +4,7 @@
     "slug": "fake-news",
     "version": "1.1.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/icons/app-icon.png",
     "userInterfaceStyle": "automatic",
     "developmentClient": {
       "silentLaunch": true
@@ -22,11 +22,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.jterrazz.fakenews",
-      "hermesBuildFlags": ["-DWITH_DYNARR=0"],
-      "icon": {
-        "dark": "./assets/icon-dark.png",
-        "light": "./assets/icon.png"
-      }
+      "hermesBuildFlags": ["-DWITH_DYNARR=0"]
     },
     "android": {
       "package": "com.jterrazz.fakenews"

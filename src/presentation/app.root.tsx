@@ -45,8 +45,11 @@ export function AppRoot() {
 
     React.useEffect(() => {
         if (fontsLoaded) {
-            // Hide splash screen once fonts are loaded
-            SplashScreen.hideAsync();
+            // Hide splash screen once fonts are loaded with a delay
+            setTimeout(() => {
+                // TODO: Fetch articles at app start.
+                SplashScreen.hideAsync();
+            }, 500);
         }
     }, [fontsLoaded]);
 
