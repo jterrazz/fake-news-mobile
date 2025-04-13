@@ -2,9 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 
-import {
-    GradientTextMask,
-} from '../../atoms/typography/animated-gradient-text.js';
+import { GradientTextMask } from '../../atoms/typography/animated-gradient-text.js';
 import { SIZES } from '../../sizes.jsx';
 
 import { FONT_FAMILY } from '@/presentation/theme/typography.js';

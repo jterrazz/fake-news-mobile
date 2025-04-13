@@ -91,9 +91,29 @@ export function GradientTextMask({ children, style }: Props) {
             <MaskedView
                 style={StyleSheet.absoluteFill}
                 maskElement={
-                    <Text style={[style, { backgroundColor: 'transparent' }]}>
+                    <Text
+                        style={[
+                            style,
+                            {
+                                backgroundColor: 'transparent',
+                                textShadowColor: 'white',
+                                // Very subtle blur
+                                textShadowOffset: { height: 0, width: 0 },
+                                textShadowRadius: 0.3,
+                            },
+                        ]}
+                    >
                         {parts.map((part, i) => (
-                            <Text key={i} style={{ opacity: part.gradient ? 1 : 0 }}>
+                            <Text
+                                key={i}
+                                style={{
+                                    color: part.gradient ? 'white' : 'transparent',
+                                    textShadowColor: 'white',
+                                    // Very subtle blur
+                                    textShadowOffset: { height: 0, width: 0 },
+                                    textShadowRadius: 0.3,
+                                }}
+                            >
                                 {part.text}
                             </Text>
                         ))}
