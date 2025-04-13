@@ -63,9 +63,17 @@ export function GradientTextMask({ children, style }: Props) {
         outputRange: [0, -gradientWidth], // Only animate by visible area
     });
 
-    const pastel = ['#C7A0DD', '#D4B0EA', '#E6C0A0', '#EED1B0', '#F1DFA0'];
-    const repeated = Array(repeatFactor).fill(pastel).flat();
-    const gradientColors = [...repeated, repeated[0]]; // seamless wrap
+    // Smooth multi-color AI gradient with perfect loop
+    const baseColors = ['#6366F1', '#8B5CF6', '#A78BFA', '#EC4899', '#6366F1'] as const;
+    const repeated = Array(repeatFactor)
+        .fill([...baseColors])
+        .flat();
+    const gradientColors: [string, string, ...string[]] = [
+        '#6366F1',
+        '#8B5CF6',
+        ...repeated.slice(2),
+        '#6366F1',
+    ];
 
     const parts = extractParts(children);
 
