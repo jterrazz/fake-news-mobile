@@ -5,7 +5,7 @@ import CheckMark from '../../../../../assets/images/check-mark.jpg';
 import Cross from '../../../../../assets/images/cross.jpg';
 // Import status images
 import QuestionMark from '../../../../../assets/images/question-mark.jpg';
-import { StatusIndicator } from '../../atoms/indicators/status-indicator.jsx';
+import { ResponseIndicator } from '../../atoms/indicators/response-indicator.js';
 
 import { ArticleMeta } from './article-meta.jsx';
 import { SIZES } from '@/presentation/components/sizes.js';
@@ -26,7 +26,7 @@ export function ArticlePreview({
     timeAgo,
     isAnswered,
     isCorrect,
-    isFake,
+    isFake, // TODO: Remove this prop
 }: ArticlePreviewProps) {
     const getStatusImage = () => {
         if (!isAnswered) return QuestionMark;
@@ -42,7 +42,7 @@ export function ArticlePreview({
                         style={styles.previewIcon}
                         resizeMode="cover"
                     />
-                    {isAnswered && <StatusIndicator isCorrect={isCorrect} isFake={isFake} />}
+                    {isAnswered && <ResponseIndicator isCorrect={isCorrect} />}
                 </View>
             </View>
 
