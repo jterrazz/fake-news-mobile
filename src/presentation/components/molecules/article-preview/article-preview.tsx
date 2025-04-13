@@ -79,9 +79,7 @@ const styles = StyleSheet.create({
     previewIconContainer: {
         alignItems: 'center',
         backgroundColor: '#F9F9F9',
-        borderColor: 'rgba(0, 0, 0, 0.06)',
         borderRadius: 12,
-        borderWidth: 1,
         height: 36,
         justifyContent: 'center',
         overflow: 'visible',
