@@ -26,11 +26,11 @@ export function ArticlePreview({
     timeAgo,
     isAnswered,
     isCorrect,
-    isFake, // TODO: Remove this prop
+    isFake,
 }: ArticlePreviewProps) {
     const getStatusImage = () => {
         if (!isAnswered) return QuestionMark;
-        return isCorrect ? CheckMark : Cross;
+        return isFake ? CheckMark : Cross;
     };
 
     return (
