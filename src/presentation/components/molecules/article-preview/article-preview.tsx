@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
         lineHeight: 19,
     },
     previewIcon: {
-        borderRadius: 8,
+        borderRadius: 42,
         height: '100%',
         width: '100%',
     },
@@ -99,11 +99,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#F9F9F9',
         borderRadius: 12,
-        height: 36,
+        height: 42,
         justifyContent: 'center',
         overflow: 'visible',
         position: 'relative',
-        width: 36,
+        width: 42,
     },
     previewLeftColumn: {
         alignItems: 'center',
