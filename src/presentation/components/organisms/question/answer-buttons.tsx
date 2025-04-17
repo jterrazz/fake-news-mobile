@@ -104,11 +104,11 @@ function StampAnimation({
                         toValue: 1,
                         useNativeDriver: false,
                     }),
-                    // Delay before transitioning to black
-                    Animated.delay(800),
-                    // Transition to black
+                    // Longer delay before transitioning to black
+                    Animated.delay(1200),
+                    // Slower transition to black
                     Animated.timing(stampAnim.color, {
-                        duration: 400,
+                        duration: 800,
                         easing: Easing.bezier(0.4, 0.0, 0.2, 1),
                         toValue: 2,
                         useNativeDriver: false,

@@ -17,7 +17,7 @@ interface NewsArticlesPage {
     total: number;
 }
 
-export const useNewsArticles = ({ language, limit = 10 }: UseNewsArticlesOptions) => {
+export const useNewsArticles = ({ language, limit = 40 }: UseNewsArticlesOptions) => {
     const { newsService } = useContainer();
 
     return useInfiniteQuery<NewsArticlesPage>({
