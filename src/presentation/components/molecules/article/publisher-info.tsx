@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
         width: 28,
     },
     info: {
-        marginLeft: SIZES.md + SIZES['2xs'],
+        marginLeft: SIZES.md,
     },
     name: {
         color: '#454545',

@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     previewContent: {
         alignItems: 'center',
         flexDirection: 'row',
-        gap: SIZES.xs * 3,
+        gap: SIZES.md,
         padding: SIZES.md,
         paddingVertical: SIZES.sm + SIZES['2xs'],
     },
@@ -116,16 +116,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#F9F9F9',
         borderRadius: 12,
-        height: 42,
+        height: 36,
         justifyContent: 'center',
         overflow: 'visible',
         position: 'relative',
-        width: 42,
+        width: 36,
     },
     previewLeftColumn: {
         alignItems: 'center',
         position: 'relative',
-        width: 40,
     },
     previewTextContainer: {
         flex: 1,
