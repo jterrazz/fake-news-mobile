@@ -20,6 +20,10 @@ interface ExpandedArticleProps {
     showNextButton: boolean;
 }
 
+const stripAnnotations = (content: string): string => {
+    return content.replace(/%%\[([^\]]+)\]\([^)]+\)/g, '$1');
+};
+
 export function ExpandedArticle({
     article,
     contentAnimatedStyle,
@@ -30,6 +34,10 @@ export function ExpandedArticle({
     onNextArticle,
     showNextButton,
 }: ExpandedArticleProps) {
+    const content = isAnswered
+        ? article.contentWithAnnotations
+        : stripAnnotations(article.contentWithAnnotations);
+
     return (
         <ReAnimated.View style={[styles.expandedContent, contentAnimatedStyle]}>
             <ArticleHeader
@@ -39,10 +47,7 @@ export function ExpandedArticle({
                 isFake={article.isFake}
                 date={new Date(article.createdAt)}
             />
-            <ArticleContent
-                contentWithAnnotations={article.contentWithAnnotations}
-                wasCorrect={wasCorrect}
-            />
+            <ArticleContent contentWithAnnotations={content} wasCorrect={wasCorrect} />
             <View style={styles.actionContainer}>
                 <View style={styles.actionRow}>
                     <View style={styles.buttonsContainer}>
