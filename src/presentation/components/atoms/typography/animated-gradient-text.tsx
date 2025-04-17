@@ -29,11 +29,11 @@ const GRADIENT_THEMES = {
         duration: 7000,
     },
     failed: {
-        colors: ['#DC2626', '#EF4444', '#F87171', '#FCA5A5', '#DC2626'] as const,
+        colors: ['#FF0000', '#FF4500', '#FFA000', '#FF3D00', '#FF0000'] as const,
         duration: 3000,
     },
     success: {
-        colors: ['#059669', '#10B981', '#34D399', '#6EE7B7', '#059669'] as const,
+        colors: ['#00FF87', '#00E676', '#1FD286', '#39FF14', '#00FF87'] as const,
         duration: 5000,
     },
 } as const;
@@ -133,7 +133,7 @@ export function GradientTextMask({ children, style, theme = 'ai' }: Props) {
 
     const translateX = animatedValue.interpolate({
         inputRange: [0, 1],
-        outputRange: [0, -gradientWidth], // Only animate by visible area
+        outputRange: [-gradientWidth, 0], // Reversed direction
     });
 
     // Get theme colors and create gradient

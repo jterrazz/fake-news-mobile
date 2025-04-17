@@ -8,12 +8,24 @@ import { FONT_FAMILY } from '@/presentation/theme/typography.js';
 
 interface ArticleContentProps {
     contentWithAnnotations: string;
+    wasCorrect?: boolean | null;
 }
 
-export function ArticleContent({ contentWithAnnotations }: ArticleContentProps) {
+const getThemeFromAnswer = (wasCorrect: boolean | null | undefined): 'ai' | 'success' | 'failed' => {
+    if (wasCorrect === null || wasCorrect === undefined) return 'ai';
+    return wasCorrect ? 'success' : 'failed';
+};
+
+export function ArticleContent({ contentWithAnnotations, wasCorrect }: ArticleContentProps) {
+    const theme = getThemeFromAnswer(wasCorrect);
+
     return (
         <View style={styles.container}>
-            <GradientTextMask style={{ fontSize: 16, fontWeight: '500', lineHeight: 24 }}>
+            {/* <Markdown style={markdownStyles}>{contentWithAnnotations}</Markdown> */}
+            <GradientTextMask 
+                style={{ fontSize: 16, fontWeight: '500', lineHeight: 24 }}
+                theme={theme}
+            >
                 {contentWithAnnotations}
             </GradientTextMask>
         </View>
