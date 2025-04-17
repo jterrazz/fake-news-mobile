@@ -53,8 +53,8 @@ export function FakeReasonButton({ fakeReason, isAnswered, isFake }: FakeReasonB
 const styles = StyleSheet.create({
     button: {
         alignItems: 'center',
-        backgroundColor: '#EF4444',
-        borderColor: '#DC2626',
+        backgroundColor: '#1A1A1A',
+        borderColor: '#000000',
         borderRadius: SIZES.lg,
         borderWidth: 1.5,
         height: 24,

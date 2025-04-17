@@ -95,7 +95,7 @@ function StampAnimation({ isVisible, isFake }: { isVisible: boolean; isFake: boo
                 },
             ]}
         >
-            <View style={[styles.stamp, { backgroundColor: isFake ? '#EF4444' : '#22C55E' }]}>
+            <View style={[styles.stamp, { backgroundColor: '#1A1A1A' }]}>
                 <Text style={styles.stampText}>
                     {isFake ? t('common:newsFeed.fake') : t('common:newsFeed.real')}
                 </Text>
