@@ -25,15 +25,15 @@ interface TextPart {
 
 const GRADIENT_THEMES = {
     ai: {
-        colors: ['#6366F1', '#8B5CF6', '#A78BFA', '#EC4899', '#6366F1'] as const,
+        colors: ['#6D28D9', '#9333EA', '#A855F7', '#EC4899', '#6D28D9'] as const,
         duration: 7000,
     },
     failed: {
-        colors: ['#FF0000', '#FF4500', '#FFA000', '#FF3D00', '#FF0000'] as const,
+        colors: ['#E11D48', '#F97316', '#F59E0B', '#E11D48', '#E11D48'] as const,
         duration: 3000,
     },
     success: {
-        colors: ['#00FF87', '#00E676', '#1FD286', '#39FF14', '#00FF87'] as const,
+        colors: ['#10B981', '#06C270', '#0EA5E9', '#22C55E', '#10B981'] as const,
         duration: 5000,
     },
 } as const;
