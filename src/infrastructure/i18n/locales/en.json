@@ -45,8 +45,6 @@
       "close": "Close",
       "fake": "FAKE",
       "real": "REAL",
-      "thisArticleWas": "This article was",
-      "isThisArticleFakeOrReal": "Is this article fake or real?",
       "dates": {
         "today": "Today",
         "yesterday": "Yesterday",

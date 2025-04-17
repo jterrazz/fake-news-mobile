@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Animated, Easing, Platform, StyleSheet, Text, View } from 'react-native';
-import { t } from 'i18next';
 
 import { NewsEntity } from '@/domain/news/news.entity';
 
@@ -28,6 +27,7 @@ interface AnswerButtonsProps {
 }
 
 function StampAnimation({ isVisible, isFake }: { isVisible: boolean; isFake: boolean }) {
+    const { t } = useTranslation();
     const [stampAnim] = React.useState(() => ({
         opacity: new Animated.Value(0),
         rotate: new Animated.Value(0),
@@ -116,7 +116,6 @@ export function AnswerButtons({
 }: AnswerButtonsProps) {
     const { t } = useTranslation();
 
-    // Move animation state management into the component
     const [animations] = React.useState(() => ({
         fade: {
             fake: new Animated.Value(1),
@@ -134,20 +133,16 @@ export function AnswerButtons({
     }));
 
     const animateSelection = (selectedFake: boolean) => {
-        // Calculate positions for merging animation
-        const centerX = 27.5; // Center position
-        const leftStartX = 2; // Left button starting position
-        const rightStartX = 98 - 45; // Right button starting position
+        const centerX = 27.5;
+        const leftStartX = 2;
+        const rightStartX = 98 - 45;
 
-        // Reset animation values
         animations.slide.fake.setValue(selectedFake ? leftStartX : rightStartX);
         animations.slide.real.setValue(selectedFake ? rightStartX : leftStartX);
         animations.fade.fake.setValue(1);
         animations.fade.real.setValue(1);
 
-        // Run main button animations
         Animated.parallel([
-            // Fade out unselected button
             Animated.timing(animations.fade[selectedFake ? 'real' : 'fake'], {
                 duration: 400,
                 easing: Easing.bezier(0.4, 0.0, 0.2, 1),
@@ -155,7 +150,6 @@ export function AnswerButtons({
                 useNativeDriver: true,
             }),
 
-            // Move selected button to center
             Animated.spring(animations.slide[selectedFake ? 'fake' : 'real'], {
                 damping: 28,
                 mass: 1,
@@ -166,7 +160,6 @@ export function AnswerButtons({
                 useNativeDriver: true,
             }),
 
-            // Move unselected button
             Animated.timing(animations.slide[selectedFake ? 'real' : 'fake'], {
                 duration: 400,
                 easing: Easing.bezier(0.4, 0.0, 0.2, 1),
@@ -175,10 +168,7 @@ export function AnswerButtons({
             }),
         ]).start();
 
-        // Run next button animations separately to ensure reliability
-        // This prevents it from being cancelled by other animations
         Animated.sequence([
-            // Scale animation for next button
             Animated.timing(nextButtonAnim.scale, {
                 duration: 300,
                 easing: Easing.bezier(0.4, 0.0, 0.2, 1),
@@ -196,10 +186,9 @@ export function AnswerButtons({
             }),
         ]).start();
 
-        // Fade in next button with a longer duration
         Animated.timing(nextButtonAnim.opacity, {
             delay: 200,
-            duration: 500, // Longer duration for more reliability
+            duration: 500,
             easing: Easing.bezier(0.4, 0.0, 0.2, 1),
             toValue: 1,
             useNativeDriver: true,
@@ -218,25 +207,20 @@ export function AnswerButtons({
         onAnswerClick(selectedFake, position);
     };
 
-    // Reset animations when currentArticleId changes
     useEffect(() => {
         animations.fade.fake.setValue(1);
         animations.fade.real.setValue(1);
         animations.slide.fake.setValue(0);
         animations.slide.real.setValue(0);
 
-        // Only reset next button if we're not in an answered state
-        // This prevents the button from disappearing after it's been shown
         if (!isAnswered) {
             nextButtonAnim.opacity.setValue(0);
             nextButtonAnim.scale.setValue(0.95);
         }
     }, [currentArticleId, isAnswered]);
 
-    // Make sure next button always stays visible after answering
     useEffect(() => {
         if (isAnswered && showNextButton) {
-            // Ensure the next button is immediately visible if the state indicates it should be
             nextButtonAnim.opacity.setValue(1);
             nextButtonAnim.scale.setValue(1);
         }
@@ -244,33 +228,11 @@ export function AnswerButtons({
 
     return (
         <View style={styles.buttonContainer}>
-            <View style={styles.hintContainer}>
-                <Text style={[styles.hintText]}>
-                    {isAnswered
-                        ? `${t('common:newsFeed.thisArticleWas')} `
-                        : t('common:newsFeed.isThisArticleFakeOrReal')}
-                </Text>
-                {isAnswered && (
+            {isAnswered && (
+                <View style={styles.hintContainer}>
                     <View style={styles.stampContainer}>
                         <StampAnimation isVisible={isAnswered} isFake={article.isFake} />
                     </View>
-                )}
-            </View>
-
-            {isAnswered ? (
-                <View style={styles.buttonRow}>
-                    <TextButton
-                        variant={wasCorrect ? 'correct' : 'incorrect'}
-                        onPress={() => {}}
-                        disabled
-                        size="small"
-                    >
-                        {selectedAnswer === true
-                            ? t('common:newsFeed.fake')
-                            : t('common:newsFeed.real')}
-                    </TextButton>
-
-                    {/* Next button - force opacity to 1 regardless of animation value */}
                     {selectedAnswer !== null && showNextButton && (
                         <View style={[styles.nextButtonContainer]}>
                             <IconButton
@@ -287,7 +249,9 @@ export function AnswerButtons({
                         isFake={article.isFake}
                     />
                 </View>
-            ) : (
+            )}
+
+            {!isAnswered && (
                 <View style={styles.buttonRow}>
                     <Animated.View
                         style={[
@@ -392,30 +356,9 @@ const styles = StyleSheet.create({
         position: 'relative',
         width: '100%',
     },
-    hintText: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 4,
-        elevation: 1,
-        fontFamily: Platform.OS === 'ios' ? 'SF Pro Text' : 'System',
-        fontSize: 13,
-        fontWeight: '500',
-        letterSpacing: 0.3,
-        opacity: 0.8,
-        overflow: 'hidden',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        shadowColor: '#000',
-        shadowOffset: {
-            height: 1,
-            width: 0,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-    },
     nextButtonContainer: {
         alignItems: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.04)',
-        // Light background to make it more visible
         borderRadius: 20,
         height: 40,
         justifyContent: 'center',
@@ -439,6 +382,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flexDirection: 'row',
         justifyContent: 'center',
+    },
+    stampContent: {
+        height: 24,
+        width: 46,
     },
     stampText: {
         color: '#FFFFFF',
