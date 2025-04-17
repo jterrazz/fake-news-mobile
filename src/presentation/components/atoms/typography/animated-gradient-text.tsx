@@ -16,23 +16,81 @@ interface Props {
     style?: TextStyle;
 }
 
-const extractParts = (text: string) => {
-    const regex = /%%\[([^\]]+)\]\([^)]+\)/g;
-    const parts: { text: string; gradient: boolean }[] = [];
+interface TextPart {
+    text: string;
+    gradient: boolean;
+    bold: boolean;
+}
 
-    let lastIndex = 0;
-    let match: RegExpExecArray | null;
+const processNextMarker = (
+    text: string,
+    currentIndex: number,
+    gradientMatch: RegExpMatchArray | null,
+    boldMatch: RegExpMatchArray | null,
+): { parts: TextPart[]; newIndex: number } => {
+    const parts: TextPart[] = [];
+    const gradientIndex = gradientMatch ? gradientMatch.index! + currentIndex : Infinity;
+    const boldIndex = boldMatch ? boldMatch.index! + currentIndex : Infinity;
 
-    while ((match = regex.exec(text))) {
-        if (match.index > lastIndex) {
-            parts.push({ gradient: false, text: text.substring(lastIndex, match.index) });
+    // Process the closest marker
+    if (gradientIndex < boldIndex) {
+        // Add text before gradient if any
+        if (gradientIndex > currentIndex) {
+            parts.push({
+                bold: false,
+                gradient: false,
+                text: text.slice(currentIndex, gradientIndex),
+            });
         }
-        parts.push({ gradient: true, text: match[1] });
-        lastIndex = regex.lastIndex;
+        // Add gradient text
+        parts.push({
+            bold: false,
+            gradient: true,
+            text: gradientMatch![1],
+        });
+        return { newIndex: gradientIndex + gradientMatch![0].length, parts };
+    } else {
+        // Add text before bold if any
+        if (boldIndex > currentIndex) {
+            parts.push({
+                bold: false,
+                gradient: false,
+                text: text.slice(currentIndex, boldIndex),
+            });
+        }
+        // Add bold text
+        parts.push({
+            bold: true,
+            gradient: false,
+            text: boldMatch![1],
+        });
+        return { newIndex: boldIndex + boldMatch![0].length, parts };
     }
+};
 
-    if (lastIndex < text.length) {
-        parts.push({ gradient: false, text: text.substring(lastIndex) });
+const extractParts = (text: string): TextPart[] => {
+    const parts: TextPart[] = [];
+    let currentIndex = 0;
+
+    while (currentIndex < text.length) {
+        // Look for the next special marker
+        const gradientMatch = text.slice(currentIndex).match(/%%\[([^\]]+)\]\([^)]+\)/);
+        const boldMatch = text.slice(currentIndex).match(/\*\*([^*]+)\*\*/);
+
+        // No more special markers found
+        if (!gradientMatch && !boldMatch) {
+            parts.push({ bold: false, gradient: false, text: text.slice(currentIndex) });
+            break;
+        }
+
+        const { parts: newParts, newIndex } = processNextMarker(
+            text,
+            currentIndex,
+            gradientMatch,
+            boldMatch,
+        );
+        parts.push(...newParts);
+        currentIndex = newIndex;
     }
 
     return parts;
@@ -83,14 +141,16 @@ export function GradientTextMask({ children, style }: Props) {
         }
     };
 
+    const renderText = (part: TextPart, baseStyle: TextStyle | undefined) => (
+        <Text style={[baseStyle, part.bold && { fontWeight: '700' }]}>{part.text}</Text>
+    );
+
     return (
         <View style={{ position: 'relative' }}>
             {/* Base text layer */}
             <Text style={style} onLayout={onLayout}>
                 {parts.map((part, i) => (
-                    <Text key={i} style={style}>
-                        {part.text}
-                    </Text>
+                    <Text key={i}>{renderText(part, style)}</Text>
                 ))}
             </Text>
 
@@ -104,7 +164,6 @@ export function GradientTextMask({ children, style }: Props) {
                             {
                                 backgroundColor: 'transparent',
                                 textShadowColor: 'white',
-                                // Very subtle blur
                                 textShadowOffset: { height: 0, width: 0 },
                                 textShadowRadius: 0.3,
                             },
@@ -116,12 +175,11 @@ export function GradientTextMask({ children, style }: Props) {
                                 style={{
                                     color: part.gradient ? 'white' : 'transparent',
                                     textShadowColor: 'white',
-                                    // Very subtle blur
                                     textShadowOffset: { height: 0, width: 0 },
                                     textShadowRadius: 0.3,
                                 }}
                             >
-                                {part.text}
+                                {renderText(part, style)}
                             </Text>
                         ))}
                     </Text>
