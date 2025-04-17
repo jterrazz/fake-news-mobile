@@ -1,6 +1,14 @@
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Animated, Easing, Platform, StyleSheet, Text, View } from 'react-native';
+import {
+    Animated,
+    Easing,
+    GestureResponderEvent,
+    Platform,
+    StyleSheet,
+    Text,
+    View,
+} from 'react-native';
 
 import { NewsEntity } from '@/domain/news/news.entity';
 
@@ -30,22 +38,24 @@ function StampAnimation({
     isVisible,
     isFake,
     wasCorrect,
+    justAnswered,
 }: {
     isVisible: boolean;
     isFake: boolean;
     wasCorrect?: boolean;
+    justAnswered: boolean;
 }) {
     const { t } = useTranslation();
     const [stampAnim] = React.useState(() => ({
-        color: new Animated.Value(0),
-        opacity: new Animated.Value(0),
+        color: new Animated.Value(2),
+        opacity: new Animated.Value(isVisible ? 1 : 0),
         rotate: new Animated.Value(0),
-        scale: new Animated.Value(0.5),
+        scale: new Animated.Value(1), // Start at final state (black)
     }));
 
     useEffect(() => {
-        if (isVisible) {
-            // Reset animations
+        if (justAnswered) {
+            // Reset animations for new answer
             stampAnim.opacity.setValue(0);
             stampAnim.scale.setValue(0.5);
             stampAnim.rotate.setValue(0);
@@ -105,18 +115,24 @@ function StampAnimation({
                     }),
                 ]),
             ]).start();
-        } else {
+        } else if (!isVisible) {
+            // Just hide the stamp when becoming invisible
             stampAnim.opacity.setValue(0);
-            stampAnim.scale.setValue(0.5);
+        } else {
+            // Show stamp in final state for already answered articles
+            stampAnim.opacity.setValue(1);
+            stampAnim.scale.setValue(1);
             stampAnim.rotate.setValue(0);
-            stampAnim.color.setValue(0);
+            stampAnim.color.setValue(2);
         }
-    }, [isVisible]);
+    }, [justAnswered, isVisible]);
 
     const backgroundColor = stampAnim.color.interpolate({
         inputRange: [0, 1, 2],
         outputRange: ['transparent', wasCorrect ? '#22C55E' : '#EF4444', '#1A1A1A'],
     });
+
+    if (!isVisible) return null;
 
     return (
         <Animated.View
@@ -156,6 +172,9 @@ export function AnswerButtons({
     article,
 }: AnswerButtonsProps) {
     const { t } = useTranslation();
+    const [justAnswered, setJustAnswered] = React.useState(false);
+    const previousIsAnswered = React.useRef(isAnswered);
+    const wasAnsweredThisSession = React.useRef(false);
 
     const [animations] = React.useState(() => ({
         fade: {
@@ -173,7 +192,21 @@ export function AnswerButtons({
         scale: new Animated.Value(0.95),
     }));
 
+    useEffect(() => {
+        // Only trigger animation when the answer changes from false to true in this session
+        if (!previousIsAnswered.current && isAnswered && wasAnsweredThisSession.current) {
+            setJustAnswered(true);
+            // Reset after animation duration (2.5s)
+            const timer = setTimeout(() => {
+                setJustAnswered(false);
+            }, 2500);
+            return () => clearTimeout(timer);
+        }
+        previousIsAnswered.current = isAnswered;
+    }, [isAnswered]);
+
     const animateSelection = (selectedFake: boolean) => {
+        wasAnsweredThisSession.current = true;
         const centerX = 27.5;
         const leftStartX = 2;
         const rightStartX = 98 - 45;
@@ -236,21 +269,27 @@ export function AnswerButtons({
         }).start();
     };
 
-    const handleAnswerClick = (
-        selectedFake: boolean,
-        event: React.MouseEvent | React.TouchEvent | undefined,
-    ) => {
+    const handleAnswerClick = (selectedFake: boolean, event: GestureResponderEvent | undefined) => {
         const position = event
             ? {
-                  x: 'pageX' in event ? event.pageX : event.nativeEvent.pageX,
-                  y: 'pageY' in event ? event.pageY : event.nativeEvent.pageY,
+                  x: event.nativeEvent.pageX,
+                  y: event.nativeEvent.pageY,
               }
             : { x: 0, y: 0 };
         animateSelection(selectedFake);
         onAnswerClick(selectedFake, position);
     };
 
+    const getButtonVariant = (isSelected: boolean) => {
+        if (isSelected && wasCorrect !== undefined) {
+            return wasCorrect ? 'correct' : 'incorrect';
+        }
+        return 'primary';
+    };
+
     useEffect(() => {
+        // Reset animations and wasAnsweredThisSession when article changes
+        wasAnsweredThisSession.current = false;
         animations.fade.fake.setValue(1);
         animations.fade.real.setValue(1);
         animations.slide.fake.setValue(0);
@@ -260,7 +299,7 @@ export function AnswerButtons({
             nextButtonAnim.opacity.setValue(0);
             nextButtonAnim.scale.setValue(0.95);
         }
-    }, [currentArticleId, isAnswered]);
+    }, [currentArticleId]);
 
     useEffect(() => {
         if (isAnswered && showNextButton) {
@@ -278,6 +317,7 @@ export function AnswerButtons({
                             isVisible={isAnswered}
                             isFake={article.isFake}
                             wasCorrect={wasCorrect}
+                            justAnswered={justAnswered}
                         />
                     </View>
                     <FakeReasonButton
@@ -317,13 +357,7 @@ export function AnswerButtons({
                         ]}
                     >
                         <TextButton
-                            variant={
-                                selectedAnswer === true && wasCorrect !== undefined
-                                    ? wasCorrect
-                                        ? 'correct'
-                                        : 'incorrect'
-                                    : 'primary'
-                            }
+                            variant={getButtonVariant(selectedAnswer === true)}
                             onPress={() => handleAnswerClick(true, undefined)}
                             disabled={isAnswered}
                             size="small"
@@ -348,13 +382,7 @@ export function AnswerButtons({
                         ]}
                     >
                         <TextButton
-                            variant={
-                                selectedAnswer === false && wasCorrect !== undefined
-                                    ? wasCorrect
-                                        ? 'correct'
-                                        : 'incorrect'
-                                    : 'primary'
-                            }
+                            variant={getButtonVariant(selectedAnswer === false)}
                             onPress={() => handleAnswerClick(false, undefined)}
                             disabled={isAnswered}
                             size="small"

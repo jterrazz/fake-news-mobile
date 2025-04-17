@@ -38,6 +38,10 @@ export function ExpandedArticle({
         ? article.contentWithAnnotations
         : stripAnnotations(article.contentWithAnnotations);
 
+    const handleAnswerClick = (selectedFake: boolean, position: { x: number; y: number }) => {
+        onAnswerClick(selectedFake, position);
+    };
+
     return (
         <ReAnimated.View style={[styles.expandedContent, contentAnimatedStyle]}>
             <ArticleHeader
@@ -55,7 +59,7 @@ export function ExpandedArticle({
                             isAnswered={isAnswered}
                             selectedAnswer={selectedAnswer}
                             wasCorrect={wasCorrect}
-                            onAnswerClick={onAnswerClick}
+                            onAnswerClick={handleAnswerClick}
                             onNextArticle={onNextArticle}
                             showNextButton={showNextButton}
                             currentArticleId={article.id}
