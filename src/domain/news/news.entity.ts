@@ -7,7 +7,7 @@ export interface NewsAnswer {
 export interface NewsEntity {
     id: string;
     headline: string;
-    article: string;
+    contentWithAnnotations: string;
     isFake: boolean;
     category: string;
     createdAt: string;

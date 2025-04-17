@@ -1,5 +1,5 @@
 export interface NewsApiArticle {
-    article: string;
+    contentWithAnnotations: string;
     category: string;
     createdAt: string;
     headline: string;

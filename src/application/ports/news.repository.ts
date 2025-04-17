@@ -11,7 +11,7 @@ export type NewsCategory =
     | 'SPORTS'
     | 'ENTERTAINMENT'
     | 'LIFESTYLE'
-    | 'WORLD';
+    | 'OTHER';
 
 export interface GetArticlesParams {
     language: Language;

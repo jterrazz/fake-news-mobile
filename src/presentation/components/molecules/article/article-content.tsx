@@ -1,6 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import Markdown from 'react-native-markdown-display';
+import { StyleSheet, View } from 'react-native';
 
 import { GradientTextMask } from '../../atoms/typography/animated-gradient-text.js';
 import { SIZES } from '../../sizes.jsx';
@@ -8,24 +7,15 @@ import { SIZES } from '../../sizes.jsx';
 import { FONT_FAMILY } from '@/presentation/theme/typography.js';
 
 interface ArticleContentProps {
-    content: string;
+    contentWithAnnotations: string;
 }
 
-export function ArticleContent({ content }: ArticleContentProps) {
+export function ArticleContent({ contentWithAnnotations }: ArticleContentProps) {
     return (
         <View style={styles.container}>
-            <Markdown style={markdownStyles}>{content}</Markdown>
-            <Text>Hello, world!</Text>
-            <GradientTextMask style={{ fontSize: 16, fontWeight: '600', lineHeight: 24 }}>
-                This paragraph has some %%animated gradient words%% in the middle of it, and
-                everything %%wraps like normal text%% across lines. Continue the example. This
-                paragraph has some other text in the middle of it, and everything android wraps like
-                normal text across lines. Continue the example. This paragraph has some other text
-                in the middle of it, and everything android wraps like normal text across lines.
-                Continue the example. This paragraph has some other text in the middle of it, and
-                everything android wraps like normal text across lines. Continue the example. This
-                paragraph has some other text in the middle of it, and everything android wraps like
-                normal text across lines. %%Continue the example.%%
+            {/* <Markdown style={markdownStyles}>{contentWithAnnotations}</Markdown> */}
+            <GradientTextMask style={{ fontSize: 16, fontWeight: '500', lineHeight: 24 }}>
+                {contentWithAnnotations}
             </GradientTextMask>
         </View>
     );

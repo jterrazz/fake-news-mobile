@@ -33,7 +33,7 @@ export function ExpandedArticle({
     return (
         <ReAnimated.View style={[styles.expandedContent, contentAnimatedStyle]}>
             <ArticleHeader category={article.category} headline={article.headline} />
-            <ArticleContent content={article.article} />
+            <ArticleContent contentWithAnnotations={article.contentWithAnnotations} />
             <View style={styles.actionContainer}>
                 <View style={styles.actionRow}>
                     <View style={styles.buttonsContainer}>

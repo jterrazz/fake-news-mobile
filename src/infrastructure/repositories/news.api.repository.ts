@@ -10,7 +10,7 @@ interface ApiResponse {
     items: Array<{
         id: string;
         headline: string;
-        article: string;
+        contentWithAnnotations: string;
         isFake: boolean;
         category: string;
         createdAt: string;
@@ -46,8 +46,8 @@ export const newsApiRepositoryFactory = (): NewsRepository => ({
             if (params.category) searchParams.append('category', params.category);
 
             const response = await fetch(`${API_BASE_URL}/articles?${searchParams.toString()}`, {
-                    headers: {
-                        Accept: 'application/json',
+                headers: {
+                    Accept: 'application/json',
                 },
             });
 
@@ -67,8 +67,8 @@ export const newsApiRepositoryFactory = (): NewsRepository => ({
 
             return {
                 articles: data.items.map((item) => ({
-                    article: item.article,
                     category: item.category,
+                    contentWithAnnotations: item.contentWithAnnotations,
                     createdAt: item.createdAt,
                     fakeReason: item.fakeReason,
                     headline: item.headline,

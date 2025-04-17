@@ -17,7 +17,7 @@ interface Props {
 }
 
 const extractParts = (text: string) => {
-    const regex = /%%([^%]+)%%/g;
+    const regex = /%%\[([^\]]+)\]\([^)]+\)/g;
     const parts: { text: string; gradient: boolean }[] = [];
 
     let lastIndex = 0;
@@ -49,8 +49,7 @@ export function GradientTextMask({ children, style }: Props) {
     useEffect(() => {
         Animated.loop(
             Animated.timing(animatedValue, {
-                duration: 8000,
-                // Slower, smoother
+                duration: 7000,
                 easing: Easing.linear,
                 toValue: 1,
                 useNativeDriver: true,
