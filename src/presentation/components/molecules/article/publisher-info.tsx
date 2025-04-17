@@ -2,20 +2,28 @@ import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { format } from 'date-fns';
 
-// Import publisher icon
+import CheckMark from '../../../../../assets/images/check-mark.jpg';
+import Cross from '../../../../../assets/images/cross.jpg';
 import QuestionMark from '../../../../../assets/images/question-mark.jpg';
-import { SIZES } from '../../sizes.js';
+import { SIZES } from '../../sizes.jsx';
 
 interface PublisherInfoProps {
     headline: string;
+    isAnswered?: boolean;
+    isFake?: boolean;
 }
 
-export function PublisherInfo({ headline }: PublisherInfoProps) {
+export function PublisherInfo({ headline, isAnswered, isFake }: PublisherInfoProps) {
     const currentDate = new Date();
+
+    const getStatusImage = () => {
+        if (!isAnswered) return QuestionMark;
+        return isFake ? CheckMark : Cross;
+    };
 
     return (
         <View style={styles.container}>
-            <Image source={QuestionMark} style={styles.icon} />
+            <Image source={getStatusImage()} style={styles.icon} />
             <View style={styles.info}>
                 <Text style={styles.name}>AI BREAKING NEWS</Text>
                 <Text style={styles.date}>{format(currentDate, 'MMMM d, yyyy')}</Text>

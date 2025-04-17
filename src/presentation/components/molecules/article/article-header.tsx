@@ -10,16 +10,18 @@ import { PublisherInfo } from './publisher-info.jsx';
 interface ArticleHeaderProps {
     category: string;
     headline: string;
+    isAnswered: boolean;
+    isFake: boolean;
 }
 
-export function ArticleHeader({ category, headline }: ArticleHeaderProps) {
+export function ArticleHeader({ category, headline, isAnswered, isFake }: ArticleHeaderProps) {
     return (
         <View style={styles.header}>
             <View style={styles.topRow}>
                 <CategoryLabel>{category}</CategoryLabel>
             </View>
             <Headline style={styles.headline}>{headline}</Headline>
-            <PublisherInfo headline={headline} />
+            <PublisherInfo headline={headline} isAnswered={isAnswered} isFake={isFake} />
         </View>
     );
 }
