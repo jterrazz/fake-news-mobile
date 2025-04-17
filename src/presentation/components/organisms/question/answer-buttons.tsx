@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Animated, Easing, Platform, StyleSheet, Text, View } from 'react-native';
+import { t } from 'i18next';
 
 import { NewsEntity } from '@/domain/news/news.entity';
 
@@ -24,6 +25,83 @@ interface AnswerButtonsProps {
     showNextButton?: boolean;
     currentArticleId: string;
     article: NewsEntity;
+}
+
+function StampAnimation({ isVisible, isFake }: { isVisible: boolean; isFake: boolean }) {
+    const [stampAnim] = React.useState(() => ({
+        opacity: new Animated.Value(0),
+        rotate: new Animated.Value(0),
+        scale: new Animated.Value(0.5),
+    }));
+
+    useEffect(() => {
+        if (isVisible) {
+            Animated.parallel([
+                Animated.timing(stampAnim.opacity, {
+                    duration: 300,
+                    easing: Easing.bezier(0.4, 0.0, 0.2, 1),
+                    toValue: 1,
+                    useNativeDriver: true,
+                }),
+                Animated.spring(stampAnim.scale, {
+                    damping: 12,
+                    mass: 0.8,
+                    restDisplacementThreshold: 0.01,
+                    restSpeedThreshold: 0.01,
+                    stiffness: 150,
+                    toValue: 1,
+                    useNativeDriver: true,
+                }),
+                Animated.sequence([
+                    Animated.timing(stampAnim.rotate, {
+                        duration: 200,
+                        easing: Easing.bezier(0.4, 0.0, 0.2, 1),
+                        toValue: -0.2,
+                        useNativeDriver: true,
+                    }),
+                    Animated.spring(stampAnim.rotate, {
+                        damping: 12,
+                        mass: 0.8,
+                        restDisplacementThreshold: 0.01,
+                        restSpeedThreshold: 0.01,
+                        stiffness: 150,
+                        toValue: 0,
+                        useNativeDriver: true,
+                    }),
+                ]),
+            ]).start();
+        } else {
+            stampAnim.opacity.setValue(0);
+            stampAnim.scale.setValue(0.5);
+            stampAnim.rotate.setValue(0);
+        }
+    }, [isVisible]);
+
+    return (
+        <Animated.View
+            style={[
+                styles.stampWrapper,
+                {
+                    opacity: stampAnim.opacity,
+                    transform: [
+                        { scale: stampAnim.scale },
+                        {
+                            rotate: stampAnim.rotate.interpolate({
+                                inputRange: [-1, 0, 1],
+                                outputRange: ['-20deg', '0deg', '20deg'],
+                            }),
+                        },
+                    ],
+                },
+            ]}
+        >
+            <View style={[styles.stamp, { backgroundColor: isFake ? '#EF4444' : '#22C55E' }]}>
+                <Text style={styles.stampText}>
+                    {isFake ? t('common:newsFeed.fake') : t('common:newsFeed.real')}
+                </Text>
+            </View>
+        </Animated.View>
+    );
 }
 
 export function AnswerButtons({
@@ -169,9 +247,14 @@ export function AnswerButtons({
             <View style={styles.hintContainer}>
                 <Text style={[styles.hintText]}>
                     {isAnswered
-                        ? `${t('common:newsFeed.thisArticleWas')} ${article.isFake ? t('common:newsFeed.fake') : t('common:newsFeed.real')}`
+                        ? `${t('common:newsFeed.thisArticleWas')} `
                         : t('common:newsFeed.isThisArticleFakeOrReal')}
                 </Text>
+                {isAnswered && (
+                    <View style={styles.stampContainer}>
+                        <StampAnimation isVisible={isAnswered} isFake={article.isFake} />
+                    </View>
+                )}
             </View>
 
             {isAnswered ? (
@@ -301,6 +384,11 @@ const styles = StyleSheet.create({
     },
     hintContainer: {
         alignItems: 'center',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: SIZES.xs,
+        justifyContent: 'center',
+        paddingHorizontal: SIZES.md,
         position: 'relative',
         width: '100%',
     },
@@ -335,5 +423,47 @@ const styles = StyleSheet.create({
         padding: 4,
         position: 'relative',
         width: 40,
+    },
+    stamp: {
+        alignItems: 'center',
+        borderColor: '#FFFFFF',
+        borderRadius: 6,
+        borderWidth: 2,
+        height: '100%',
+        justifyContent: 'center',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        width: '100%',
+    },
+    stampContainer: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'center',
+    },
+    stampText: {
+        color: '#FFFFFF',
+        fontFamily: Platform.OS === 'ios' ? 'SF Pro Text' : 'System',
+        fontSize: 14,
+        fontWeight: '800',
+        letterSpacing: 1,
+        textShadowColor: 'rgba(0, 0, 0, 0.2)',
+        textShadowOffset: {
+            height: 1,
+            width: 0,
+        },
+        textShadowRadius: 2,
+    },
+    stampWrapper: {
+        elevation: 3,
+        height: 36,
+        marginLeft: 8,
+        shadowColor: '#000000',
+        shadowOffset: {
+            height: 2,
+            width: 0,
+        },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
+        width: 70,
     },
 });
