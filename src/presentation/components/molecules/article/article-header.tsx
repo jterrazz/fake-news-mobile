@@ -12,16 +12,17 @@ interface ArticleHeaderProps {
     headline: string;
     isAnswered: boolean;
     isFake: boolean;
+    date: Date;
 }
 
-export function ArticleHeader({ category, headline, isAnswered, isFake }: ArticleHeaderProps) {
+export function ArticleHeader({ category, headline, isAnswered, isFake, date }: ArticleHeaderProps) {
     return (
         <View style={styles.header}>
             <View style={styles.topRow}>
                 <CategoryLabel>{category}</CategoryLabel>
             </View>
             <Headline style={styles.headline}>{headline}</Headline>
-            <PublisherInfo headline={headline} isAnswered={isAnswered} isFake={isFake} />
+            <PublisherInfo headline={headline} isAnswered={isAnswered} isFake={isFake} date={date} />
         </View>
     );
 }

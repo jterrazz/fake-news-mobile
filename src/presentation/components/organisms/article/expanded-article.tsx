@@ -37,6 +37,7 @@ export function ExpandedArticle({
                 headline={article.headline}
                 isAnswered={isAnswered}
                 isFake={article.isFake}
+                date={new Date(article.createdAt)}
             />
             <ArticleContent
                 contentWithAnnotations={article.contentWithAnnotations}

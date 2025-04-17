@@ -11,11 +11,10 @@ interface PublisherInfoProps {
     headline: string;
     isAnswered?: boolean;
     isFake?: boolean;
+    date: Date;
 }
 
-export function PublisherInfo({ headline, isAnswered, isFake }: PublisherInfoProps) {
-    const currentDate = new Date();
-
+export function PublisherInfo({ headline, isAnswered, isFake, date }: PublisherInfoProps) {
     const getStatusImage = () => {
         if (!isAnswered) return QuestionMark;
         return isFake ? CheckMark : Cross;
@@ -26,7 +25,7 @@ export function PublisherInfo({ headline, isAnswered, isFake }: PublisherInfoPro
             <Image source={getStatusImage()} style={styles.icon} />
             <View style={styles.info}>
                 <Text style={styles.name}>AI BREAKING NEWS</Text>
-                <Text style={styles.date}>{format(currentDate, 'MMMM d, yyyy')}</Text>
+                <Text style={styles.date}>{format(date, 'MMMM d, yyyy')}</Text>
             </View>
         </View>
     );
