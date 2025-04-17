@@ -26,9 +26,18 @@ interface AnswerButtonsProps {
     article: NewsEntity;
 }
 
-function StampAnimation({ isVisible, isFake }: { isVisible: boolean; isFake: boolean }) {
+function StampAnimation({
+    isVisible,
+    isFake,
+    wasCorrect,
+}: {
+    isVisible: boolean;
+    isFake: boolean;
+    wasCorrect?: boolean;
+}) {
     const { t } = useTranslation();
     const [stampAnim] = React.useState(() => ({
+        color: new Animated.Value(0),
         opacity: new Animated.Value(0),
         rotate: new Animated.Value(0),
         scale: new Animated.Value(0.5),
@@ -36,7 +45,14 @@ function StampAnimation({ isVisible, isFake }: { isVisible: boolean; isFake: boo
 
     useEffect(() => {
         if (isVisible) {
+            // Reset animations
+            stampAnim.opacity.setValue(0);
+            stampAnim.scale.setValue(0.5);
+            stampAnim.rotate.setValue(0);
+            stampAnim.color.setValue(0);
+
             Animated.parallel([
+                // Initial appearance animation
                 Animated.timing(stampAnim.opacity, {
                     duration: 300,
                     easing: Easing.bezier(0.4, 0.0, 0.2, 1),
@@ -69,13 +85,38 @@ function StampAnimation({ isVisible, isFake }: { isVisible: boolean; isFake: boo
                         useNativeDriver: true,
                     }),
                 ]),
+                // Color transition animation
+                Animated.sequence([
+                    // Show success/error color
+                    Animated.timing(stampAnim.color, {
+                        duration: 300,
+                        easing: Easing.bezier(0.4, 0.0, 0.2, 1),
+                        toValue: 1,
+                        useNativeDriver: false,
+                    }),
+                    // Delay before transitioning to black
+                    Animated.delay(800),
+                    // Transition to black
+                    Animated.timing(stampAnim.color, {
+                        duration: 400,
+                        easing: Easing.bezier(0.4, 0.0, 0.2, 1),
+                        toValue: 2,
+                        useNativeDriver: false,
+                    }),
+                ]),
             ]).start();
         } else {
             stampAnim.opacity.setValue(0);
             stampAnim.scale.setValue(0.5);
             stampAnim.rotate.setValue(0);
+            stampAnim.color.setValue(0);
         }
     }, [isVisible]);
+
+    const backgroundColor = stampAnim.color.interpolate({
+        inputRange: [0, 1, 2],
+        outputRange: ['transparent', wasCorrect ? '#22C55E' : '#EF4444', '#1A1A1A'],
+    });
 
     return (
         <Animated.View
@@ -95,11 +136,11 @@ function StampAnimation({ isVisible, isFake }: { isVisible: boolean; isFake: boo
                 },
             ]}
         >
-            <View style={[styles.stamp, { backgroundColor: '#1A1A1A' }]}>
+            <Animated.View style={[styles.stamp, { backgroundColor }]}>
                 <Text style={styles.stampText}>
                     {isFake ? t('common:newsFeed.fake') : t('common:newsFeed.real')}
                 </Text>
-            </View>
+            </Animated.View>
         </Animated.View>
     );
 }
@@ -233,7 +274,11 @@ export function AnswerButtons({
             {isAnswered && (
                 <View style={styles.hintContainer}>
                     <View style={styles.stampContainer}>
-                        <StampAnimation isVisible={isAnswered} isFake={article.isFake} />
+                        <StampAnimation
+                            isVisible={isAnswered}
+                            isFake={article.isFake}
+                            wasCorrect={wasCorrect}
+                        />
                     </View>
                     <FakeReasonButton
                         fakeReason={article.fakeReason}
