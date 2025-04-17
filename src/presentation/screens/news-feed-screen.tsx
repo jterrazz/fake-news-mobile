@@ -14,7 +14,6 @@ export function NewsFeedScreen() {
     const language = useSettingsStore((state) => state.language);
     const { data, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } = useNewsArticles({
         language,
-        limit: 10,
     });
     const { answers } = useNewsStore();
     const [expandedIndex, setExpandedIndex] = useState(0);
