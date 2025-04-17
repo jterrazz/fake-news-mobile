@@ -37,6 +37,11 @@ export const useNewsArticles = ({ language, limit = 10 }: UseNewsArticlesOptions
             };
         },
         queryKey: ['news-articles', language],
-        staleTime: 1000 * 60 * 5, // 5 minutes
+        // 5 minutes
+        refetchOnMount: true,
+        refetchOnReconnect: true,
+        refetchOnWindowFocus: true,
+        retry: 3,
+        staleTime: 1000 * 60 * 5,
     });
 };

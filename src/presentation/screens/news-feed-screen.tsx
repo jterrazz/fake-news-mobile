@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { useNewsStore } from '@/application/store/news.store';
@@ -88,13 +89,13 @@ export function NewsFeedScreen() {
                 console.log('Screen focused from tab switch - Skipping animation reset');
                 setIsFromTabSwitch(false);
             }
-            
+
             setSelectedAnswer(null);
-            
+
             return () => {
                 // No cleanup needed
             };
-        }, [resetAnimation, isFromTabSwitch])
+        }, [resetAnimation, isFromTabSwitch]),
     );
 
     const handleArticleSelect = (index: number) => {
@@ -110,10 +111,10 @@ export function NewsFeedScreen() {
         buttonPosition: { x: number; y: number },
     ) => {
         setSuppressScroll(true);
-        
-        setSelectedAnswer(selectedFake);  
+
+        setSelectedAnswer(selectedFake);
         console.log(`Setting selectedAnswer to ${selectedFake}`);
-        
+
         setLastClickedPosition(buttonPosition);
 
         if (currentNewsItem) {
@@ -140,6 +141,18 @@ export function NewsFeedScreen() {
             fetchNextPage();
         }
     };
+
+    useEffect(() => {
+        const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
+            if (nextAppState === 'active') {
+                refetch();
+            }
+        });
+
+        return () => {
+            subscription.remove();
+        };
+    }, [refetch]);
 
     return (
         <NewsFeedTemplate
