@@ -5,7 +5,6 @@ import CheckMark from '../../../../../assets/images/check-mark.jpg';
 import Cross from '../../../../../assets/images/cross.jpg';
 // Import status images
 import QuestionMark from '../../../../../assets/images/question-mark.jpg';
-import { ResponseIndicator } from '../../atoms/indicators/response-indicator.js';
 import { CategoryLabel } from '../../atoms/typography/category-label.jsx';
 
 import { SIZES } from '@/presentation/components/sizes.js';
@@ -41,7 +40,17 @@ export function ArticlePreview({
 
     const getStatusText = () => {
         if (!isAnswered) return '';
-        return isCorrect ? 'Success' : 'Failed';
+        return isFake ? 'Fake' : 'Real';
+    };
+
+    const getStatusColor = () => {
+        if (!isAnswered) return 'rgba(0, 0, 0, 0.05)';
+        return isFake ? 'rgba(255, 77, 77, 0.1)' : 'rgba(0, 200, 83, 0.1)';
+    };
+
+    const getStatusTextColor = () => {
+        if (!isAnswered) return '#666666';
+        return isFake ? '#FF4D4D' : '#00C853';
     };
 
     return (
@@ -63,9 +72,10 @@ export function ArticlePreview({
                 <View style={styles.metaContainer}>
                     <CategoryLabel>{category}</CategoryLabel>
                     {isAnswered && (
-                        <View style={styles.statusContainer}>
-                            <ResponseIndicator isCorrect={isCorrect} />
-                            <Text style={styles.status}>{getStatusText()}</Text>
+                        <View style={[styles.statusTag, { backgroundColor: getStatusColor() }]}>
+                            <Text style={[styles.statusTagText, { color: getStatusTextColor() }]}>
+                                {getStatusText()}
+                            </Text>
                         </View>
                     )}
                 </View>
@@ -120,15 +130,16 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingRight: 8,
     },
-    status: {
-        color: COLORS.text.status,
-        fontFamily: FONT_FAMILY.bold,
-        fontSize: 13,
-        lineHeight: 18,
+    statusTag: {
+        borderRadius: 6,
+        paddingHorizontal: 6,
+        paddingVertical: 2,
     },
-    statusContainer: {
-        alignItems: 'center',
-        flexDirection: 'row',
-        gap: SIZES.xs,
+    statusTagText: {
+        fontFamily: FONT_FAMILY.semibold,
+        fontSize: 9,
+        letterSpacing: 0.5,
+        lineHeight: 11,
+        textTransform: 'uppercase',
     },
 });

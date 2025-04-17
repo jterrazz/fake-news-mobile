@@ -97,9 +97,7 @@ const styles = StyleSheet.create({
         marginVertical: SIZES.xs,
         overflow: 'hidden',
     },
-    articleContainerAnswered: {
-        opacity: 0.8,
-    },
+    articleContainerAnswered: {},
     articlePressable: {
         overflow: 'hidden',
     },
