@@ -197,12 +197,14 @@ export function AnswerButtons({
 
     const handleAnswerClick = (
         selectedFake: boolean,
-        event: React.MouseEvent | React.TouchEvent,
+        event: React.MouseEvent | React.TouchEvent | undefined,
     ) => {
-        const position = {
-            x: 'pageX' in event ? event.pageX : event.nativeEvent.pageX,
-            y: 'pageY' in event ? event.pageY : event.nativeEvent.pageY,
-        };
+        const position = event
+            ? {
+                  x: 'pageX' in event ? event.pageX : event.nativeEvent.pageX,
+                  y: 'pageY' in event ? event.pageY : event.nativeEvent.pageY,
+              }
+            : { x: 0, y: 0 };
         animateSelection(selectedFake);
         onAnswerClick(selectedFake, position);
     };
@@ -233,21 +235,22 @@ export function AnswerButtons({
                     <View style={styles.stampContainer}>
                         <StampAnimation isVisible={isAnswered} isFake={article.isFake} />
                     </View>
-                    {selectedAnswer !== null && showNextButton && (
-                        <View style={[styles.nextButtonContainer]}>
-                            <IconButton
-                                icon="arrow-down"
-                                onPress={onNextArticle}
-                                size="medium"
-                                variant="primary"
-                            />
-                        </View>
-                    )}
                     <FakeReasonButton
                         fakeReason={article.fakeReason}
                         isAnswered={isAnswered}
                         isFake={article.isFake}
                     />
+                    {selectedAnswer !== null && showNextButton && (
+                        <View style={styles.nextButtonContainer}>
+                            <IconButton
+                                icon="arrow-down"
+                                onPress={onNextArticle}
+                                size="small"
+                                variant="secondary"
+                                style={styles.nextButton}
+                            />
+                        </View>
+                    )}
                 </View>
             )}
 
@@ -276,7 +279,7 @@ export function AnswerButtons({
                                         : 'incorrect'
                                     : 'primary'
                             }
-                            onPress={(event) => handleAnswerClick(true, event)}
+                            onPress={() => handleAnswerClick(true, undefined)}
                             disabled={isAnswered}
                             size="small"
                         >
@@ -307,7 +310,7 @@ export function AnswerButtons({
                                         : 'incorrect'
                                     : 'primary'
                             }
-                            onPress={(event) => handleAnswerClick(false, event)}
+                            onPress={() => handleAnswerClick(false, undefined)}
                             disabled={isAnswered}
                             size="small"
                         >
@@ -356,16 +359,20 @@ const styles = StyleSheet.create({
         position: 'relative',
         width: '100%',
     },
+    nextButton: {
+        backgroundColor: 'rgba(0, 0, 0, 0.05)',
+        borderColor: 'rgba(0, 0, 0, 0.1)',
+        borderRadius: SIZES.lg,
+        borderWidth: 1.5,
+        height: 24,
+        opacity: 0.9,
+        width: 24,
+    },
     nextButtonContainer: {
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.04)',
-        borderRadius: 20,
-        height: 40,
-        justifyContent: 'center',
-        marginLeft: 8,
-        padding: 4,
-        position: 'relative',
-        width: 40,
+        position: 'absolute',
+        right: SIZES.md,
+        top: '50%',
+        transform: [{ translateY: -12 }],
     },
     stamp: {
         alignItems: 'center',

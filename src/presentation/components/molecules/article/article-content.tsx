@@ -11,7 +11,9 @@ interface ArticleContentProps {
     wasCorrect?: boolean | null;
 }
 
-const getThemeFromAnswer = (wasCorrect: boolean | null | undefined): 'ai' | 'success' | 'failed' => {
+const getThemeFromAnswer = (
+    wasCorrect: boolean | null | undefined,
+): 'ai' | 'success' | 'failed' => {
     if (wasCorrect === null || wasCorrect === undefined) return 'ai';
     return wasCorrect ? 'success' : 'failed';
 };
@@ -22,9 +24,9 @@ export function ArticleContent({ contentWithAnnotations, wasCorrect }: ArticleCo
     return (
         <View style={styles.container}>
             {/* <Markdown style={markdownStyles}>{contentWithAnnotations}</Markdown> */}
-            <GradientTextMask 
+            <GradientTextMask
                 style={{ fontSize: 16, fontWeight: '500', lineHeight: 24 }}
-                theme={theme}
+                theme={'failed'}
             >
                 {contentWithAnnotations}
             </GradientTextMask>

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import type { AnimatedStyleProp } from 'react-native-reanimated';
-import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns';
+import { format, isToday, isYesterday } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import type { TFunction } from 'i18next';
 
@@ -51,24 +51,6 @@ function groupArticlesByDate(articles: NewsEntity[]): GroupedArticles {
         groups[dateKey].push(article);
         return groups;
     }, {} as GroupedArticles);
-}
-
-function formatTimeAgo(date: string | undefined, t: TFunction): string {
-    if (!date) return '';
-
-    try {
-        // Use French locale for relative time when the app is in French
-        const currentLanguage = t('common:language', { defaultValue: 'en' });
-        const locale = currentLanguage === 'fr' ? fr : undefined;
-        const distance = formatDistanceToNow(new Date(date), { locale });
-
-        // Add prefix/suffix based on language
-        const prefix = t('common:newsFeed.dates.timeAgo.prefix');
-        const suffix = t('common:newsFeed.dates.timeAgo.suffix');
-        return `${prefix}${distance}${suffix}`;
-    } catch (error) {
-        return '';
-    }
 }
 
 export function ArticleList({
@@ -212,7 +194,6 @@ export function ArticleList({
                                         <ArticleCard
                                             headline={article.headline}
                                             category={article.category}
-                                            timeAgo={formatTimeAgo(article.answered?.answeredAt, t)}
                                             isAnswered={!!article.answered}
                                             isCorrect={article.answered?.wasCorrect}
                                             isFake={article.isFake}

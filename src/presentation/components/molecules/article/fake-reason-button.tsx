@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { SIZES } from '@/presentation/components/sizes';
+import { FONT_FAMILY } from '@/presentation/theme/typography';
 
 interface FakeReasonButtonProps {
     fakeReason: string | null;
@@ -52,17 +53,23 @@ export function FakeReasonButton({ fakeReason, isAnswered, isFake }: FakeReasonB
 const styles = StyleSheet.create({
     button: {
         alignItems: 'center',
-        backgroundColor: 'black',
+        backgroundColor: '#EF4444',
+        borderColor: '#DC2626',
         borderRadius: SIZES.lg,
-        height: 32,
+        borderWidth: 1.5,
+        height: 24,
         justifyContent: 'center',
-        marginLeft: SIZES.md,
-        width: 32,
+        marginLeft: SIZES.xs,
+        opacity: 0.9,
+        width: 24,
     },
     buttonText: {
         color: '#FFFFFF',
-        fontSize: 18,
-        fontWeight: '600',
+        fontFamily: FONT_FAMILY.bold,
+        fontSize: 14,
+        textShadowColor: 'rgba(0, 0, 0, 0.2)',
+        textShadowOffset: { height: 1, width: 0 },
+        textShadowRadius: 1,
     },
     closeButton: {
         alignSelf: 'flex-end',
@@ -72,8 +79,8 @@ const styles = StyleSheet.create({
     },
     closeButtonText: {
         color: '#000000',
+        fontFamily: FONT_FAMILY.bold,
         fontSize: 16,
-        fontWeight: '600',
     },
     modalContent: {
         backgroundColor: '#FFFFFF',
@@ -96,13 +103,14 @@ const styles = StyleSheet.create({
     },
     modalText: {
         color: '#000000',
+        fontFamily: FONT_FAMILY.regular,
         fontSize: 16,
         lineHeight: 24,
         marginTop: SIZES.md,
     },
     modalTitle: {
         color: '#000000',
+        fontFamily: FONT_FAMILY.bold,
         fontSize: 20,
-        fontWeight: '600',
     },
 });

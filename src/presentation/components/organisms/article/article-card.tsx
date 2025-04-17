@@ -37,7 +37,6 @@ interface ArticleCardProps {
 export function ArticleCard({
     headline,
     category,
-    timeAgo,
     isAnswered,
     isCorrect,
     isFake,
@@ -71,7 +70,6 @@ export function ArticleCard({
                         <ArticlePreview
                             headline={headline}
                             category={category}
-                            timeAgo={timeAgo}
                             isAnswered={isAnswered}
                             isCorrect={isCorrect}
                             isFake={isFake}

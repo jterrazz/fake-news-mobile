@@ -6,15 +6,22 @@ import Cross from '../../../../../assets/images/cross.jpg';
 // Import status images
 import QuestionMark from '../../../../../assets/images/question-mark.jpg';
 import { ResponseIndicator } from '../../atoms/indicators/response-indicator.js';
+import { CategoryLabel } from '../../atoms/typography/category-label.jsx';
 
-import { ArticleMeta } from './article-meta.jsx';
 import { SIZES } from '@/presentation/components/sizes.js';
 import { FONT_FAMILY } from '@/presentation/theme/typography';
+
+const COLORS = {
+    text: {
+        primary: '#1A1A1A',
+        secondary: '#666666',
+        status: '#000000',
+    },
+} as const;
 
 interface ArticlePreviewProps {
     headline: string;
     category: string;
-    timeAgo: string;
     isAnswered?: boolean;
     isCorrect?: boolean;
     isFake?: boolean;
@@ -23,7 +30,6 @@ interface ArticlePreviewProps {
 export function ArticlePreview({
     headline,
     category,
-    timeAgo,
     isAnswered,
     isCorrect,
     isFake,
@@ -31,6 +37,11 @@ export function ArticlePreview({
     const getStatusImage = () => {
         if (!isAnswered) return QuestionMark;
         return isFake ? CheckMark : Cross;
+    };
+
+    const getStatusText = () => {
+        if (!isAnswered) return '';
+        return isCorrect ? 'Success' : 'Failed';
     };
 
     return (
@@ -50,13 +61,21 @@ export function ArticlePreview({
                 <Text style={styles.previewHeadline} numberOfLines={2}>
                     {headline}
                 </Text>
-                <ArticleMeta category={category} timeAgo={timeAgo} />
+                <View style={styles.metaContainer}>
+                    <CategoryLabel>{category}</CategoryLabel>
+                    {isAnswered && <Text style={styles.status}>{getStatusText()}</Text>}
+                </View>
             </View>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
+    metaContainer: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        gap: SIZES.sm,
+    },
     previewContent: {
         alignItems: 'center',
         flexDirection: 'row',
@@ -65,7 +84,7 @@ const styles = StyleSheet.create({
         paddingVertical: SIZES.sm + SIZES['2xs'],
     },
     previewHeadline: {
-        color: '#1A1A1A',
+        color: COLORS.text.primary,
         fontFamily: FONT_FAMILY.medium,
         fontSize: 15,
         letterSpacing: 0.2,
@@ -96,5 +115,10 @@ const styles = StyleSheet.create({
         gap: 6,
         justifyContent: 'center',
         paddingRight: 8,
+    },
+    status: {
+        color: COLORS.text.status,
+        fontFamily: FONT_FAMILY.bold,
+        fontSize: 13,
     },
 });
