@@ -2,7 +2,7 @@
   "expo": {
     "name": "Fake News",
     "slug": "fake-news",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/icons/app-icon.png",
     "userInterfaceStyle": "automatic",
@@ -22,7 +22,11 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.jterrazz.fakenews",
-      "hermesBuildFlags": ["-DWITH_DYNARR=0"]
+      "hermesBuildFlags": ["-DWITH_DYNARR=0"],
+      "infoPlist": {
+        "CFBundleAllowMixedLocalizations": true,
+        "CFBundleLocalizations": ["en", "fr"]
+      }
     },
     "android": {
       "package": "com.jterrazz.fakenews"
