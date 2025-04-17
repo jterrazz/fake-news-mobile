@@ -18,12 +18,8 @@ export function ResponseIndicator({ isCorrect, style }: StatusIndicatorProps) {
 const styles = StyleSheet.create({
     container: {
         borderRadius: 6,
-        height: 12,
-        position: 'absolute',
-        right: -5,
-        top: -5,
-        width: 12,
-        zIndex: 1,
+        height: 10,
+        width: 10,
     },
     correct: {
         backgroundColor: '#83C5BE',

@@ -53,7 +53,6 @@ export function ArticlePreview({
                         style={styles.previewIcon}
                         resizeMode="cover"
                     />
-                    {isAnswered && <ResponseIndicator isCorrect={isCorrect} />}
                 </View>
             </View>
 
@@ -63,7 +62,12 @@ export function ArticlePreview({
                 </Text>
                 <View style={styles.metaContainer}>
                     <CategoryLabel>{category}</CategoryLabel>
-                    {isAnswered && <Text style={styles.status}>{getStatusText()}</Text>}
+                    {isAnswered && (
+                        <View style={styles.statusContainer}>
+                            <ResponseIndicator isCorrect={isCorrect} />
+                            <Text style={styles.status}>{getStatusText()}</Text>
+                        </View>
+                    )}
                 </View>
             </View>
         </View>
@@ -120,5 +124,11 @@ const styles = StyleSheet.create({
         color: COLORS.text.status,
         fontFamily: FONT_FAMILY.bold,
         fontSize: 13,
+        lineHeight: 18,
+    },
+    statusContainer: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        gap: SIZES.xs,
     },
 });

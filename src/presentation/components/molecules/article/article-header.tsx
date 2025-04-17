@@ -15,14 +15,25 @@ interface ArticleHeaderProps {
     date: Date;
 }
 
-export function ArticleHeader({ category, headline, isAnswered, isFake, date }: ArticleHeaderProps) {
+export function ArticleHeader({
+    category,
+    headline,
+    isAnswered,
+    isFake,
+    date,
+}: ArticleHeaderProps) {
     return (
         <View style={styles.header}>
             <View style={styles.topRow}>
                 <CategoryLabel>{category}</CategoryLabel>
             </View>
             <Headline style={styles.headline}>{headline}</Headline>
-            <PublisherInfo headline={headline} isAnswered={isAnswered} isFake={isFake} date={date} />
+            <PublisherInfo
+                headline={headline}
+                isAnswered={isAnswered}
+                isFake={isFake}
+                date={date}
+            />
         </View>
     );
 }
