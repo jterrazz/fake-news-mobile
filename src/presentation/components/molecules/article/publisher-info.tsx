@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     },
     icon: {
-        borderRadius: 10,
+        borderRadius: 14,
         height: 28,
         width: 28,
     },

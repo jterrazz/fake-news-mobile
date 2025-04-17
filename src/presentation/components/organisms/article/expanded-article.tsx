@@ -32,9 +32,9 @@ export function ExpandedArticle({
 }: ExpandedArticleProps) {
     return (
         <ReAnimated.View style={[styles.expandedContent, contentAnimatedStyle]}>
-            <ArticleHeader 
-                category={article.category} 
-                headline={article.headline} 
+            <ArticleHeader
+                category={article.category}
+                headline={article.headline}
                 isAnswered={isAnswered}
                 isFake={article.isFake}
             />
