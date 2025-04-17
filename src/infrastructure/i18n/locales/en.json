@@ -1,5 +1,17 @@
 {
   "common": {
+    "categories": {
+      "world": "World",
+      "politics": "Politics",
+      "business": "Business",
+      "technology": "Technology",
+      "science": "Science",
+      "health": "Health",
+      "sports": "Sports",
+      "entertainment": "Entertainment",
+      "lifestyle": "Lifestyle",
+      "other": "Other"
+    },
     "navigation": {
       "newsFeed": "News Feed",
       "settings": "Settings"

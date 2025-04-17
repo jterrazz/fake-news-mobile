@@ -1,5 +1,17 @@
 {
   "common": {
+    "categories": {
+      "world": "Monde",
+      "politics": "Politique",
+      "business": "Économie",
+      "technology": "Technologie",
+      "science": "Science",
+      "health": "Santé",
+      "sports": "Sports",
+      "entertainment": "Divertissement",
+      "lifestyle": "Art de vivre",
+      "other": "Autre"
+    },
     "navigation": {
       "newsFeed": "Fil d'actualités",
       "settings": "Paramètres"
