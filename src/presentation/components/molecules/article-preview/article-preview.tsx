@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Image, StyleSheet, Text, View } from 'react-native';
 
 import CheckMark from '../../../../../assets/images/check-mark.jpg';
@@ -33,6 +34,8 @@ export function ArticlePreview({
     isCorrect,
     isFake,
 }: ArticlePreviewProps) {
+    const { t } = useTranslation();
+
     const getStatusImage = () => {
         if (!isAnswered) return QuestionMark;
         return isFake ? CheckMark : Cross;
@@ -40,7 +43,7 @@ export function ArticlePreview({
 
     const getStatusText = () => {
         if (!isAnswered) return '';
-        return isFake ? 'Fake' : 'Real';
+        return isFake ? t('common:newsFeed.fake') : t('common:newsFeed.real');
     };
 
     const getStatusColor = () => {
