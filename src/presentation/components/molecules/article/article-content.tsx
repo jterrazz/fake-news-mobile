@@ -13,7 +13,6 @@ interface ArticleContentProps {
 export function ArticleContent({ contentWithAnnotations }: ArticleContentProps) {
     return (
         <View style={styles.container}>
-            {/* <Markdown style={markdownStyles}>{contentWithAnnotations}</Markdown> */}
             <GradientTextMask style={{ fontSize: 16, fontWeight: '500', lineHeight: 24 }}>
                 {contentWithAnnotations}
             </GradientTextMask>

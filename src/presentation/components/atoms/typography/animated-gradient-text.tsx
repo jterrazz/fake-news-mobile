@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 interface Props {
     children: string;
     style?: TextStyle;
+    theme?: 'ai' | 'success' | 'failed';
 }
 
 interface TextPart {
@@ -21,6 +22,21 @@ interface TextPart {
     gradient: boolean;
     bold: boolean;
 }
+
+const GRADIENT_THEMES = {
+    ai: {
+        colors: ['#6366F1', '#8B5CF6', '#A78BFA', '#EC4899', '#6366F1'] as const,
+        duration: 7000,
+    },
+    failed: {
+        colors: ['#DC2626', '#EF4444', '#F87171', '#FCA5A5', '#DC2626'] as const,
+        duration: 3000,
+    },
+    success: {
+        colors: ['#059669', '#10B981', '#34D399', '#6EE7B7', '#059669'] as const,
+        duration: 5000,
+    },
+} as const;
 
 const processNextMarker = (
     text: string,
@@ -96,7 +112,7 @@ const extractParts = (text: string): TextPart[] => {
     return parts;
 };
 
-export function GradientTextMask({ children, style }: Props) {
+export function GradientTextMask({ children, style, theme = 'ai' }: Props) {
     const animatedValue = useRef(new Animated.Value(0)).current;
     const [textHeight, setTextHeight] = useState(style?.fontSize ?? 16);
 
@@ -107,29 +123,29 @@ export function GradientTextMask({ children, style }: Props) {
     useEffect(() => {
         Animated.loop(
             Animated.timing(animatedValue, {
-                duration: 7000,
+                duration: GRADIENT_THEMES[theme].duration,
                 easing: Easing.linear,
                 toValue: 1,
                 useNativeDriver: true,
             }),
         ).start();
-    }, []);
+    }, [theme]);
 
     const translateX = animatedValue.interpolate({
         inputRange: [0, 1],
         outputRange: [0, -gradientWidth], // Only animate by visible area
     });
 
-    // Smooth multi-color AI gradient with perfect loop
-    const baseColors = ['#6366F1', '#8B5CF6', '#A78BFA', '#EC4899', '#6366F1'] as const;
+    // Get theme colors and create gradient
+    const baseColors = GRADIENT_THEMES[theme].colors;
     const repeated = Array(repeatFactor)
         .fill([...baseColors])
         .flat();
     const gradientColors: [string, string, ...string[]] = [
-        '#6366F1',
-        '#8B5CF6',
+        baseColors[0],
+        baseColors[1],
         ...repeated.slice(2),
-        '#6366F1',
+        baseColors[0],
     ];
 
     const parts = extractParts(children);
