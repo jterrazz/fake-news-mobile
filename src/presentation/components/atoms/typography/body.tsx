@@ -1,15 +1,19 @@
 import React from 'react';
 import { StyleSheet, Text, TextProps } from 'react-native';
 
-import { FONT_FAMILY } from '@/presentation/theme/typography';
-
 interface BodyProps extends TextProps {
     children: React.ReactNode;
     variant?: 'primary' | 'secondary';
     size?: 'small' | 'medium' | 'large';
 }
 
-export function Body({ children, variant = 'primary', size = 'medium', style, ...props }: BodyProps) {
+export function Body({
+    children,
+    variant = 'primary',
+    size = 'medium',
+    style,
+    ...props
+}: BodyProps) {
     return (
         <Text style={[styles.base, styles[variant], styles[size], style]} {...props}>
             {children}
@@ -20,7 +24,7 @@ export function Body({ children, variant = 'primary', size = 'medium', style, ..
 const styles = StyleSheet.create({
     base: {
         color: '#1A1A1A',
-        fontFamily: FONT_FAMILY.regular,
+        fontFamily: 'Libre Baskerville',
         letterSpacing: 0.1,
     },
     large: {
@@ -41,4 +45,4 @@ const styles = StyleSheet.create({
         fontSize: 14,
         lineHeight: 22,
     },
-}); 
+});

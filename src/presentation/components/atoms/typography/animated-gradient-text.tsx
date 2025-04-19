@@ -11,6 +11,7 @@ import {
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
 
+
 interface Props {
     children: string;
     style?: TextStyle;
@@ -114,7 +115,7 @@ const extractParts = (text: string): TextPart[] => {
 
 export function GradientTextMask({ children, style, theme = 'ai' }: Props) {
     const animatedValue = useRef(new Animated.Value(0)).current;
-    const [textHeight, setTextHeight] = useState(style?.fontSize ?? 16);
+    const [textHeight, setTextHeight] = useState(style?.fontSize ?? 20);
 
     const gradientWidth = 800; // Visible width
     const repeatFactor = 3; // How many times to repeat the color cycle
@@ -158,7 +159,15 @@ export function GradientTextMask({ children, style, theme = 'ai' }: Props) {
     };
 
     const renderText = (part: TextPart, baseStyle: TextStyle | undefined) => (
-        <Text style={[baseStyle, part.bold && { fontWeight: '700' }]}>{part.text}</Text>
+        <Text
+            style={[
+                baseStyle,
+                part.bold && { fontWeight: '700' },
+                { fontFamily: 'Libre Baskerville' },
+            ]}
+        >
+            {part.text}
+        </Text>
     );
 
     return (

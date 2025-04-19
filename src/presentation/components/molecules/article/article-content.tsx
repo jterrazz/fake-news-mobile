@@ -4,7 +4,6 @@ import { StyleSheet, View } from 'react-native';
 import { GradientTextMask } from '../../atoms/typography/animated-gradient-text.js';
 import { SIZES } from '../../sizes.jsx';
 
-
 interface ArticleContentProps {
     contentWithAnnotations: string;
     wasCorrect?: boolean | null;
@@ -14,7 +13,7 @@ export function ArticleContent({ contentWithAnnotations, wasCorrect }: ArticleCo
     return (
         <View style={styles.container}>
             <GradientTextMask
-                style={{ fontSize: 16, fontWeight: '500', lineHeight: 24 }}
+                style={{ fontSize: 15, fontWeight: '500', lineHeight: 24 }}
                 theme={'failed'}
             >
                 {contentWithAnnotations}

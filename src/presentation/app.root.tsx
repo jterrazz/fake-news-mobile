@@ -1,5 +1,7 @@
 import React from 'react';
 import { Platform, StatusBar, UIManager } from 'react-native';
+import { BebasNeue_400Regular } from '@expo-google-fonts/bebas-neue/400Regular';
+import { LibreBaskerville_400Regular } from '@expo-google-fonts/libre-baskerville/400Regular';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
@@ -32,6 +34,7 @@ function Providers({ children }: { children: React.ReactNode }) {
 
 export function AppRoot() {
     const [fontsLoaded] = useFonts({
+        'BebasNeue-Regular': BebasNeue_400Regular,
         'Geist-Black': require('../../assets/fonts/Geist-Black.otf'),
         'Geist-Bold': require('../../assets/fonts/Geist-Bold.otf'),
         'Geist-ExtraBold': require('../../assets/fonts/Geist-ExtraBold.otf'),
@@ -41,6 +44,7 @@ export function AppRoot() {
         'Geist-Regular': require('../../assets/fonts/Geist-Regular.otf'),
         'Geist-SemiBold': require('../../assets/fonts/Geist-SemiBold.otf'),
         'Geist-Thin': require('../../assets/fonts/Geist-Thin.otf'),
+        'Libre Baskerville': LibreBaskerville_400Regular,
     });
 
     React.useEffect(() => {
