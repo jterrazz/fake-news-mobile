@@ -11,11 +11,11 @@ import {
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
 
-
 interface Props {
     children: string;
     style?: TextStyle;
     theme?: 'ai' | 'success' | 'failed';
+    defaultColor?: string;
 }
 
 interface TextPart {
@@ -113,7 +113,12 @@ const extractParts = (text: string): TextPart[] => {
     return parts;
 };
 
-export function GradientTextMask({ children, style, theme = 'ai' }: Props) {
+export function GradientTextMask({
+    children,
+    style,
+    theme = 'ai',
+    defaultColor = '#000000',
+}: Props) {
     const animatedValue = useRef(new Animated.Value(0)).current;
     const [textHeight, setTextHeight] = useState(style?.fontSize ?? 20);
 
@@ -173,7 +178,7 @@ export function GradientTextMask({ children, style, theme = 'ai' }: Props) {
     return (
         <View style={{ position: 'relative' }}>
             {/* Base text layer */}
-            <Text style={style} onLayout={onLayout}>
+            <Text style={[style, { color: defaultColor }]} onLayout={onLayout}>
                 {parts.map((part, i) => (
                     <Text key={i}>{renderText(part, style)}</Text>
                 ))}
