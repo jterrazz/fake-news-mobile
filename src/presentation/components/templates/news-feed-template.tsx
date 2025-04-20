@@ -10,10 +10,12 @@ import {
     StyleSheet,
     Text,
     View,
-    ViewStyle,
 } from 'react-native';
-import ReAnimated, { AnimatedStyleProp, useAnimatedScrollHandler } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ReAnimated, {
+    useAnimatedScrollHandler,
+    useAnimatedStyle,
+    useSharedValue,
+} from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { NewsEntity } from '@/domain/news/news.entity';
@@ -23,7 +25,6 @@ import { NewsFeed } from '../organisms/article/news-feed.jsx';
 import { LoadingSpinner } from '@/presentation/components/atoms/indicators/loading-spinner';
 import { CelebrationParticle } from '@/presentation/components/molecules/feedback/celebration-particle';
 import { NewsHeader } from '@/presentation/components/molecules/header/news-header';
-import { ExpandedArticle } from '@/presentation/components/organisms/article/expanded-article';
 import { SIZES } from '@/presentation/components/sizes';
 
 interface NewsFeedTemplateProps {
@@ -37,9 +38,6 @@ interface NewsFeedTemplateProps {
     score: { score: number; streak: number };
     lastClickedPosition: { x: number; y: number };
     answer?: { wasCorrect: boolean };
-    headerAnimatedStyle: AnimatedStyleProp<ViewStyle>;
-    titleAnimatedStyle: AnimatedStyleProp<ViewStyle>;
-    scrollHandler: (event: { nativeEvent: { contentOffset: { y: number } } }) => void;
     onTabChange: (tab: 'latest' | 'to-read') => void;
     onArticleSelect: (index: number) => void;
     onAnswerClick: (selectedFake: boolean, articleId: string, wasCorrect: boolean) => void;
@@ -59,21 +57,17 @@ export function NewsFeedTemplate({
     score,
     lastClickedPosition,
     answer,
-    headerAnimatedStyle,
-    titleAnimatedStyle,
-    scrollHandler,
     onTabChange,
     onArticleSelect,
     onAnswerClick,
     onRefresh,
     onEndReached,
-    suppressScroll,
 }: NewsFeedTemplateProps) {
     const { t } = useTranslation();
     const scrollViewRef = React.useRef<ReAnimated.ScrollView>(null);
-    const { top } = useSafeAreaInsets();
+    const scrollY = useSharedValue(0);
 
-    // Only reset scroll position when tab changes, not when new articles are loaded
+    // Only reset scroll position when tab changes
     React.useEffect(() => {
         if (scrollViewRef.current) {
             scrollViewRef.current.scrollTo({ animated: false, y: 0 });
@@ -83,12 +77,11 @@ export function NewsFeedTemplate({
     const handleScroll = React.useCallback(
         (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
-            const paddingToBottom = 50; // Increased threshold for earlier loading
+            const paddingToBottom = 50;
             const isCloseToBottom =
                 layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom;
 
             if (isCloseToBottom && !isLoadingMore && hasNextPage) {
-                // Debounce the onEndReached call to prevent multiple triggers
                 requestAnimationFrame(() => {
                     onEndReached();
                 });
@@ -97,64 +90,24 @@ export function NewsFeedTemplate({
         [isLoadingMore, hasNextPage, onEndReached],
     );
 
-    const combinedScrollHandler = useAnimatedScrollHandler({
+    const scrollHandler = useAnimatedScrollHandler({
         onScroll: (event) => {
             'worklet';
-            scrollHandler({ nativeEvent: { contentOffset: { y: event.contentOffset.y } } });
+            scrollY.value = event.contentOffset.y;
         },
     });
 
-    const renderExpandedContent = (
-        article: NewsEntity,
-        contentAnimatedStyle: AnimatedStyleProp<ViewStyle>,
-        scrollToArticle?: (index: number) => void,
-    ) => {
-        const shouldShowNextButton = expandedIndex < newsItems.length - 1;
-        const isArticleAnswered = selectedAnswer !== null || article.answered !== undefined;
+    const headerAnimatedStyle = useAnimatedStyle(() => {
+        return {
+            transform: [{ translateY: 0 }],
+        };
+    });
 
-        // Force selectedAnswer to be a boolean if the article is already answered but selectedAnswer is null
-        const effectiveSelectedAnswer =
-            selectedAnswer !== null
-                ? selectedAnswer
-                : article.answered
-                  ? article.answered.wasCorrect === article.isFake // If wasCorrect is true and article is fake, the user selected "fake"
-                  : null;
-
-        console.log(
-            `Rendering article ${expandedIndex}, should show next button: ${shouldShowNextButton}`,
-        );
-        console.log(
-            `Article answered status: isAnswered=${isArticleAnswered}, effectiveSelectedAnswer=${effectiveSelectedAnswer}`,
-        );
-
-        return (
-            <ExpandedArticle
-                article={article}
-                contentAnimatedStyle={contentAnimatedStyle}
-                isAnswered={isArticleAnswered}
-                selectedAnswer={effectiveSelectedAnswer}
-                wasCorrect={answer?.wasCorrect ?? article.answered?.wasCorrect}
-                onAnswerClick={onAnswerClick}
-                onNextArticle={() => {
-                    console.log('Next article button pressed');
-                    const nextIndex = expandedIndex + 1;
-                    if (nextIndex >= newsItems.length) return;
-
-                    // First select the article to start expansion animation
-                    onArticleSelect(nextIndex);
-
-                    // Then use the scrollToArticle with a slight delay to let expansion begin
-                    if (scrollToArticle) {
-                        // Short delay to let the expansion animation start first
-                        setTimeout(() => {
-                            scrollToArticle(nextIndex);
-                        }, 100);
-                    }
-                }}
-                showNextButton={shouldShowNextButton}
-            />
-        );
-    };
+    const titleAnimatedStyle = useAnimatedStyle(() => {
+        return {
+            transform: [{ translateY: 0 }],
+        };
+    });
 
     const renderCelebrationEffect = () => {
         if (!answer?.wasCorrect || lastClickedPosition.x === 0) return null;
@@ -182,9 +135,26 @@ export function NewsFeedTemplate({
     };
 
     // COMPONENT LAYOUT ARCHITECTURE
-    // Use a fixed pixel-based approach that won't reflow or recalculate on navigation
     const SCREEN_HEIGHT = Dimensions.get('window').height;
     const FIXED_HEADER_HEIGHT = Platform.OS === 'ios' ? 110 : 90;
+
+    let content;
+    if (isRefreshing) {
+        content = <LoadingSpinner size="large" />;
+    } else if (newsItems.length === 0) {
+        content = (
+            <View style={styles.emptyState}>
+                <Text style={styles.emptyStateText}>{t('common:newsFeed.noArticles')}</Text>
+            </View>
+        );
+    } else {
+        content = (
+            <>
+                <NewsFeed articles={newsItems} onAnswerClick={onAnswerClick} />
+                {renderFooter()}
+            </>
+        );
+    }
 
     return (
         <View style={styles.mainContainer}>
@@ -195,6 +165,7 @@ export function NewsFeedTemplate({
                     score={score}
                     headerAnimatedStyle={headerAnimatedStyle}
                     titleAnimatedStyle={titleAnimatedStyle}
+                    scrollY={scrollY}
                 />
             </View>
 
@@ -211,7 +182,7 @@ export function NewsFeedTemplate({
                 <ReAnimated.ScrollView
                     ref={scrollViewRef}
                     style={styles.scrollView}
-                    onScroll={combinedScrollHandler}
+                    onScroll={scrollHandler}
                     scrollEventThrottle={16}
                     bounces={true}
                     showsVerticalScrollIndicator={false}
@@ -236,31 +207,7 @@ export function NewsFeedTemplate({
                     }}
                     removeClippedSubviews={true}
                 >
-                    <View style={styles.container}>
-                        {isRefreshing ? (
-                            <LoadingSpinner size="large" />
-                        ) : newsItems.length === 0 ? (
-                            <View style={styles.emptyState}>
-                                <Text style={styles.emptyStateText}>
-                                    {t('common:newsFeed.noArticles')}
-                                </Text>
-                            </View>
-                        ) : (
-                            <>
-                                {/* <ArticleList
-                                    articles={newsItems}
-                                    expandedIndex={expandedIndex}
-                                    onArticlePress={onArticleSelect}
-                                    renderExpandedContent={renderExpandedContent}
-                                    scrollViewRef={scrollViewRef}
-                                    suppressScroll={suppressScroll}
-                                /> */}
-
-                                <NewsFeed articles={newsItems} onAnswerClick={onAnswerClick} />
-                                {renderFooter()}
-                            </>
-                        )}
-                    </View>
+                    <View style={styles.container}>{content}</View>
                 </ReAnimated.ScrollView>
                 <LinearGradient
                     colors={['rgba(255,255,255,0)', 'rgba(255,255,255,1)']}

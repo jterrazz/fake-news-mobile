@@ -7,16 +7,17 @@ import { ArticleHeader } from '../../molecules/article/article-header.jsx';
 import { SIZES } from '../../sizes.js';
 import { AnswerButtons } from '../question/answer-buttons.js';
 
+export interface NewsFeedProps {
+    articles: NewsEntity[];
+    onAnswerClick: (selectedFake: boolean, articleId: string, wasCorrect: boolean) => void;
+}
+
 export function NewsFeed({
     articles,
     onAnswerClick,
-}: {
-    articles: NewsEntity[];
-    onAnswerClick: (selectedFake: boolean, articleId: string, wasCorrect: boolean) => void;
-}) {
+}: NewsFeedProps) {
     const getSelectedAnswer = (article: NewsEntity): boolean | null => {
         const isArticleAnswered = article.answered !== undefined;
-
         return isArticleAnswered ? article.answered.wasCorrect === article.isFake : null;
     };
 
@@ -49,8 +50,8 @@ export function NewsFeed({
                             onAnswerClick(selectedFake, article.id, selectedFake === article.isFake)
                         }
                         onNextArticle={() => {}}
-                        showNextButton={false} // TODO Delete param
-                        currentArticleId={article.id} // TODO Delete param
+                        showNextButton={false}
+                        currentArticleId={article.id}
                         article={article}
                     />
                 </View>
