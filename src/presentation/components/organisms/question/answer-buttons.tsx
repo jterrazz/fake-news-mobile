@@ -388,6 +388,7 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
         gap: SIZES.md,
         justifyContent: 'center',
+        marginTop: SIZES.xs,
         position: 'relative',
         width: '100%',
     },
