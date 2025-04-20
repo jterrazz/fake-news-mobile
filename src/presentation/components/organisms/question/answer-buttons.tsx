@@ -1,14 +1,6 @@
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-    Animated,
-    Easing,
-    GestureResponderEvent,
-    Platform,
-    StyleSheet,
-    Text,
-    View,
-} from 'react-native';
+import { Animated, Easing, Platform, StyleSheet, Text, View } from 'react-native';
 
 import { NewsEntity } from '@/domain/news/news.entity';
 
@@ -27,7 +19,7 @@ interface AnswerButtonsProps {
     isAnswered: boolean;
     selectedAnswer: boolean | null;
     wasCorrect?: boolean;
-    onAnswerClick: (selectedFake: boolean, position: ButtonPosition) => void;
+    onAnswerClick: (selectedFake: boolean) => void;
     onNextArticle?: () => void;
     showNextButton?: boolean;
     currentArticleId: string;
@@ -269,15 +261,9 @@ export function AnswerButtons({
         }).start();
     };
 
-    const handleAnswerClick = (selectedFake: boolean, event: GestureResponderEvent | undefined) => {
-        const position = event
-            ? {
-                  x: event.nativeEvent.pageX,
-                  y: event.nativeEvent.pageY,
-              }
-            : { x: 0, y: 0 };
+    const handleAnswerClick = (selectedFake: boolean) => {
         animateSelection(selectedFake);
-        onAnswerClick(selectedFake, position);
+        onAnswerClick(selectedFake);
     };
 
     const getButtonVariant = (isSelected: boolean) => {
@@ -358,7 +344,7 @@ export function AnswerButtons({
                     >
                         <TextButton
                             variant={getButtonVariant(selectedAnswer === true)}
-                            onPress={() => handleAnswerClick(true, undefined)}
+                            onPress={() => handleAnswerClick(true)}
                             disabled={isAnswered}
                             size="small"
                         >
@@ -383,7 +369,7 @@ export function AnswerButtons({
                     >
                         <TextButton
                             variant={getButtonVariant(selectedAnswer === false)}
-                            onPress={() => handleAnswerClick(false, undefined)}
+                            onPress={() => handleAnswerClick(false)}
                             disabled={isAnswered}
                             size="small"
                         >

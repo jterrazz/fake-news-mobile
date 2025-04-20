@@ -17,26 +17,31 @@ interface NewsQuestionResult {
               wasCorrect: boolean;
           }
         | undefined;
-    handleAnswer: (selectedFake: boolean) => Promise<void>;
+    handleAnswer: (selectedFake: boolean, articleId: string, wasCorrect: boolean) => Promise<void>;
     score: { score: number; streak: number };
 }
 
+// TODO Delete newsItem param
 export const useNewsQuestion = ({ newsItem }: UseNewsQuestionProps): NewsQuestionResult => {
     const { addAnswer, answers, score } = useNewsStore();
 
     const handleAnswer = useCallback(
-        async (selectedFake: boolean) => {
+        async (selectedFake: boolean, articleId: string, wasCorrect: boolean) => {
+            // TODO Refacto
             if (!newsItem) return;
 
-            const isCorrect = selectedFake === newsItem.isFake;
+            console.log(selectedFake);
+            console.log(newsItem.isFake);
 
-            if (isCorrect) {
+            if (wasCorrect) {
+                console.log('isCorrect');
                 await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             } else {
+                console.log('isNotCorrect');
                 await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
             }
 
-            addAnswer(newsItem.id, isCorrect);
+            addAnswer(articleId, wasCorrect);
         },
         [newsItem, addAnswer],
     );

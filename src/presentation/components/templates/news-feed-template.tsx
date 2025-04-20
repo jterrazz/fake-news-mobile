@@ -42,7 +42,7 @@ interface NewsFeedTemplateProps {
     scrollHandler: (event: { nativeEvent: { contentOffset: { y: number } } }) => void;
     onTabChange: (tab: 'latest' | 'to-read') => void;
     onArticleSelect: (index: number) => void;
-    onAnswerClick: (selectedFake: boolean, buttonPosition: { x: number; y: number }) => void;
+    onAnswerClick: (selectedFake: boolean, articleId: string, wasCorrect: boolean) => void;
     onRefresh: () => Promise<void>;
     onEndReached: () => void;
     suppressScroll?: boolean;

@@ -12,7 +12,7 @@ export function NewsFeed({
     onAnswerClick,
 }: {
     articles: NewsEntity[];
-    onAnswerClick: (selectedFake: boolean) => void;
+    onAnswerClick: (selectedFake: boolean, articleId: string, wasCorrect: boolean) => void;
 }) {
     const getSelectedAnswer = (article: NewsEntity): boolean | null => {
         const isArticleAnswered = article.answered !== undefined;
@@ -21,9 +21,9 @@ export function NewsFeed({
     };
 
     articles.map((article) => {
-        console.log('issou');
-        console.log(article);
-        console.log(article.answered);
+        // console.log('issou');
+        // console.log(article);
+        // console.log(article.answered);
     });
 
     return (
@@ -39,13 +39,15 @@ export function NewsFeed({
                     />
                     <ArticleContent
                         contentWithAnnotations={article.contentWithAnnotations}
-                        wasCorrect={true}
+                        wasCorrect={article.answered?.wasCorrect}
                     />
                     <AnswerButtons
                         isAnswered={!!article.answered}
                         selectedAnswer={getSelectedAnswer(article)}
                         wasCorrect={article.answered?.wasCorrect}
-                        onAnswerClick={onAnswerClick}
+                        onAnswerClick={(selectedFake) =>
+                            onAnswerClick(selectedFake, article.id, selectedFake === article.isFake)
+                        }
                         onNextArticle={() => {}}
                         showNextButton={false} // TODO Delete param
                         currentArticleId={article.id} // TODO Delete param

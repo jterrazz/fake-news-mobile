@@ -105,22 +105,17 @@ export function NewsFeedScreen() {
         setLastClickedPosition({ x: 0, y: 0 });
     };
 
-    const handleAnswerClick = async (
-        selectedFake: boolean,
-        buttonPosition: { x: number; y: number },
-    ) => {
-        setSuppressScroll(true);
-
+    const handleAnswerClick = async (selectedFake: boolean, articleId: string, wasCorrect: boolean) => {
         setSelectedAnswer(selectedFake);
         console.log(`Setting selectedAnswer to ${selectedFake}`);
 
-        setLastClickedPosition(buttonPosition);
+        // setLastClickedPosition(buttonPosition);
 
         if (currentNewsItem) {
-            setAnsweredInSession((prev) => new Set(prev).add(currentNewsItem.id));
+            setAnsweredInSession((prev) => new Set(prev).add(articleId));
         }
 
-        await handleAnswer(selectedFake);
+        await handleAnswer(selectedFake, articleId, wasCorrect);
     };
 
     const handleRefresh = async () => {
