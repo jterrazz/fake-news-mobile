@@ -73,28 +73,25 @@ export function NewsFeedTemplate({
     const scrollViewRef = React.useRef<ReAnimated.ScrollView>(null);
     const { top } = useSafeAreaInsets();
 
-    // Reset scroll position when the component mounts or when activeTab changes
+    // Only reset scroll position when tab changes, not when new articles are loaded
     React.useEffect(() => {
-        // Small timeout to ensure the component is fully rendered
-        const timeout = setTimeout(() => {
-            if (scrollViewRef.current) {
-                // Force an immediate hard reset of the scroll position
-                scrollViewRef.current.scrollTo({ animated: false, y: 0 });
-            }
-        }, 50);
-
-        return () => clearTimeout(timeout);
-    }, [activeTab, newsItems.length]);
+        if (scrollViewRef.current) {
+            scrollViewRef.current.scrollTo({ animated: false, y: 0 });
+        }
+    }, [activeTab]);
 
     const handleScroll = React.useCallback(
         (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
-            const paddingToBottom = 20;
+            const paddingToBottom = 50; // Increased threshold for earlier loading
             const isCloseToBottom =
                 layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom;
 
             if (isCloseToBottom && !isLoadingMore && hasNextPage) {
-                onEndReached();
+                // Debounce the onEndReached call to prevent multiple triggers
+                requestAnimationFrame(() => {
+                    onEndReached();
+                });
             }
         },
         [isLoadingMore, hasNextPage, onEndReached],
@@ -220,7 +217,7 @@ export function NewsFeedTemplate({
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={{
                         flexGrow: 1,
-                        paddingTop: Platform.OS === 'ios' ? 30 : 20, // Fixed padding inside scroll content
+                        paddingTop: Platform.OS === 'ios' ? 30 : 20,
                     }}
                     onMomentumScrollEnd={handleScroll}
                     refreshControl={
@@ -233,6 +230,11 @@ export function NewsFeedTemplate({
                             progressViewOffset={100}
                         />
                     }
+                    maintainVisibleContentPosition={{
+                        autoscrollToTopThreshold: 10,
+                        minIndexForVisible: 0,
+                    }}
+                    removeClippedSubviews={true}
                 >
                     <View style={styles.container}>
                         {isRefreshing ? (
