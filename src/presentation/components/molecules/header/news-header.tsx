@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import ReAnimated, {
     AnimatedStyleProp,
     interpolate,
@@ -38,20 +38,29 @@ export function NewsHeader({
     const { t } = useTranslation();
 
     const logoAnimatedStyle = useAnimatedStyle(() => {
-        const opacity = interpolate(scrollY.value, [0, 50], [0, 1], 'clamp');
+        const progress = interpolate(scrollY.value, [0, 50], [0, 1], 'clamp');
+
+        const translateY = interpolate(progress, [0, 1], [5, 0], 'clamp');
+
+        const scale = interpolate(progress, [0, 1], [0.9, 1], 'clamp');
 
         return {
-            opacity,
-            transform: [{ translateX: -48 }],
-        };
+            opacity: progress,
+            transform: [{ translateX: -48 }, { scale }, { translateY }],
+        } as const;
     });
 
     const titleAnimatedStyle2 = useAnimatedStyle(() => {
-        const opacity = interpolate(scrollY.value, [0, 50], [1, 0], 'clamp');
+        const progress = interpolate(scrollY.value, [0, 50], [1, 0], 'clamp');
+
+        const translateY = interpolate(progress, [0, 1], [0, -5], 'clamp');
+
+        const scale = interpolate(progress, [0, 1], [1, 0.9], 'clamp');
 
         return {
-            opacity,
-        };
+            opacity: progress,
+            transform: [{ scale }, { translateY }],
+        } as const;
     });
 
     return (
@@ -87,10 +96,7 @@ const styles = StyleSheet.create({
         top: 0,
         zIndex: 10,
     },
-    headerContent: {
-        paddingHorizontal: 16,
-        paddingTop: Platform.OS === 'ios' ? 44 : 28,
-    },
+    headerContent: {},
     headerContentInner: {
         alignItems: 'center',
         borderBottomColor: 'rgba(0, 0, 0, 0.05)',
@@ -104,6 +110,7 @@ const styles = StyleSheet.create({
         height: 30,
         left: '50%',
         position: 'absolute',
+        top: '50%',
         width: 96,
     },
     titleContainer: {
@@ -113,8 +120,8 @@ const styles = StyleSheet.create({
     },
     titleOverlapContainer: {
         alignItems: 'center',
-        height: 30,
         justifyContent: 'center',
+        paddingVertical: SIZES.md,
         position: 'relative',
         width: '100%',
     },
@@ -122,6 +129,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         position: 'absolute',
+        top: '50%',
+
         width: '100%',
     },
 });

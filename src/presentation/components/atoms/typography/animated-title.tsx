@@ -110,9 +110,8 @@ const styles = StyleSheet.create({
     letter: {
         color: '#000000',
         fontFamily: 'BebasNeue-Regular',
-        fontSize: 34,
+        fontSize: 36,
         fontWeight: '900',
-        letterSpacing: 1,
         textAlign: 'center',
     },
 });
