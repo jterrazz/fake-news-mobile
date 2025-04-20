@@ -4,8 +4,6 @@ import { StyleSheet, Text, TextProps, View, ViewStyle } from 'react-native';
 
 import type { NewsCategory } from '@/application/ports/news.repository';
 
-import { FONT_FAMILY } from '@/presentation/theme/typography';
-
 interface CategoryLabelProps extends TextProps {
     children: NewsCategory;
     containerStyle?: ViewStyle;
@@ -31,14 +29,12 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0, 0, 0, 0.05)',
         borderRadius: 6,
         paddingHorizontal: 6,
-        paddingVertical: 2,
+        paddingVertical: 3,
     },
     text: {
         color: '#666666',
-        fontFamily: FONT_FAMILY.semibold,
-        fontSize: 9,
-        letterSpacing: 0.5,
-        lineHeight: 11,
-        textTransform: 'uppercase',
+        fontSize: 13,
+        fontWeight: '600',
+        lineHeight: 15,
     },
 });

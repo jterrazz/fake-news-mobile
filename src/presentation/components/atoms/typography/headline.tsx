@@ -20,18 +20,14 @@ const styles = StyleSheet.create({
     base: {
         color: darkCharcoal,
         fontFamily: 'BebasNeue-Regular',
-        letterSpacing: 0.2,
     },
     large: {
-        fontSize: 32,
-        lineHeight: 40,
+        fontSize: 40,
     },
     medium: {
-        fontSize: 30,
-        lineHeight: 34,
+        fontSize: 32,
     },
     small: {
         fontSize: 24,
-        lineHeight: 28,
     },
 });

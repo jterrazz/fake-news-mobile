@@ -18,10 +18,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { NewsEntity } from '@/domain/news/news.entity';
 
+import { NewsFeed } from '../organisms/article/news-feed.jsx';
+
 import { LoadingSpinner } from '@/presentation/components/atoms/indicators/loading-spinner';
 import { CelebrationParticle } from '@/presentation/components/molecules/feedback/celebration-particle';
 import { NewsHeader } from '@/presentation/components/molecules/header/news-header';
-import { ArticleList } from '@/presentation/components/organisms/article/article-list';
 import { ExpandedArticle } from '@/presentation/components/organisms/article/expanded-article';
 import { SIZES } from '@/presentation/components/sizes';
 
@@ -244,14 +245,16 @@ export function NewsFeedTemplate({
                             </View>
                         ) : (
                             <>
-                                <ArticleList
+                                {/* <ArticleList
                                     articles={newsItems}
                                     expandedIndex={expandedIndex}
                                     onArticlePress={onArticleSelect}
                                     renderExpandedContent={renderExpandedContent}
                                     scrollViewRef={scrollViewRef}
                                     suppressScroll={suppressScroll}
-                                />
+                                /> */}
+
+                                <NewsFeed articles={newsItems} onAnswerClick={onAnswerClick} />
                                 {renderFooter()}
                             </>
                         )}
