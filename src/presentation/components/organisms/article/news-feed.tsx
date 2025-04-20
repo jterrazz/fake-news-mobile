@@ -39,7 +39,7 @@ export function NewsFeed({
                     />
                     <ArticleContent
                         contentWithAnnotations={article.contentWithAnnotations}
-                        wasCorrect={article.answered?.wasCorrect}
+                        showInlineAnnotations={!!article.answered}
                     />
                     <AnswerButtons
                         isAnswered={!!article.answered}
@@ -61,8 +61,8 @@ export function NewsFeed({
 
 const styles = StyleSheet.create({
     articleContainer: {
-        borderBottomColor: '#E0E0E0',
-        borderBottomWidth: 1,
+        borderBottomColor: '#F5F5F5',
+        borderBottomWidth: 2,
         gap: SIZES.md,
         paddingVertical: SIZES.lg,
     },
