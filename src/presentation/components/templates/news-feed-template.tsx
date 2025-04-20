@@ -136,7 +136,7 @@ export function NewsFeedTemplate({
 
     // COMPONENT LAYOUT ARCHITECTURE
     const SCREEN_HEIGHT = Dimensions.get('window').height;
-    const FIXED_HEADER_HEIGHT = Platform.OS === 'ios' ? 110 : 90;
+    const FIXED_HEADER_HEIGHT = Platform.OS === 'ios' ? 54 : 90;
 
     let content;
     if (isRefreshing) {
